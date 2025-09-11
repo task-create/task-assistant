@@ -1,566 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TASK Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --task-blue-primary: #145078;
-            --task-orange-primary: #ff911f;
-            --task-blue-logo: #0085Ca;
-            --task-green-secondary: #74ba58;
-            --task-yellow-secondary: #ffc91f;
-            --task-teal-secondary: #33A7B5;
-            --task-gray-light: #d9dad9;
-            --task-gray-dark: #6b6b6b;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TASK Assistant</title>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
-        body {
-            font-family: 'Open Sans', sans-serif;
-            background: linear-gradient(135deg, var(--task-blue-primary) 0%, var(--task-teal-secondary) 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
+  <style>
+    :root{
+      --task-blue-primary:#145078;
+      --task-orange-primary:#ff911f;
+      --task-blue-logo:#0085CA;
+      --task-green-secondary:#74ba58;
+      --task-yellow-secondary:#ffc91f;
+      --task-teal-secondary:#33A7B5;
+      --task-gray-light:#d9dad9;
+      --task-gray-dark:#6b6b6b;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:'Open Sans',sans-serif;
+      background:linear-gradient(135deg,var(--task-blue-primary) 0%,var(--task-teal-secondary) 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;
+    }
+    .app-container{
+      width:100%;max-width:420px;background:#fff;border:3px solid var(--task-orange-primary);
+      border-radius:18px;overflow:hidden;box-shadow:0 20px 40px rgba(20,80,120,.3);
+    }
 
-        .app-container {
-            width: 100%;
-            max-width: 420px;
-            background: #fff;
-            border: 3px solid var(--task-orange-primary);
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(20, 80, 120, 0.3);
-        }
+    /* Header (clean, centered) */
+    .header{
+      background:#fff;text-align:center;padding:14px 16px 12px;border-bottom:2px solid var(--task-blue-primary);
+    }
+    .assistant-banner{
+      display:inline-block;background:var(--task-blue-primary);color:#fff;
+      padding:6px 12px;border-radius:999px;font-family:'Nunito',sans-serif;
+      font-size:13px;font-weight:700;letter-spacing:.2px;
+    }
+    .subline{
+      color:var(--task-orange-primary);font-weight:700;font-size:12px;margin-top:6px;
+      font-family:'Nunito',sans-serif;
+    }
 
-        .header {
-            background: var(--task-blue-primary);
-            color: white;
-            text-align: center;
-            padding: 20px 16px;
-            position: relative;
-        }
+    .chat-area{height:360px;overflow-y:auto;padding:16px;background:#fafafa;scroll-behavior:smooth}
+    .welcome-message{background:linear-gradient(135deg,#fff3e0,#ffe8d6);border:2px solid var(--task-orange-primary);border-radius:14px;padding:16px;margin-bottom:16px}
+    .welcome-message h2{font-family:'Nunito',sans-serif;color:var(--task-blue-primary);font-size:18px;margin-bottom:10px}
+    .language-notice{background:var(--task-green-secondary);color:#fff;border-radius:10px;padding:8px 12px;font-size:11px;text-align:center;margin:10px 0;font-weight:600}
+    .quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+    .quick-actions a{display:inline-block;padding:6px 12px;font-size:11px;text-decoration:none;color:var(--task-blue-primary);background:#fff;border:1px solid var(--task-orange-primary);border-radius:20px;transition:.2s;font-weight:600}
+    .quick-actions a:hover{background:var(--task-orange-primary);color:#fff;transform:translateY(-1px)}
 
-        .task-logo {
-            display: inline-block;
-            margin-bottom: 12px;
-        }
+    .message{margin:12px 0;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.4;animation:slideIn .3s ease}
+    .user-message{background:linear-gradient(135deg,var(--task-orange-primary),var(--task-yellow-secondary));color:#fff;margin-left:20%;text-align:right;border-radius:16px 16px 4px 16px;box-shadow:0 4px 12px rgba(255,145,31,.3)}
+    .bot-message{background:#fff;border:2px solid var(--task-blue-logo);color:var(--task-gray-dark);margin-right:20%;border-radius:16px 16px 16px 4px;box-shadow:0 3px 10px rgba(0,133,202,.15)}
+    .typing-indicator{display:flex;align-items:center;background:var(--task-gray-light);padding:12px 16px;margin-right:20%;border-radius:16px 16px 16px 4px}
+    .typing-dots span{width:6px;height:6px;background:var(--task-gray-dark);border-radius:50%;display:inline-block;margin:0 2px;animation:typing 1.4s infinite}
+    .typing-dots span:nth-child(2){animation-delay:.2s}
+    .typing-dots span:nth-child(3){animation-delay:.4s}
 
-        .task-logo svg {
-            width: 160px;
-            height: auto;
-        }
+    .input-area{padding:16px;background:#fafafa;border-top:2px solid var(--task-blue-logo)}
+    .language-reminder{font-size:11px;color:var(--task-blue-primary);background:linear-gradient(135deg,rgba(116,186,88,.1),rgba(51,167,181,.1));border:2px solid var(--task-green-secondary);border-radius:12px;padding:10px;text-align:center;margin-bottom:12px;font-weight:600}
+    .input-container{display:flex;gap:10px;align-items:center}
+    .input-container input{flex:1;padding:14px 18px;border:2px solid var(--task-blue-logo);border-radius:25px;font-size:13px;outline:none;background:#fff;transition:border-color .2s}
+    .input-container input:focus{border-color:var(--task-orange-primary)}
+    .send-button{display:flex;align-items:center;justify-content:center;width:50px;height:50px;border:none;border-radius:50%;cursor:pointer;background:linear-gradient(135deg,var(--task-orange-primary),var(--task-yellow-secondary));box-shadow:0 4px 15px rgba(255,145,31,.3);color:#fff;font-size:18px;font-weight:bold;transition:transform .2s}
+    .send-button:hover{transform:scale(1.05)}
+    .status{text-align:center;font-size:10px;color:var(--task-gray-dark);margin-top:8px}
 
-        .header h1 {
-            font-family: 'Nunito', sans-serif;
-            font-size: 18px;
-            font-weight: 600;
-            margin: 8px 0 4px;
-        }
+    @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-10px)}}
 
-        .header .subtitle {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .tagline {
-            display: inline-block;
-            margin-top: 10px;
-            font-size: 10px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 6px 12px;
-            border-radius: 20px;
-            backdrop-filter: blur(5px);
-        }
-
-        .chat-area {
-            height: 360px;
-            overflow-y: auto;
-            padding: 16px;
-            background: #fafafa;
-            scroll-behavior: smooth;
-        }
-
-        .welcome-message {
-            background: linear-gradient(135deg, #fff3e0, #ffe8d6);
-            border: 2px solid var(--task-orange-primary);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .welcome-message h2 {
-            font-family: 'Nunito', sans-serif;
-            color: var(--task-blue-primary);
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-
-        .language-notice {
-            background: var(--task-green-secondary);
-            color: white;
-            border-radius: 10px;
-            padding: 8px 12px;
-            font-size: 11px;
-            text-align: center;
-            margin: 10px 0;
-            font-weight: 600;
-        }
-
-        .quick-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-            justify-content: center;
-        }
-
-        .quick-actions a {
-            display: inline-block;
-            padding: 6px 12px;
-            font-size: 11px;
-            text-decoration: none;
-            color: var(--task-blue-primary);
-            background: white;
-            border: 1px solid var(--task-orange-primary);
-            border-radius: 20px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .quick-actions a:hover {
-            background: var(--task-orange-primary);
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        .message {
-            margin: 12px 0;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-size: 13px;
-            line-height: 1.4;
-            animation: slideIn 0.3s ease;
-        }
-
-        .user-message {
-            background: linear-gradient(135deg, var(--task-orange-primary), var(--task-yellow-secondary));
-            color: white;
-            margin-left: 20%;
-            text-align: right;
-            border-radius: 16px 16px 4px 16px;
-            box-shadow: 0 4px 12px rgba(255, 145, 31, 0.3);
-        }
-
-        .bot-message {
-            background: white;
-            border: 2px solid var(--task-blue-logo);
-            color: var(--task-gray-dark);
-            margin-right: 20%;
-            border-radius: 16px 16px 16px 4px;
-            box-shadow: 0 3px 10px rgba(0, 133, 202, 0.15);
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            background: var(--task-gray-light);
-            padding: 12px 16px;
-            margin-right: 20%;
-            border-radius: 16px 16px 16px 4px;
-        }
-
-        .typing-dots span {
-            width: 6px;
-            height: 6px;
-            background: var(--task-gray-dark);
-            border-radius: 50%;
-            display: inline-block;
-            margin: 0 2px;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-        .input-area {
-            padding: 16px;
-            background: #fafafa;
-            border-top: 2px solid var(--task-blue-logo);
-        }
-
-        .language-reminder {
-            font-size: 11px;
-            color: var(--task-blue-primary);
-            background: linear-gradient(135deg, rgba(116, 186, 88, 0.1), rgba(51, 167, 181, 0.1));
-            border: 2px solid var(--task-green-secondary);
-            border-radius: 12px;
-            padding: 10px;
-            text-align: center;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .input-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .input-container input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 2px solid var(--task-blue-logo);
-            border-radius: 25px;
-            font-size: 13px;
-            outline: none;
-            background: white;
-            font-family: 'Open Sans', sans-serif;
-            transition: border-color 0.2s ease;
-        }
-
-        .input-container input:focus {
-            border-color: var(--task-orange-primary);
-        }
-
-        .send-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            background: linear-gradient(135deg, var(--task-orange-primary), var(--task-yellow-secondary));
-            box-shadow: 0 4px 15px rgba(255, 145, 31, 0.3);
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            transition: transform 0.2s ease;
-        }
-
-        .send-button:hover {
-            transform: scale(1.05);
-        }
-
-        .status {
-            text-align: center;
-            font-size: 10px;
-            color: var(--task-gray-dark);
-            margin-top: 8px;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
-        }
-
-        /* Responsive design */
-        @media (max-width: 480px) {
-            .app-container {
-                margin: 8px;
-                border-radius: 16px;
-            }
-            .quick-actions {
-                justify-content: center;
-            }
-            .quick-actions a {
-                font-size: 10px;
-                padding: 5px 10px;
-            }
-        }
-    </style>
+    @media (max-width:480px){
+      .app-container{margin:8px;border-radius:16px}
+      .quick-actions{justify-content:center}
+      .quick-actions a{font-size:10px;padding:5px 10px}
+    }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <div class="header">
-            <div class="task-logo">
-                <!-- TASK Logo SVG based on brand guidelines -->
-                <svg viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- TASK text -->
-                    <text x="20" y="55" font-family="Nunito, sans-serif" font-size="42" font-weight="700" fill="white">T</text>
-                    <text x="55" y="55" font-family="Nunito, sans-serif" font-size="42" font-weight="700" fill="white">A</text>
-                    <!-- Bowl with steam -->
-                    <ellipse cx="115" cy="45" rx="18" ry="8" fill="#ff911f" stroke="white" stroke-width="2"/>
-                    <path d="M 105 35 Q 110 30 115 35 Q 120 30 125 35" stroke="white" stroke-width="2" fill="none"/>
-                    <text x="140" y="55" font-family="Nunito, sans-serif" font-size="42" font-weight="700" fill="white">K</text>
-                    <!-- Subtitle -->
-                    <text x="20" y="75" font-family="Open Sans, sans-serif" font-size="12" fill="#ff911f">Trenton Area Soup Kitchen</text>
-                </svg>
-            </div>
-            <div class="tagline">Turning Hunger Into Hope Since 1982</div>
-        </div>
-
-        <!-- Chat Area -->
-        <div class="chat-area" id="chatArea">
-            <!-- Welcome Message -->
-            <div class="welcome-message">
-                <h2>Welcome! Byenvini! ¡Bienvenidos!</h2>
-                <div class="language-notice">
-                    I speak English, Español & Kreyòl
-                </div>
-                
-                <!-- Centered Quick Actions -->
-                <div class="quick-actions">
-                    <a href="https://www.google.com/maps/search/Trenton+Area+Soup+Kitchen" target="_blank" rel="noopener">📍 Address</a>
-                    <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
-                    <a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">🚌 Bus</a>
-                    <a href="https://youtu.be/ZU9x1vFx5lI?si=qAeHphUr6MU-_u84" target="_blank" rel="noopener">🎥 Tips</a>
-                </div>
-            </div>
-
-            <!-- Messages Container -->
-            <div id="messages"></div>
-        </div>
-
-        <!-- Input Area -->
-        <div class="input-area">
-            <div class="language-reminder">
-                I speak English, Español & Kreyòl
-            </div>
-
-            <div class="input-container">
-                <input 
-                    id="userInput" 
-                    type="text" 
-                    onkeypress="if(event.key==='Enter'){sendMessage()}"
-                    placeholder="Type: where are you? necesito trabajo? mwen bezwen ede?"
-                    autocomplete="off"
-                >
-                
-                <button class="send-button" onclick="sendMessage()">
-                    ➤
-                </button>
-            </div>
-
-            <div class="status" id="status">⚠️ I can make mistakes - please double-check important info!</div>
-        </div>
+  <div class="app-container">
+    <div class="header">
+      <div class="assistant-banner">TASK Assistant</div>
+      <div class="subline">Trenton Area Soup Kitchen</div>
     </div>
 
-    <script>
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const messagesDiv = document.getElementById('messages');
-            const status = document.getElementById('status');
-            
-            if (!input || !messagesDiv) return;
-            
-            const message = input.value.trim();
-            if (!message) return;
-            
-            // Add user message
-            const userMsg = document.createElement('div');
-            userMsg.className = 'message user-message';
-            userMsg.textContent = message;
-            messagesDiv.appendChild(userMsg);
-            
-            input.value = '';
-            if (status) status.textContent = '🤖 Thinking…';
-            
-            // Show typing indicator
-            const typingIndicator = document.createElement('div');
-            typingIndicator.className = 'typing-indicator';
-            typingIndicator.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-            messagesDiv.appendChild(typingIndicator);
-            
-            // Scroll to bottom
-            const chatArea = document.getElementById('chatArea');
-            if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-            
-            // Generate response
-            setTimeout(() => {
-                // Remove typing indicator
-                if (typingIndicator.parentNode) {
-                    typingIndicator.parentNode.removeChild(typingIndicator);
-                }
-                
-                const response = getResponse(message);
-                const botMsg = document.createElement('div');
-                botMsg.className = 'message bot-message';
-                botMsg.innerHTML = response;
-                messagesDiv.appendChild(botMsg);
-                
-                // Scroll to bottom
-                if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-                
-                if (status) {
-                    status.textContent = '✅ Answered!';
-                    setTimeout(() => {
-                        if (status) status.textContent = '⚠️ I can make mistakes - please double-check important info!';
-                    }, 1500);
-                }
-                
-                input.focus();
-            }, 800 + Math.random() * 1200);
-        }
-        
-        function getResponse(input) {
-            const text = input.toLowerCase().trim();
-            
-            // Language detection
-            const isSpanish = text.includes('hola') || text.includes('necesito') || text.includes('trabajo') || 
-                              text.includes('empleo') || text.includes('ayuda') || text.includes('donde') || 
-                              text.includes('cuando') || text.includes('hora') || text.includes('horas') || 
-                              text.includes('español') || text.includes('¿') || text.includes('teléfono') || 
-                              text.includes('dirección') || text.includes('buenas') || text.includes('buenos');
-            
-            const isCreole = text.includes('bonjou') || text.includes('bonswa') || text.includes('mwen') || 
-                             text.includes('bezwen') || text.includes('travay') || text.includes('kote') || 
-                             text.includes('ede') || text.includes('manje') || text.includes('kreyòl') || 
-                             text.includes('telefòn') || text.includes('adrès') || text.includes('sak pase');
-            
-            // HOURS/TIME QUERIES
-            if (text.includes('hour') || text.includes('time') || text.includes('when') || text === 'hours' || 
-                text.includes('open') || text.includes('close') || text.includes('lunch') || text.includes('dinner') || 
-                text.includes('meal') || text.includes('eat') || text.includes('food') ||
-                text.includes('hora') || text.includes('cuando') || text.includes('abierto') || text.includes('cerrado') ||
-                text.includes('almuerzo') || text.includes('cena') || text.includes('comida') ||
-                text.includes('tan') || text.includes('ki tan') || text.includes('manje')) {
-                
-                if (isSpanish) {
-                    return '<strong>🕒 Horarios</strong><br><br>' +
-                           '<strong>Almuerzo:</strong> Lunes-Viernes 10:30 AM - 1:00 PM<br>' +
-                           '<strong>Cena:</strong> Lunes-Jueves 3:30 PM - 5:00 PM<br>' +
-                           '<strong>Teléfono:</strong> (609) 695-5456';
-                } else if (isCreole) {
-                    return '<strong>🕒 Orè yo</strong><br><br>' +
-                           '<strong>Manje midi:</strong> Lendi-Vandredi 10:30 AM - 1:00 PM<br>' +
-                           '<strong>Manje aswè:</strong> Lendi-Jedi 3:30 PM - 5:00 PM<br>' +
-                           '<strong>Telefòn:</strong> (609) 695-5456';
-                } else {
-                    return '<strong>🕒 Hours</strong><br><br>' +
-                           '<strong>Lunch:</strong> Monday-Friday 10:30 AM - 1:00 PM<br>' +
-                           '<strong>Dinner:</strong> Monday-Thursday 3:30 PM - 5:00 PM<br>' +
-                           '<strong>Phone:</strong> (609) 695-5456';
-                }
-            }
-            
-            // LOCATION/ADDRESS QUERIES
-            if (text.includes('where') || text.includes('address') || text.includes('location') || text.includes('directions') || 
-                text.includes('map') || text.includes('find you') || text.includes('how to get') || text.includes('driving') || 
-                text.includes('parking') || text.includes('donde') || text.includes('dirección') || text.includes('ubicación') ||
-                text.includes('como llegar') || text.includes('mapa') || text.includes('kote') || text.includes('ki kote') ||
-                text.includes('nan ki kote') || text.includes('adrès')) {
-                
-                if (isSpanish) {
-                    return '<strong>📍 Contacto y Horarios</strong><br><br>' +
-                           '<strong>Dirección:</strong> 72½ Escher St, Trenton, NJ 08609<br>' +
-                           '<strong>Teléfono:</strong> (609) 695-5456<br>' +
-                           '<strong>Email:</strong> EandE@trentonsoupkitchen.org<br>' +
-                           '<a href="https://www.google.com/maps?q=72+1/2,+72+Escher+St,+Trenton,+NJ+08609" target="_blank">Google Maps</a><br><br>' +
-                           '<strong>Almuerzo:</strong> Lunes-Viernes 10:30 AM - 1:00 PM<br>' +
-                           '<strong>Cena:</strong> Lunes-Jueves 3:30 PM - 5:00 PM<br><br>' +
-                           'Todos son bienvenidos — sin preguntas.';
-                } else if (isCreole) {
-                    return '<strong>📍 Kontak ak Orè</strong><br><br>' +
-                           '<strong>Adrès:</strong> 72½ Escher St, Trenton, NJ 08609<br>' +
-                           '<strong>Telefòn:</strong> (609) 695-5456<br>' +
-                           '<strong>Email:</strong> EandE@trentonsoupkitchen.org<br>' +
-                           '<a href="https://www.google.com/maps?q=72+1/2,+72+Escher+St,+Trenton,+NJ+08609" target="_blank">Google Maps</a><br><br>' +
-                           '<strong>Manje midi:</strong> Lendi-Vandredi 10:30 AM - 1:00 PM<br>' +
-                           '<strong>Manje aswè:</strong> Lendi-Jedi 3:30 PM - 5:00 PM<br><br>' +
-                           'Tout moun akeyi — pa gen kesyon.';
-                } else {
-                    return '<strong>📍 Contact & Hours</strong><br><br>' +
-                           '<strong>Address:</strong> 72½ Escher St, Trenton, NJ 08609<br>' +
-                           '<strong>Phone:</strong> (609) 695-5456<br>' +
-                           '<strong>Email:</strong> EandE@trentonsoupkitchen.org<br>' +
-                           '<a href="https://www.google.com/maps?q=72+1/2,+72+Escher+St,+Trenton,+NJ+08609" target="_blank">Google Maps</a><br><br>' +
-                           '<strong>Lunch:</strong> Monday-Friday 10:30 AM - 1:00 PM<br>' +
-                           '<strong>Dinner:</strong> Monday-Thursday 3:30 PM - 5:00 PM<br><br>' +
-                           'All are welcome — no questions asked.';
-                }
-            }
-            
-            // JOB SEEKING QUERIES
-            if (text.includes('job') || text.includes('work') || text.includes('employment') || text.includes('empleo') || 
-                text.includes('travay') || text.includes('career') || text.includes('position') || text.includes('openings') || 
-                text.includes('necesito trabajo') || text.includes('busco trabajo') || text.includes('mwen bezwen travay')) {
-                
-                if (isSpanish) {
-                    return '<strong>💼 Empleos en el Condado de Mercer</strong><br><br>' +
-                           '<strong>Recursos de Empleo:</strong><br>' +
-                           '<a href="https://bycell.co/ddmtq" target="_blank">Empleos Disponibles</a> | ' +
-                           '<a href="https://bycell.co/ddmtr" target="_blank">Alertas de Empleo</a><br>' +
-                           '<a href="https://bycell.co/ddmtn" target="_blank">Entrenamientos</a> | ' +
-                           '<a href="https://bycell.co/ddmui" target="_blank">Consejos de CV</a><br><br>' +
-                           '<strong>Llama a Diani (Especialista de Empleo):</strong> (609) 697-6166<br>' +
-                           'Ofrecemos coaching 1-a-1, ayuda con CV, preparación para entrevistas y referencias de empleadores.';
-                } else if (isCreole) {
-                    return '<strong>💼 Travay nan Mercer County</strong><br><br>' +
-                           '<strong>Resous Travay:</strong><br>' +
-                           '<a href="https://bycell.co/ddmtq" target="_blank">Travay Disponib</a> | ' +
-                           '<a href="https://bycell.co/ddmtr" target="_blank">Ale Travay</a><br>' +
-                           '<a href="https://bycell.co/ddmtn" target="_blank">Fòmasyon</a> | ' +
-                           '<a href="https://bycell.co/ddmui" target="_blank">Konsèy CV</a><br><br>' +
-                           '<strong>Rele Diani (Espesyalis Travay):</strong> (609) 697-6166<br>' +
-                           'Nou bay coaching 1-sou-1, ede ak CV, preparasyon entèvyou, ak referans employè.';
-                } else {
-                    return '<strong>💼 Jobs in Mercer County</strong><br><br>' +
-                           '<strong>Job Resources:</strong><br>' +
-                           '<a href="https://bycell.co/ddmtq" target="_blank">Available Jobs</a> | ' +
-                           '<a href="https://bycell.co/ddmtr" target="_blank">Job Alerts</a><br>' +
-                           '<a href="https://bycell.co/ddmtn" target="_blank">Trainings</a> | ' +
-                           '<a href="https://bycell.co/ddmui" target="_blank">Resume Tips</a><br><br>' +
-                           '<strong>Call Employment Support Specialist Diani:</strong> (609) 697-6166<br>' +
-                           'We provide 1-on-1 coaching, resume help, interview prep, and employer referrals.';
-                }
-            }
-            
-            // DEFAULT RESPONSE
-            if (isSpanish) {
-                return '<strong>👋 ¡Hola! Puedo ayudarte.</strong><br><br>' +
-                       'Pregunta sobre dirección, comidas, empleos, autobuses, consejos de entrevistas, programas de entrenamiento o citas.<br><br>' +
-                       '<strong>Enlaces Rápidos:</strong><br>' +
-                       '<a href="https://bycell.co/ddmtq" target="_blank">Empleos Disponibles</a> | ' +
-                       '<a href="https://bycell.co/ddmtr" target="_blank">Alertas de Empleo</a><br>' +
-                       '<a href="https://bycell.co/ddmtn" target="_blank">Entrenamientos</a> | ' +
-                       '<a href="https://bycell.co/ddmua" target="_blank">Recursos</a><br><br>' +
-                       '<strong>Sitio Web de TASK:</strong> <a href="https://www.trentonsoupkitchen.org/" target="_blank">trentonsoupkitchen.org</a>';
-            } else if (isCreole) {
-                return '<strong>👋 Bonjou! Mwen ka ede ou.</strong><br><br>' +
-                       'Mande sou adrès, manje, travay, otobis, konsèy entèvyou, pwogram fòmasyon oswa randevou.<br><br>' +
-                       '<strong>Lyen Rapid yo:</strong><br>' +
-                       '<a href="https://bycell.co/ddmtq" target="_blank">Travay Disponib</a> | ' +
-                       '<a href="https://bycell.co/ddmtr" target="_blank">Ale Travay</a><br>' +
-                       '<a href="https://bycell.co/ddmtn" target="_blank">Fòmasyon</a> | ' +
-                       '<a href="https://bycell.co/ddmua" target="_blank">Resous</a><br><br>' +
-                       '<strong>Sit TASK:</strong> <a href="https://www.trentonsoupkitchen.org/" target="_blank">trentonsoupkitchen.org</a>';
-            } else {
-                return '<strong>👋 Hi! I can help.</strong><br><br>' +
-                       'Ask about address, meals, jobs, buses, interview tips, training programs, or appointments.<br><br>' +
-                       '<strong>Quick Links:</strong><br>' +
-                       '<a href="https://bycell.co/ddmtq" target="_blank">Available Jobs</a> | ' +
-                       '<a href="https://bycell.co/ddmtr" target="_blank">Job Alerts</a><br>' +
-                       '<a href="https://bycell.co/ddmtn" target="_blank">Trainings</a> | ' +
-                       '<a href="https://bycell.co/ddmua" target="_blank">Resources</a><br><br>' +
-                       '<strong>TASK Website:</strong> <a href="https://www.trentonsoupkitchen.org/" target="_blank">trentonsoupkitchen.org</a>';
-            }
-        }
-        
-        // Focus input on load
-        document.addEventListener('DOMContentLoaded', () => {
-            const input = document.getElementById('userInput');
-            if (input) input.focus();
-        });
-    </script>
+    <div class="chat-area" id="chatArea">
+      <div class="welcome-message">
+        <h2>Welcome! Byenvini! ¡Bienvenidos!</h2>
+        <div class="language-notice">I speak English, Español &amp; Kreyòl</div>
+
+        <!-- Quick action pills -->
+        <div class="quick-actions" id="quickRow">
+          <a href="https://www.google.com/maps/search/Trenton+Area+Soup+Kitchen" target="_blank" rel="noopener" data-ask="Where are you located?">📍 Address</a>
+          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener" data-ask="I need job help">💼 Jobs</a>
+          <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener" data-ask="Job alerts">🔔 Alerts</a>
+          <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener" data-ask="Training programs">🎓 Training</a>
+        </div>
+      </div>
+
+      <div id="messages"></div>
+    </div>
+
+    <div class="input-area">
+      <div class="language-reminder">I speak English, Español &amp; Kreyòl</div>
+
+      <div class="input-container">
+        <input id="userInput" type="text"
+               placeholder="Type: where are you? necesito trabajo? mwen bezwen ede?"
+               autocomplete="off" />
+        <button id="sendButton" class="send-button" type="button" aria-label="Send">➤</button>
+      </div>
+
+      <div class="status" id="status">⚠️ I can make mistakes - please double-check important info!</div>
+    </div>
+  </div>
+
+  <!-- App script -->
+  <script src="app.js"></script>
 </body>
 </html>
+/* ---------------- Core wiring ---------------- */
+function sendMessage(){
+  const input = document.getElementById('userInput');
+  const messagesDiv = document.getElementById('messages');
+  const status = document.getElementById('status');
+  if (!input || !messagesDiv) return;
+
+  const message = (input.value || '').trim();
+  if (!message) return;
+
+  // User bubble
+  const userMsg = document.createElement('div');
+  userMsg.className = 'message user-message';
+  userMsg.textContent = message;
+  messagesDiv.appendChild(userMsg);
+
+  input.value = '';
+  if (status) status.textContent = '🤖 Thinking…';
+
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'typing-indicator';
+  typing.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  messagesDiv.appendChild(typing);
+
+  const chatArea = document.getElementById('chatArea');
+  if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+
+  setTimeout(() => {
+    if (typing.parentNode) typing.parentNode.removeChild(typing);
+
+    const response = getResponse(message);
+    const botMsg = document.createElement('div');
+    botMsg.className = 'message bot-message';
+    botMsg.innerHTML = response;
+    messagesDiv.appendChild(botMsg);
+
+    if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+
+    if (status){
+      status.textContent = '✅ Answered!';
+      setTimeout(()=>{ status.textContent = '⚠️ I can make mistakes - please double-check important info!'; }, 1500);
+    }
+    input.focus();
+  }, 300);
+}
+window.sendMessage = sendMessage;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('userInput');
+  const btn   = document.getElementById('sendButton');
+  const quick = document.getElementById('quickRow');
+
+  // Enter key + arrow button
+  if (input){
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){ e.preventDefault(); sendMessage(); }
+    });
+    input.focus();
+  }
+  if (btn){
+    btn.addEventListener('click', (e) => { e.preventDefault(); sendMessage(); });
+  }
+
+  // Quick pill → prefill + send (still opens link if JS blocked)
+  if (quick){
+    quick.addEventListener('click', (e) => {
+      const a = e.target.closest('a'); if(!a) return;
+      const ask = a.getAttribute('data-ask');
+      if (ask && !e.metaKey && !e.ctrlKey && !e.shiftKey){
+        e.preventDefault();
+        if (input) input.value = ask;
+        sendMessage();
+      }
+    });
+  }
+
+  // Document fallbacks (some containers mangle element listeners)
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'sendButton'){
+      e.preventDefault(); sendMessage();
+    }
+  }, true);
+});
+
+/* ---------------- “Mini-API” registry ----------------
+   These are regular pages today (not JSON APIs). We keep them
+   in a registry so the bot can reference them consistently.
+   If you later get a JSON feed, put the endpoint in SERVICE_APIS.
+*/
+const SERVICES = {
+  jobs:       'https://bycell.co/ddmtq',
+  alerts:     'https://bycell.co/ddmtr',
+  training:   'https://bycell.co/ddmtn',
+  resume:     'https://bycell.co/ddmui',
+  resources:  'https://bycell.co/ddmua',
+  register:   'https://bycell.co/ddmul',
+  services:   'https://trentonsoupkitchen.org/what-we-do/'
+};
+
+// If you ever have JSON endpoints + your own proxy (to avoid CORS),
+// set them here and call fetchService('jobs') etc.
+const SERVICE_APIS = {
+  // jobs: 'https://your-proxy.example.com/bycell/jobs.json'
+};
+
+async function fetchService(name){
+  const url = SERVICE_APIS[name];
+  if (!url) return null; // no API available; use link instead
+  try{
+    const res = await fetch(url, { headers:{'Accept':'application/json'} });
+    if (!res.ok) return null;
+    return await res.json();
+  }catch(_){ return null; }
+}
+
+/* ---------------- Router / Responses ---------------- */
+function getResponse(input){
+  const text = (input || '').toLowerCase().trim();
+
+  const isSpanish = /hola|necesito|trabajo|empleo|ayuda|donde|cuando|hora|horas|español|¿|teléfono|dirección|buenas|buenos|cita|servicios|comida/.test(text);
+  const isCreole  = /bonjou|bonswa|mwen|bezwen|travay|kote|ede|manje|kreyòl|telefòn|adrès|randevou|sèvis/.test(text);
+
+  // Employment
+  if (/job|jobs|work|employment|career|hire|hiring|resume|interview|training|certification|skills|coaching|soft skills|programs|apply|register|sign up|empleo|trabajo|carrera|entrevista|travay|pwogram|fòmasyon|mwen bezwen travay|culinary|kitchen|cook|chef|security|sora|forklift|warehouse/.test(text)){
+    if (isSpanish){
+      return `<strong>💼 Servicios de Empleo de TASK</strong><br><br>
+<strong>Programas de Entrenamiento:</strong><br>
+• <a href="${SERVICES.training}" target="_blank">Academia Culinaria Emilio (10 semanas)</a><br>
+• <a href="${SERVICES.training}" target="_blank">Certificación SORA (Seguridad)</a><br>
+• <a href="${SERVICES.training}" target="_blank">Certificación de Montacargas</a><br>
+• <a href="${SERVICES.training}" target="_blank">TASK’d to Work (habilidades blandas)</a><br><br>
+<strong>Servicios 1-a-1:</strong><br>
+• <a href="${SERVICES.resume}" target="_blank">Currículum</a> & práctica de entrevistas<br>
+• <a href="${SERVICES.jobs}" target="_blank">Referencias de empleadores</a><br>
+• Ropa profesional<br><br>
+<strong>Para Citas: llame a la Especialista de Servicios Sociales</strong> <a href="tel:609-337-1624">(609) 337-1624</a><br>
+<a href="${SERVICES.jobs}" target="_blank">Ver empleos</a> • <a href="${SERVICES.alerts}" target="_blank">Alertas</a> • <a href="${SERVICES.services}" target="_blank">Más servicios</a>`;
+    } else if (isCreole){
+      return `<strong>💼 Sèvis Travay TASK</strong><br><br>
+<strong>Pwogram Fòmasyon:</strong><br>
+• <a href="${SERVICES.training}" target="_blank">Akademi Emilio (10 semèn)</a><br>
+• <a href="${SERVICES.training}" target="_blank">SORA</a> • <a href="${SERVICES.training}" target="_blank">Forklift</a><br>
+• <a href="${SERVICES.training}" target="_blank">TASK’d to Work</a><br><br>
+<strong>1-sou-1:</strong> <a href="${SERVICES.resume}" target="_blank">CV</a>, pratik entèvyou, referans employè, rad pwofesyonèl<br><br>
+<strong>Pou randevou: rele Espesyalis Sèvis Sosyal</strong> <a href="tel:609-337-1624">(609) 337-1624</a><br>
+<a href="${SERVICES.jobs}" target="_blank">Gade travay</a> • <a href="${SERVICES.alerts}" target="_blank">Alèt</a> • <a href="${SERVICES.services}" target="_blank">Plis sèvis</a>`;
+    }
+    return `<strong>💼 TASK Employment Services</strong><br><br>
+<strong>Training programs:</strong><br>
+• <a href="${SERVICES.training}" target="_blank">Emilio Culinary (10 weeks)</a><br>
+• <a href="${SERVICES.training}" target="_blank">SORA Security</a> • <a href="${SERVICES.training}" target="_blank">Forklift</a><br>
+• <a href="${SERVICES.training}" target="_blank">TASK’d to Work (soft skills)</a><br><br>
+<strong>1-on-1:</strong> <a href="${SERVICES.resume}" target="_blank">Resume help</a>, interview practice, employer referrals, professional clothing<br><br>
+<strong>Appointments: call the Social Services Specialist</strong> <a href="tel:609-337-1624">(609) 337-1624</a><br>
+<a href="${SERVICES.jobs}" target="_blank">View jobs</a> • <a href="${SERVICES.alerts}" target="_blank">Job alerts</a> • <a href="${SERVICES.services}" target="_blank">Full services</a>`;
+  }
+
+  // Appointments
+  if (/appointment|schedule|meeting|when can|cita|programar|cuando puedo|randevou|ki lè/.test(text)){
+    const core = `<strong>📅 Employment Services Appointments</strong><br><br>
+<strong>To schedule:</strong> Call the <em>Social Services Specialist</em> at <a href="tel:609-337-1624">(609) 337-1624</a>.<br><br>
+Prefer online? <a href="${SERVICES.register}" target="_blank">Start registration</a> and we’ll follow up.<br><br>
+Address: 72½ Escher St, Trenton, NJ 08609`;
+
+    if (isSpanish) return core.replace('Employment Services Appointments','Citas de Servicios de Empleo')
+                             .replace('To schedule:','Para programar:')
+                             .replace('Prefer online?','¿Prefiere en línea?');
+    if (isCreole)  return core.replace('Employment Services Appointments','Randevou Sèvis Travay')
+                             .replace('To schedule:','Pou pran randevou:')
+                             .replace('Prefer online?','Ou prefere sou entènèt?');
+    return core;
+  }
+
+  // Meals / Hours
+  if (/hour|time|when|open|close|lunch|dinner|meal|eat|food|hora|almuerzo|cena|manje/.test(text)){
+    if (isSpanish){
+      return `<strong>🕒 Horarios</strong><br><br>
+<strong>Comidas:</strong> Almuerzo Lun–Vie 10:30–1 • Cena Lun–Jue 3:30–5<br>
+<strong>Citas de Empleo:</strong> Llame <a href="tel:609-337-1624">(609) 337-1624</a>`;
+    } else if (isCreole){
+      return `<strong>🕒 Orè</strong><br><br>
+<strong>Manje:</strong> Midi Len–Van 10:30–1 • Aswè Len–Jed 3:30–5<br>
+<strong>Randevou Travay:</strong> Rele <a href="tel:609-337-1624">(609) 337-1624</a>`;
+    }
+    return `<strong>🕒 Hours</strong><br><br>
+<strong>Meals:</strong> Lunch Mon–Fri 10:30–1 • Dinner Mon–Thu 3:30–5<br>
+<strong>Employment appointments:</strong> Call <a href="tel:609-337-1624">(609) 337-1624</a>`;
+  }
+
+  // Location
+  if (/where|address|location|directions|map|parking|donde|dirección|ubicación|kote|adrès/.test(text)){
+    return `<strong>📍 Location & Contact</strong><br><br>
+<strong>Address:</strong> 72½ Escher St, Trenton, NJ 08609<br>
+<strong>Appointments:</strong> Social Services Specialist <a href="tel:609-337-1624">(609) 337-1624</a><br>
+<a href="https://www.google.com/maps?q=72+1/2,+72+Escher+St,+Trenton,+NJ+08609" target="_blank">Open in Google Maps</a><br><br>
+<a href="${SERVICES.register}" target="_blank">Register</a> • <a href="${SERVICES.services}" target="_blank">All services</a>`;
+  }
+
+  // Transit
+  if (/bus|transport|nj transit|route|fare|ticket/.test(text)){
+    return `<strong>🚌 Getting to TASK</strong><br>
+Use the <a href="https://www.njtransit.com/trip-planner-to" target="_blank">NJ Transit Trip Planner</a> (destination: 72½ Escher St, Trenton, NJ).<br>
+Need help for a job appointment? Ask us about bus passes.`;
+  }
+
+  // Computer lab
+  if (/computer|internet|wifi|lab|email|application|online/.test(text)){
+    return `<strong>💻 Computer Lab</strong><br>
+Open during meal hours. Free internet, online applications, email, and <a href="${SERVICES.resume}" target="_blank">resume help</a>.`;
+  }
+
+  // Support services
+  if (/case management|housing|benefits|social services|assistance|help/.test(text)){
+    return `<strong>🤝 Support Services</strong><br>
+Housing assistance, ID documents, domestic violence resources, peer recovery, veterans services — all FREE.<br>
+Learn more: <a href="${SERVICES.services}" target="_blank">Full TASK services</a>`;
+  }
+
+  // Default
+  if (isSpanish){
+    return `👋 <strong>Hola</strong> — Pregúntame sobre empleo, horarios, direcciones o transporte.<br><br>
+<a href="${SERVICES.jobs}" target="_blank">Empleos</a> • <a href="${SERVICES.alerts}" target="_blank">Alertas</a> • <a href="${SERVICES.training}" target="_blank">Entrenamientos</a><br>
+<a href="${SERVICES.resume}" target="_blank">Currículum</a> • <a href="${SERVICES.resources}" target="_blank">Recursos</a> • <a href="${SERVICES.services}" target="_blank">Servicios</a>`;
+  } else if (isCreole){
+    return `👋 <strong>Bonjou</strong> — Mande m sou travay, orè, direksyon, oswa transpò.<br><br>
+<a href="${SERVICES.jobs}" target="_blank">Travay</a> • <a href="${SERVICES.alerts}" target="_blank">Alèt</a> • <a href="${SERVICES.training}" target="_blank">Fòmasyon</a><br>
+<a href="${SERVICES.resume}" target="_blank">CV</a> • <a href="${SERVICES.resources}" target="_blank">Resous</a> • <a href="${SERVICES.services}" target="_blank">Sèvis</a>`;
+  }
+  return `👋 <strong>Hi!</strong> Ask me about jobs, hours, directions, transit, or support services.<br><br>
+<a href="${SERVICES.jobs}" target="_blank">Jobs</a> • <a href="${SERVICES.alerts}" target="_blank">Alerts</a> • <a href="${SERVICES.training}" target="_blank">Training</a><br>
+<a href="${SERVICES.resume}" target="_blank">Resume</a> • <a href="${SERVICES.resources}" target="_blank">Resources</a> • <a href="${SERVICES.services}" target="_blank">Services</a>`;
+}
