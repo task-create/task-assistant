@@ -1,159 +1,329 @@
-<script>
-  /* ---------- Helpers: language + intent ---------- */
-  function detectLang(t){
-    t = t.toLowerCase();
-    const es = /hola|necesito|trabajo|empleo|donde|cuando|hora|horas|español|tel[eé]fono|direcci[oó]n|cita|servicios|comida/.test(t);
-    const ht = /bonjou|bonswa|mwen|bezwen|travay|kote|ede|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis/.test(t);
-    return es ? 'es' : (ht ? 'ht' : 'en');
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TASK Assistant</title>
 
-  function classifyIntent(text){
-    const t = (' ' + text.toLowerCase() + ' ').replace(/[^\p{L}\p{N}\s]/gu,' ');
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
 
-    const bag = {
-      trainings: /(training|trainings|program|programs|class|classes|course|courses|certification|culinary|emilio|sora|forklift|academy|apprenticeship)\b/,
-      jobs: /(job|jobs|work|employment|hiring|hire|opening|openings|apply|application|position|positions|indeed)\b|empleo|trabajo|travay/,
-      alerts: /(alert|alerts|notify|notification|subscribe|text alert|updates)/,
-      resume: /(resume|curriculum|currículum|cv|cover\s*letter)/,
-      interview: /(interview|interview\s*tips|mock\s*interview|practice\s*interview)/,
-      resources: /(resource|resources|help|assistance|support\s*services|services\s*list)/,
-      appointments: /(appointment|schedule|book|meeting|register|sign\s*up|rsvp|cita|programar|randevou)/,
-      hours: /(hour|hours|time|when|open|close|lunch|dinner|meal|eat|food|hora|almuerzo|cena|manje)/,
-      location: /(where|address|location|directions|map|parking|d[oó]nde|direcci[oó]n|ubicaci[oó]n|kote|adr[eè]s)/,
-      transit: /(bus|nj\s*transit|route|fare|ticket|train|transport|planner)/,
-      computer_lab: /(computer|internet|wifi|lab|email|application\s*online)/,
-      support: /(case\s*management|housing|benefits|id|veterans|domestic\s*violence|recovery|peer)/,
-      greeting: /(hi|hello|hey|hola|bonjou|buenas)/,
-      thanks: /(thanks|thank you|gracias|mesi)/
-    };
+  <style>
+    :root{
+      --task-blue:#145078;
+      --task-teal:#33A7B5;
+      --task-orange:#ff911f;
+      --task-yellow:#ffc91f;
+      --task-green:#74ba58;
+      --task-blue-accent:#0085CA;
+      --gray-700:#6b6b6b;
+      --gray-200:#e9eef3;
 
-    for (const [k, rx] of Object.entries(bag)) {
-      if (rx.test(t)) return k;
+      /* ⬇️ Put a hosted URL of your TASK logo here (PNG/SVG). Optional. */
+      --logo-url: '';
     }
-    return 'default';
-  }
 
-  /* ---------- Router: returns ONE focused answer ---------- */
-  function getResponse(input){
-    const lang = detectLang(input || '');
-    const intent = classifyIntent(input || '');
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(135deg,var(--task-blue) 0%,var(--task-teal) 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px;
+    }
 
-    // Small i18n helpers
-    const L = {
-      call: lang==='es' ? 'Llama' : lang==='ht' ? 'Rele' : 'Call',
-      duringLunch: lang==='es' ? 'Durante el almuerzo (10:30 AM–1:00 PM)'
-                  : lang==='ht' ? 'Lè manje midi (10:30 AM–1:00 PM)'
-                  : 'During lunch (10:30 AM–1:00 PM)',
-      map: lang==='es' ? 'Google Maps' : lang==='ht' ? 'Google Maps' : 'Google Maps',
-      phone: '<a href="tel:609-337-1624">(609) 337-1624</a>',
-      asked: lang==='es' ? 'Me preguntas sobre' : lang==='ht' ? 'W ap mande sou' : 'You asked about',
-      suggestions: lang==='es' ? 'Sugerencias' : lang==='ht' ? 'Sijesyon' : 'Suggestions',
-      trainings: lang==='es' ? 'entrenamientos' : lang==='ht' ? 'fòmasyon' : 'training',
-      jobs: lang==='es' ? 'empleos' : lang==='ht' ? 'travay' : 'jobs'
-    };
+    .app{
+      position:relative;
+      width:100%;max-width:420px;background:#fff;
+      border:3px solid var(--task-orange);border-radius:18px;overflow:hidden;
+      box-shadow:0 20px 40px rgba(20,80,120,.30);
+    }
 
-    // Builders for each intent
-    const R = {
-      trainings: () => (
-        `<strong>🎓 ${L.asked} ${L.trainings}.</strong><br><br>
-         • Emilio Culinary Academy (10-week)<br>
-         • SORA Security Certification<br>
-         • Forklift Certification<br><br>
-         <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Browse training & apply</a><br>
-         ${L.call} the Social Services Specialist: ${L.phone}. ${L.duringLunch}.<br><br>
-         <em>${L.suggestions}:</em> <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">See ${L.jobs}</a> •
-         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help</a>`
-      ),
+    /* watermark */
+    .app::before{
+      content:"";
+      position:absolute;inset:0;pointer-events:none;opacity:.06;
+      background:
+        radial-gradient(ellipse at center, #fff 0%, #fff 40%, transparent 60%) center/75% 75% no-repeat;
+      mix-blend-mode:normal;
+    }
+    /* If you set --logo-url, show it as the watermark instead */
+    .app[data-logo="on"]::before{
+      background: url(var(--logo-url)) center/70% no-repeat;
+      opacity:.05;
+    }
 
-      jobs: () => (
-        `<strong>💼 ${L.asked} ${L.jobs}.</strong><br><br>
-         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions (Mercer County)</a><br>
-         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Get job alerts by text</a><br><br>
-         Need help applying? ${L.call}: ${L.phone}. ${L.duringLunch}.<br><br>
-         <em>${L.suggestions}:</em> <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help</a> •
-         <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Interview tips</a>`
-      ),
+    .header{
+      text-align:center;background:#fff;border-bottom:2px solid var(--task-blue);padding:12px 12px 10px;
+    }
+    .badge{
+      display:inline-block;background:var(--task-blue);color:#fff;
+      padding:6px 12px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;
+    }
+    .subline{
+      margin-top:6px;color:var(--task-orange);font:700 12px/1 "Nunito",sans-serif;
+    }
 
-      alerts: () => (
-        `<strong>🔔 ${L.asked} job alerts.</strong><br><br>
-         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Subscribe to job alerts</a><br>
-         You can unsubscribe any time.`
-      ),
+    .rail{
+      display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+      padding:10px 12px;background:#f7fbff;border-bottom:1px solid var(--gray-200);
+    }
+    .rail a{
+      font-weight:600;text-decoration:none;color:var(--task-blue);
+      border:1px solid var(--task-orange);background:#fff;border-radius:999px;
+      padding:6px 10px;font-size:12px;
+    }
+    .rail a:hover{background:var(--task-orange);color:#fff}
 
-      resume: () => (
-        `<strong>📄 ${L.asked} resume help.</strong><br><br>
-         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help & templates</a><br><br>
-         Want 1-on-1 help? ${L.call}: ${L.phone}. ${L.duringLunch}.`
-      ),
+    .chat{height:360px;overflow:auto;background:#fafafa;padding:14px;scroll-behavior:smooth}
 
-      interview: () => (
-        `<strong>🎥 ${L.asked} interview tips.</strong><br><br>
-         <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Watch quick interview tips</a><br><br>
-         Practice with us: ${L.call} ${L.phone}.`
-      ),
+    .msg{margin:12px 0;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.45;animation:fade-in .16s ease}
+    .user{margin-left:20%;text-align:right;color:#fff;
+      background:linear-gradient(135deg,var(--task-orange),var(--task-yellow));border-radius:16px 16px 4px 16px;
+      box-shadow:0 4px 12px rgba(255,145,31,.28);
+    }
+    .bot{margin-right:20%;background:#fff;border:2px solid var(--task-blue-accent);
+      color:#333;border-radius:16px 16px 16px 4px;box-shadow:0 3px 10px rgba(0,133,202,.12);
+    }
+    .typing{display:flex;align-items:center;gap:6px;background:#e8edf2;color:#4b5a69}
+    .dot{width:6px;height:6px;border-radius:50%;background:#4b5a69;animation:bob 1.2s infinite}
+    .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
 
-      appointments: () => (
-        `<strong>📅 ${L.asked} an employment appointment.</strong><br><br>
-         ${L.call} the Social Services Specialist at ${L.phone}. ${L.duringLunch}.<br>
-         Or <a href="https://bycell.co/ddmul" target="_blank" rel="noopener">register online</a>.`
-      ),
+    .footer{padding:12px;background:#fafafa;border-top:2px solid var(--task-blue-accent)}
+    .hint{font-size:11px;color:var(--task-blue);background:linear-gradient(135deg,rgba(116,186,88,.1),rgba(51,167,181,.1));
+      border:2px solid var(--task-green);border-radius:12px;padding:8px 10px;text-align:center;font-weight:600;margin-bottom:10px}
+    .inputrow{display:flex;gap:10px;align-items:center}
+    input[type="text"]{
+      flex:1;padding:14px 16px;border:2px solid var(--task-blue-accent);border-radius:25px;font-size:13px;outline:none;background:#fff;
+    }
+    input[type="text"]:focus{border-color:var(--task-orange)}
+    button.send{
+      width:50px;height:50px;border:none;border-radius:50%;cursor:pointer;color:#fff;font-size:18px;
+      background:linear-gradient(135deg,var(--task-orange),var(--task-yellow));box-shadow:0 4px 15px rgba(255,145,31,.28);
+    }
+    .status{margin-top:6px;text-align:center;font-size:10px;color:#6b6b6b}
 
-      hours: () => (
-        `<strong>🕒 ${L.asked} our hours.</strong><br><br>
-         Lunch: Mon–Fri 10:30 AM–1:00 PM • Dinner: Mon–Thu 3:30–5:00 PM<br>
-         Employment appointments are scheduled ${L.duringLunch.toLowerCase()}.`
-      ),
+    @keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes bob{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
 
-      location: () => (
-        `<strong>📍 ${L.asked} our location.</strong><br><br>
-         72½ Escher St, Trenton, NJ 08609<br>
-         <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">Open ${L.map}</a><br><br>
-         Appointments: ${L.phone}.`
-      ),
+    @media (max-width:480px){ .app{border-radius:16px}}
+  </style>
+</head>
+<body>
+  <main class="app" id="app">
+    <div class="header">
+      <div class="badge">TASK Assistant</div>
+      <div class="subline">Trenton Area Soup Kitchen</div>
+    </div>
 
-      transit: () => (
-        `<strong>🚌 ${L.asked} transit.</strong><br><br>
-         <a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>
-         Destination: 72½ Escher St, Trenton.`
-      ),
+    <!-- Top rail (open links; no messages) -->
+    <nav class="rail" id="top-rail">
+      <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
+      <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
+      <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">🔔 Alerts</a>
+      <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">🎓 Training</a>
+      <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">📄 Resume</a>
+      <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">🎥 Interview Tips</a>
+      <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">🧰 Resources</a>
+    </nav>
 
-      computer_lab: () => (
-        `<strong>💻 ${L.asked} the computer lab.</strong><br><br>
-         Open during meal hours (see hours). Free internet & job applications.<br>
-         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help</a>`
-      ),
+    <section class="chat" id="chat"></section>
 
-      resources: () => (
-        `<strong>🧰 ${L.asked} resources/services.</strong><br><br>
-         <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Additional resources</a><br>
-         <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">Full TASK services</a>`
-      ),
+    <footer class="footer">
+      <div class="hint">I speak English, Español & Kreyòl</div>
+      <div class="inputrow">
+        <input id="box" type="text" placeholder="Type: training, jobs, hours, address, bus…" autocomplete="off"/>
+        <button class="send" id="send" aria-label="Send">➤</button>
+      </div>
+      <div class="status" id="status">⚠️ I can make mistakes — please double-check important info!</div>
+    </footer>
+  </main>
+  <script>
+    // OPTIONAL: turn on background logo watermark if you set --logo-url above.
+    // document.getElementById('app').setAttribute('data-logo','on');
 
-      support: () => (
-        `<strong>🤝 ${L.asked} support services.</strong><br><br>
-         Case management, housing/ID help, DV assistance, peer recovery, veterans support.<br>
-         ${L.call}: ${L.phone}.`
-      ),
+    const chat = document.getElementById('chat');
+    const box  = document.getElementById('box');
+    const sendBtn = document.getElementById('send');
+    const statusEl = document.getElementById('status');
 
-      greeting: () => (
-        `<strong>👋 Hi! I'm the TASK Assistant.</strong><br>
-         Ask me about trainings, jobs, appointments, hours, directions or transit.<br><br>
-         <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
-         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
-         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a>`
-      ),
+    let BUSY = false;
 
-      thanks: () => `<strong>😊 You’re welcome!</strong> Anything else I can help with?`,
+    // On load: greet once
+    addBot(`👋 Hi! I'm the TASK Assistant.<br>
+            Ask me about <em>training</em>, <em>jobs</em>, <em>appointments</em>, <em>hours</em>,
+            <em>directions</em>, or <em>transit</em>.<br><br>
+            Quick links: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
+            <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
+            <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
 
-      default: () => (
-        `<strong>💬 I’ll keep it simple.</strong><br>
-         Tell me “training”, “jobs”, “hours”, “address”, “bus”, or “appointment”.<br><br>
-         Quick links: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
-         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
-         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Job alerts</a>`
-      )
-    };
+    function addUser(text){
+      const el = document.createElement('div');
+      el.className = 'msg user';
+      el.textContent = text;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+    }
+    function addBot(html){
+      const el = document.createElement('div');
+      el.className = 'msg bot';
+      el.innerHTML = html;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+    }
+    function typingOn(){
+      const wrap = document.createElement('div');
+      wrap.className = 'msg typing';
+      wrap.id = 'typing';
+      wrap.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+      chat.appendChild(wrap); chat.scrollTop = chat.scrollHeight;
+    }
+    function typingOff(){
+      const t = document.getElementById('typing'); if (t) t.remove();
+    }
 
-    return (R[intent] || R.default)();
-  }
-</script>
+    function detectLang(t){
+      t = t.toLowerCase();
+      const es = /hola|necesito|trabajo|empleo|donde|cuando|hora|horas|español|tel[eé]fono|direcci[oó]n|cita|servicios|comida/.test(t);
+      const ht = /bonjou|bonswa|mwen|bezwen|travay|kote|ede|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis/.test(t);
+      return es ? 'es' : (ht ? 'ht' : 'en');
+    }
+    function classifyIntent(text){
+      const t = (' '+text.toLowerCase()+' ').replace(/[^\p{L}\p{N}\s]/gu,' ');
+      const bag = {
+        trainings: /(training|trainings|program|programs|class|classes|course|courses|certification|culinary|emilio|academy|sora|forklift|apprenticeship)\b/,
+        jobs: /(job|jobs|work|employment|hiring|hire|opening|openings|apply|application|position|positions|indeed)\b|empleo|trabajo|travay/,
+        alerts: /(alert|alerts|notify|notification|subscribe|updates)/,
+        resume: /(resume|curriculum|currículum|cv|cover\s*letter)/,
+        interview: /(interview|interview\s*tips|mock\s*interview|practice\s*interview)/,
+        appointments: /(appointment|schedule|book|meeting|register|sign\s*up|rsvp|cita|programar|randevou)/,
+        hours: /(hour|hours|time|when|open|close|lunch|dinner|meal|eat|food|hora|almuerzo|cena|manje)/,
+        location: /(where|address|location|directions|map|parking|d[oó]nde|direcci[oó]n|ubicaci[oó]n|kote|adr[eè]s)/,
+        transit: /(bus|nj\s*transit|route|fare|ticket|train|transport|planner)/,
+        computer_lab: /(computer|internet|wifi|lab|email|application\s*online)/,
+        resources: /(resource|resources|assistance|support\s*services|services\s*list)/,
+        greeting: /^( *hi| *hello| *hey| *hola| *bonjou)[!. ]*$/i,
+        thanks: /(thanks|thank you|gracias|mesi)/
+      };
+      for (const [k, rx] of Object.entries(bag)){ if (rx.test(t)) return k; }
+      return 'default';
+    }
+
+    function route(text){
+      const lang = detectLang(text); const intent = classifyIntent(text);
+
+      const L = {
+        call: lang==='es' ? 'Llama' : lang==='ht' ? 'Rele' : 'Call',
+        phone: '<a href="tel:609-337-1624">(609) 337-1624</a>',
+        during: lang==='es' ? 'Durante el almuerzo (10:30 AM–1:00 PM)' :
+                lang==='ht' ? 'Lè manje midi (10:30 AM–1:00 PM)' :
+                               'During lunch (10:30 AM–1:00 PM)',
+        asked: lang==='es' ? 'Me preguntas sobre' : lang==='ht' ? 'W ap mande sou' : 'You asked about'
+      };
+
+      const R = {
+        trainings: () => (
+          `<strong>🎓 ${L.asked} training.</strong><br><br>
+           • Emilio Culinary Academy (10-week)<br>
+           • SORA Security Certification<br>
+           • Forklift Certification<br><br>
+           <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Browse training & apply</a><br>
+           ${L.call} the Social Services Specialist: ${L.phone}. ${L.during}.`
+        ),
+        jobs: () => (
+          `<strong>💼 ${L.asked} jobs.</strong><br><br>
+           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions (Mercer County)</a><br>
+           <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Get job alerts</a><br><br>
+           Need help applying? ${L.call}: ${L.phone}. ${L.during}.`
+        ),
+        alerts: () => (
+          `<strong>🔔 ${L.asked} job alerts.</strong><br><br>
+           <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Subscribe to alerts</a>`
+        ),
+        resume: () => (
+          `<strong>📄 ${L.asked} resume help.</strong><br><br>
+           <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help & templates</a><br><br>
+           1-on-1 help? ${L.call}: ${L.phone}. ${L.during}.`
+        ),
+        interview: () => (
+          `<strong>🎥 ${L.asked} interview tips.</strong><br><br>
+           <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Watch quick tips</a>`
+        ),
+        appointments: () => (
+          `<strong>📅 ${L.asked} an appointment.</strong><br><br>
+           ${L.call} the Social Services Specialist at ${L.phone}. ${L.during}.<br>
+           Or <a href="https://bycell.co/ddmul" target="_blank" rel="noopener">register online</a>.`
+        ),
+        hours: () => (
+          `<strong>🕒 ${L.asked} hours.</strong><br><br>
+           Meals: Lunch Mon–Fri 10:30a–1:00p • Dinner Mon–Thu 3:30–5:00p<br>
+           Employment appointments are scheduled ${L.during.toLowerCase()}.`
+        ),
+        location: () => (
+          `<strong>📍 ${L.asked} our location.</strong><br><br>
+           72½ Escher St, Trenton, NJ 08609<br>
+           <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">Open Google Maps</a><br><br>
+           Appointments: ${L.phone}.`
+        ),
+        transit: () => (
+          `<strong>🚌 ${L.asked} transit.</strong><br><br>
+           <a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>
+           Destination: 72½ Escher St, Trenton.`
+        ),
+        computer_lab: () => (
+          `<strong>💻 ${L.asked} the computer lab.</strong><br><br>
+           Open during meal hours. Free internet & job applications.`
+        ),
+        resources: () => (
+          `<strong>🧰 ${L.asked} resources.</strong><br><br>
+           <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Additional resources</a><br>
+           <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">Full TASK services</a>`
+        ),
+        greeting: () => (
+          `👋 Hello! Tell me <em>training</em>, <em>jobs</em>, <em>hours</em>, <em>address</em>, or <em>bus</em>.<br><br>
+           <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
+           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a>`
+        ),
+        thanks: () => `😊 You’re welcome!`,
+        default: () => (
+          `I’ll keep it simple. Try “training”, “jobs”, “appointment”, “hours”, “address”, or “bus”.<br><br>
+           <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
+           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a>`
+        )
+      };
+
+      return (R[intent] || R.default)();
+    }
+
+    function sendMessage(){
+      if (BUSY) return;
+      const text = (box.value || '').trim();
+      if (!text) return;
+
+      BUSY = true;
+      addUser(text);
+      box.value = '';
+      statusEl.textContent = '🤖 Thinking…';
+      typingOn();
+
+      setTimeout(()=>{
+        typingOff();
+        addBot(route(text));
+        statusEl.textContent = '✅ Answered!';
+        setTimeout(()=> statusEl.textContent = '⚠️ I can make mistakes — please double-check important info!', 1300);
+        BUSY = false;
+        box.focus();
+      }, 280);
+    }
+
+    // Wire events
+    sendBtn.addEventListener('click', sendMessage);
+    box.addEventListener('keydown', e=>{
+      if (e.key === 'Enter'){ e.preventDefault(); sendMessage(); }
+    });
+
+    // Rail links: open only; do NOT send chat messages
+    document.getElementById('top-rail').addEventListener('click', e=>{
+      const a = e.target.closest('a'); if (!a) return;
+      // Let the browser open the link; do nothing else
+    });
+  </script>
+</body>
+</html>
