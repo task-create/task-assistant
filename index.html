@@ -353,7 +353,10 @@
           sorry: 'I hear you — this stuff can be stressful. Let me help fast:',
           talk: 'Call now',
           choices: 'Or pick one:',
-          train: 'Training', jobs: 'Jobs', addr: 'Address'
+          train: 'Training', jobs: 'Jobs', addr: 'Address',
+          notFound: 'I might not have that yet. For more help, visit:',
+          site_home: 'TASK website',
+          site_services: 'What we do'
         },
         es: {
           welcome: '👋 ¡Bienvenido! Usa palabras clave como <em>entrenamiento</em>, <em>empleos</em>, <em>horas</em>, <em>dirección</em> o <em>autobús</em>.',
@@ -377,7 +380,10 @@
           sorry: 'Entiendo que esto puede ser frustrante. Te ayudo rápido:',
           talk: 'Llamar ahora',
           choices: 'O elige:',
-          train: 'Entrenamiento', jobs: 'Empleos', addr: 'Dirección'
+          train: 'Entrenamiento', jobs: 'Empleos', addr: 'Dirección',
+          notFound: 'Puede que aún no tenga eso. Para más ayuda, visita:',
+          site_home: 'Sitio de TASK',
+          site_services: 'Qué hacemos'
         },
         ht: {
           welcome: '👋 Byenvini! Itilize mo tankou <em>fòmasyon</em>, <em>travay</em>, <em>lè</em>, <em>adrès</em>, oswa <em>otobis</em>.',
@@ -401,7 +407,10 @@
           sorry: 'M konprann sa ka fristre. Ann regle sa rapid:',
           talk: 'Rele kounye a',
           choices: 'Oswa chwazi youn:',
-          train: 'Fòmasyon', jobs: 'Travay', addr: 'Adrès'
+          train: 'Fòmasyon', jobs: 'Travay', addr: 'Adrès',
+          notFound: 'M pa ka reponn egzakteman sa a kounye a. Pou plis èd, vizite:',
+          site_home: 'Sit wèb TASK',
+          site_services: 'Sa n ap fè'
         }
       };
       return L[currentLang][key];
@@ -452,8 +461,11 @@
           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('jobs')}</a> ·
           <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${t('addr')}</a>`,
         greeting: () => `👋 ${t('simple')}`,
-        thanks: () => t('thanks'),
-        default: () => `${t('simple')}`
+
+        /* NEW: if input isn't part of the keywords (default), direct to both website links */
+        default: () => `<strong>🔗 ${t('notFound')}</strong><br>
+          <a href="https://trentonsoupkitchen.org/" target="_blank" rel="noopener">${t('site_home')}</a> •
+          <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('site_services')}</a>`
       };
       return (M[intentKey] || M.default)();
     }
