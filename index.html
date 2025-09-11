@@ -22,12 +22,25 @@
       --logo-url:'';
     }
 
+    /* ---------- DARK THEME OVERRIDES ---------- */
+    :root[data-theme="dark"]{
+      --task-blue:#0e3957;
+      --task-teal:#1b6a73;
+      --task-orange:#ff9b2a;
+      --task-yellow:#ffc44d;
+      --task-green:#79cc64;
+      --task-blue-accent:#4eb5e6;
+      --gray-700:#cfd6dd;
+      --gray-200:#1f2a33;
+    }
+
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:linear-gradient(135deg,var(--task-blue) 0%,var(--task-teal) 100%);
       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px;
     }
+    :root[data-theme="dark"] body{ color-scheme: dark; background:linear-gradient(135deg,#0b2436 0%, #0d3e44 100%) }
 
     .app{
       position:relative;
@@ -35,6 +48,7 @@
       border:3px solid var(--task-orange);border-radius:18px;overflow:hidden;
       box-shadow:0 20px 40px rgba(20,80,120,.30);
     }
+    :root[data-theme="dark"] .app{ background:#0e141a; }
 
     /* Soft watermark */
     .app::before{
@@ -43,21 +57,31 @@
       background:radial-gradient(ellipse at center, #fff 0%, #fff 40%, transparent 60%) center/75% 75% no-repeat;
       mix-blend-mode:normal;
     }
-    .app[data-logo="on"]::before{
-      background:url(var(--logo-url)) center/70% no-repeat;
-      opacity:.05;
-    }
+    .app[data-logo="on"]::before{ background:url(var(--logo-url)) center/70% no-repeat; opacity:.05; }
+    :root[data-theme="dark"] .app::before{ opacity:.03 }
 
     .header{
-      text-align:center;background:#fff;border-bottom:2px solid var(--task-blue);padding:12px 12px 10px;
+      position:relative;
+      text-align:center;background:#fff;border-bottom:2px solid var(--task-blue);padding:12px 44px 10px;
     }
+    :root[data-theme="dark"] .header{ background:#0e141a; border-bottom-color:#2a3d4c; }
+
     .badge{
       display:inline-block;background:var(--task-blue);color:#fff;
       padding:6px 12px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;
     }
     .subline{ margin-top:6px;color:var(--task-orange);font:700 12px/1 "Nunito",sans-serif; }
 
-    /* Top rail links (open in new tab; do not send chat) */
+    /* Theme toggle */
+    .theme-toggle{
+      position:absolute;right:10px;top:10px;
+      width:34px;height:34px;border-radius:999px;border:1px solid var(--task-orange);
+      background:#fff;cursor:pointer;font-size:18px;line-height:32px;
+    }
+    .theme-toggle:focus{ outline:2px solid var(--task-blue-accent) }
+    :root[data-theme="dark"] .theme-toggle{ background:#0e141a;color:#ffd; }
+
+    /* Quick-rail */
     .rail{
       display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
       padding:10px 12px;background:#f7fbff;border-bottom:1px solid var(--gray-200);
@@ -68,8 +92,11 @@
       padding:6px 10px;font-size:12px;
     }
     .rail a:hover{background:var(--task-orange);color:#fff}
+    :root[data-theme="dark"] .rail{ background:#0f1a21; border-bottom-color:#1f2a33 }
+    :root[data-theme="dark"] .rail a{ background:#0e141a; color:#d6e6f2 }
 
     .chat{height:360px;overflow:auto;background:#fafafa;padding:14px;scroll-behavior:smooth}
+    :root[data-theme="dark"] .chat{ background:#0f1a21 }
 
     .msg{margin:12px 0;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.45;animation:fade-in .16s ease}
     .user{
@@ -81,7 +108,10 @@
       margin-right:20%;background:#fff;border:2px solid var(--task-blue-accent);
       color:#333;border-radius:16px 16px 16px 4px;box-shadow:0 3px 10px rgba(0,133,202,.12);
     }
+    :root[data-theme="dark"] .bot{ background:#0f1a21; color:#e7eef6; border-color:var(--task-blue-accent) }
+
     .typing{display:flex;align-items:center;gap:6px;background:#e8edf2;color:#4b5a69}
+    :root[data-theme="dark"] .typing{ background:#15222b; color:#cfe3f1 }
     .dot{width:6px;height:6px;border-radius:50%;background:#4b5a69;animation:bob 1.2s infinite}
     .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
 
@@ -93,23 +123,31 @@
       background:#fff;color:var(--task-blue);cursor:pointer;user-select:none;
     }
     .chip:hover{background:var(--task-orange);color:#fff}
+    :root[data-theme="dark"] .chip{ background:#0e141a; color:#d6e6f2 }
 
     .footer{padding:12px;background:#fafafa;border-top:2px solid var(--task-blue-accent)}
+    :root[data-theme="dark"] .footer{ background:#0f1a21; border-top-color:var(--task-blue-accent) }
     .hint{
       font-size:11px;color:var(--task-blue);
       background:linear-gradient(135deg,rgba(116,186,88,.1),rgba(51,167,181,.1));
       border:2px solid var(--task-green);border-radius:12px;padding:8px 10px;text-align:center;font-weight:600;margin-bottom:10px
     }
+    :root[data-theme="dark"] .hint{ color:#cfe3f1; border-color:#79cc64 }
+
     .inputrow{display:flex;gap:10px;align-items:center}
     input[type="text"]{
       flex:1;padding:14px 16px;border:2px solid var(--task-blue-accent);border-radius:25px;font-size:13px;outline:none;background:#fff;
     }
     input[type="text"]:focus{border-color:var(--task-orange)}
+    :root[data-theme="dark"] input[type="text"]{ background:#0e141a; color:#e7eef6; }
+
     button.send{
       width:50px;height:50px;border:none;border-radius:50%;cursor:pointer;color:#fff;font-size:18px;
       background:linear-gradient(135deg,var(--task-orange),var(--task-yellow));box-shadow:0 4px 15px rgba(255,145,31,.28);
     }
+
     .status{margin-top:6px;text-align:center;font-size:10px;color:#6b6b6b}
+    :root[data-theme="dark"] .status{ color:#b7c4cd }
 
     @keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
     @keyframes bob{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
@@ -122,9 +160,10 @@
     <div class="header">
       <div class="badge">TASK Assistant</div>
       <div class="subline">Trenton Area Soup Kitchen</div>
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
     </div>
 
-    <!-- Quick links rail (opens links directly; no chat injection) -->
+    <!-- Quick links rail (open directly) -->
     <nav class="rail" id="top-rail">
       <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
       <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
@@ -156,11 +195,28 @@
     const sendBtn = document.getElementById('send');
     const statusEl = document.getElementById('status');
     const hintEl = document.getElementById('hint');
+    const themeToggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    const THEME_KEY = 'task-theme';
 
     let BUSY = false;
     let sessionLang = 'en';   // start in ENGLISH
 
-    // --------- UI helpers ---------
+    /* ============== Theme toggle ============== */
+    function applyTheme(t){
+      root.setAttribute('data-theme', t);
+      themeToggle.textContent = (t==='dark') ? '☀️' : '🌙';
+    }
+    const savedTheme = localStorage.getItem(THEME_KEY) ||
+      (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(savedTheme);
+    themeToggle.addEventListener('click', ()=>{
+      const t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(THEME_KEY, t);
+      applyTheme(t);
+    });
+
+    /* ============== UI helpers ============== */
     function addUser(text){
       const el = document.createElement('div');
       el.className = 'msg user';
@@ -198,7 +254,7 @@
     }
     function typingOff(){ const t = document.getElementById('typing'); if (t) t.remove(); }
 
-    // --------- Language detection & switching ---------
+    /* ============== Language & time helpers ============== */
     function detectLang(t){
       t = t.toLowerCase();
       const es = /hola|necesito|trabajo|empleo|d[oó]nde|cu[aá]ndo|hora|horas|espa[nñ]ol|tel[eé]fono|direcci[oó]n|cita|servicios|comida|gracias/.test(t);
@@ -218,8 +274,6 @@
       else if (l==='ht') hintEl.textContent = 'M pale Kreyòl, English & Español';
       else hintEl.textContent = 'I speak English, Español & Kreyòl';
     }
-
-    // --------- Time helpers ---------
     function nowInfo(){
       const d = new Date();
       const dow = d.getDay(); // 0=Sun
@@ -229,7 +283,7 @@
       return {d, dow, hr, afterLunch, weekend};
     }
 
-    // --------- Intent classification ---------
+    /* ============== Intent classification ============== */
     const bag = {
       trainings: /(training|trainings|program|programs|class|classes|course|courses|certificate|certification|servsafe|culinary|emilio|academy|sora|forklift|osha|apprenticeship|ged|hiset)\b|capacitaci[oó]n|curso|cursos|clases|certificado|certificaci[oó]n|culinaria|aprendizaje|montacargas|ged|hiset|f[oò]masyon|kou|klas|s[eè]tifikasyon|akademi|kwizin|forklift|ged|hiset/i,
       jobs: /(job|jobs|opening|openings|hiring|hire|career|careers|apply|application|posting|position|positions|full[- ]?time|part[- ]?time|temp|seasonal|warehouse|security|guard|janitorial|dishwasher|line cook|cdl|ups|amazon)\b|empleo|empleos|vacante|vacantes|contratando|carreras|aplicar|solicitud|puesto|puestos|tiempo completo|medio tiempo|almac[eé]n|guardia|lavaplatos|cocinero|cdl|travay|pozisyon|ap anboche|kary[eè]|apl(e|i)ke|depo|gad sekirite|kwizin/i,
@@ -264,7 +318,7 @@
       return hits.length ? hits : ['default'];
     }
 
-    // --------- Localized phrases ---------
+    /* ============== Localization ============== */
     function L(key){
       const dict = {
         call: {en:'Call', es:'Llama', ht:'Rele'},
@@ -286,13 +340,12 @@
         location: {en:'our location', es:'nuestra ubicación', ht:'kote nou ye'},
         transit: {en:'transit', es:'transporte', ht:'transpò'},
         lab: {en:'the computer lab', es:'el laboratorio de computación', ht:'laboratwa òdinatè a'},
-        resources: {en:'resources', es:'recursos', ht:'resous'},
-        hello: {en:'Hello!', es:'¡Hola!', ht:'Bonjou!'}
+        resources: {en:'resources', es:'recursos', ht:'resous'}
       };
       return (dict[key]||{})[sessionLang] || (dict[key]||{}).en || '';
     }
 
-    // --------- Responses ---------
+    /* ============== Responses ============== */
     function resp_trainings(){
       return (
         `<strong>🎓 ${L('asked')} ${L('training')}.</strong><br><br>
@@ -325,7 +378,7 @@
               <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Watch quick tips</a>`;
     }
     function resp_appt(){
-      /* PHONE ONLY — no register-online link */
+      /* PHONE ONLY — no register-online link anywhere */
       return `<strong>📅 ${L('asked')} ${L('appt')}.</strong><br><br>
               ${L('call')} ${L('sss')} at ${L('phone')}. ${L('during')}.`;
     }
@@ -386,41 +439,7 @@
       return `<strong>🧭 Work options:</strong> What do you need today?`;
     }
 
-    // --------- Router ---------
-    function route(text){
-      // explicit language switch?
-      const switchTo = tryExplicitLangSwitch(text);
-      if (switchTo){ setLang(switchTo); return resp_greeting(); }
-
-      // set/remember language from message (EARLY detection)
-      setLang(detectLang(text));
-
-      const intents = findIntents(text);
-      const top = intents[0];
-
-      switch(top){
-        case 'crisis'       : return {html: resp_crisis(), chips: []};
-        case 'appointments' : return {html: resp_appt(), chips: chipsAfter('appointments')};
-        case 'hours'        : return {html: resp_hours(), chips: chipsAfter('hours')};
-        case 'location'     : return {html: resp_location(), chips: chipsAfter('location')};
-        case 'transit'      : return {html: resp_transit(), chips: chipsAfter('transit')};
-        case 'trainings'    : return {html: resp_trainings(), chips: chipsAfter('trainings')};
-        case 'jobs'         : return {html: resp_jobs(), chips: chipsAfter('jobs')};
-        case 'resume'       : return {html: resp_resume(), chips: chipsAfter('resume')};
-        case 'interview'    : return {html: resp_interview(), chips: chipsAfter('interview')};
-        case 'computer_lab' : return {html: resp_lab(), chips: chipsAfter('lab')};
-        case 'resources'    : return {html: resp_resources(), chips: chipsAfter('resources')};
-        case 'greeting'     : return {html: resp_greeting(), chips: chipsAfter('greeting')};
-        case 'thanks'       : return {html: '😊 You’re welcome!', chips: chipsAfter('thanks')};
-        case 'work_hub'     : return {html: resp_workHub(), chips: [
-                                  {label:'Open Jobs', ask:'jobs'},
-                                  {label:'Career/Training Help', ask:'training'},
-                                  {label:'Resume Help', ask:'resume'}]};
-        default             : return {html: resp_default(), chips: chipsAfter('default')};
-      }
-    }
-
-    // Suggestion chips tailored by last intent
+    /* ============== Router & chips ============== */
     function chipsAfter(intent){
       const common = [
         {label:'Training', ask:'training'},
@@ -430,7 +449,7 @@
       switch(intent){
         case 'trainings': return [{label:'Apply for Training', ask:'training programs'}, {label:'Open Jobs', ask:'jobs'}, {label:'Make Appointment', ask:'appointment'}];
         case 'jobs':      return [{label:'Get Job Alerts', ask:'alerts'}, {label:'Resume Help', ask:'resume'}, {label:'Interview Tips', ask:'interview'}];
-        case 'appointments': return [{label:'Training', ask:'training'}, {label:'Open Jobs', ask:'jobs'}]; /* removed Register Online */
+        case 'appointments': return [{label:'Training', ask:'training'}, {label:'Open Jobs', ask:'jobs'}]; /* NO register online */
         case 'hours':     return [{label:'Address', ask:'address'}, {label:'Transit', ask:'bus to TASK'}, {label:'Make Appointment', ask:'appointment'}];
         case 'location':  return [{label:'Transit', ask:'bus'}, {label:'Hours', ask:'hours today'}, {label:'Make Appointment', ask:'appointment'}];
         case 'resources': return [{label:'Legal Help', ask:'legal'}, {label:'Housing', ask:'housing'}, {label:'Benefits', ask:'benefits'}];
@@ -438,7 +457,38 @@
       }
     }
 
-    // --------- Send flow ---------
+    function route(text){
+      const switchTo = tryExplicitLangSwitch(text);
+      if (switchTo){ setLang(switchTo); return {html: resp_greeting(), chips: chipsAfter('greeting')} }
+
+      setLang(detectLang(text));
+
+      const intents = findIntents(text);
+      const top = intents[0];
+
+      switch(top){
+        case 'crisis'       : return {html: resp_crisis(),    chips: []};
+        case 'appointments' : return {html: resp_appt(),      chips: chipsAfter('appointments')};
+        case 'hours'        : return {html: resp_hours(),     chips: chipsAfter('hours')};
+        case 'location'     : return {html: resp_location(),  chips: chipsAfter('location')};
+        case 'transit'      : return {html: resp_transit(),   chips: chipsAfter('transit')};
+        case 'trainings'    : return {html: resp_trainings(), chips: chipsAfter('trainings')};
+        case 'jobs'         : return {html: resp_jobs(),      chips: chipsAfter('jobs')};
+        case 'resume'       : return {html: resp_resume(),    chips: chipsAfter('resume')};
+        case 'interview'    : return {html: resp_interview(), chips: chipsAfter('interview')};
+        case 'computer_lab' : return {html: resp_lab(),       chips: chipsAfter('lab')};
+        case 'resources'    : return {html: resp_resources(), chips: chipsAfter('resources')};
+        case 'greeting'     : return {html: resp_greeting(),  chips: chipsAfter('greeting')};
+        case 'thanks'       : return {html: '😊 You’re welcome!', chips: chipsAfter('thanks')};
+        case 'work_hub'     : return {html: resp_workHub(), chips: [
+                                  {label:'Open Jobs', ask:'jobs'},
+                                  {label:'Career/Training Help', ask:'training'},
+                                  {label:'Resume Help', ask:'resume'}]};
+        default             : return {html: resp_default(), chips: chipsAfter('default')};
+      }
+    }
+
+    /* ============== Send flow & events ============== */
     function sendMessage(){
       if (BUSY) return;
       const text = (box.value || '').trim();
@@ -461,23 +511,18 @@
       }, 280);
     }
 
-    // Wire events
     sendBtn.addEventListener('click', sendMessage);
     box.addEventListener('keydown', e=>{ if (e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
-
-    // Chips: click to send
     chat.addEventListener('click', e=>{
       const chip = e.target.closest('.chip'); if (!chip) return;
       box.value = chip.dataset.ask || chip.textContent;
       sendMessage();
     });
-
-    // Rail links: open only
     document.getElementById('top-rail').addEventListener('click', e=>{
-      const a = e.target.closest('a'); if (!a) return;
+      const a = e.target.closest('a'); if (!a) return; /* open only */
     });
 
-    // Force initial language to ENGLISH and greet
+    /* Initial English greeting */
     setLang('en');
     addBot(`👋 Hello! I'm the TASK Assistant.<br>
             Ask me about <em>training</em>, <em>jobs</em>, <em>appointments</em>, <em>hours</em>,
