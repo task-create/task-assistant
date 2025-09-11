@@ -18,59 +18,39 @@
       --gray-700:#6b6b6b;
       --gray-200:#e9eef3;
 
-      /* ⬇️ Put a hosted URL of your TASK logo here (PNG/SVG). Optional. */
-      --logo-url: '';
+      /* Optional watermark logo (PNG/SVG). Turn on in JS with data-logo="on" */
+      --logo-url:'';
     }
-
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:linear-gradient(135deg,var(--task-blue) 0%,var(--task-teal) 100%);
       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px;
     }
-
     .app{
-      position:relative;
-      width:100%;max-width:420px;background:#fff;
+      position:relative;width:100%;max-width:420px;background:#fff;
       border:3px solid var(--task-orange);border-radius:18px;overflow:hidden;
       box-shadow:0 20px 40px rgba(20,80,120,.30);
     }
-
     /* watermark */
     .app::before{
-      content:"";
-      position:absolute;inset:0;pointer-events:none;opacity:.06;
-      background:
-        radial-gradient(ellipse at center, #fff 0%, #fff 40%, transparent 60%) center/75% 75% no-repeat;
+      content:"";position:absolute;inset:0;pointer-events:none;opacity:.06;
+      background:radial-gradient(ellipse at center, #fff 0%, #fff 40%, transparent 60%) center/75% 75% no-repeat;
       mix-blend-mode:normal;
     }
-    /* If you set --logo-url, show it as the watermark instead */
-    .app[data-logo="on"]::before{
-      background: url(var(--logo-url)) center/70% no-repeat;
-      opacity:.05;
-    }
+    .app[data-logo="on"]::before{ background: url(var(--logo-url)) center/70% no-repeat; opacity:.05; }
 
-    .header{
-      text-align:center;background:#fff;border-bottom:2px solid var(--task-blue);padding:12px 12px 10px;
-    }
-    .badge{
-      display:inline-block;background:var(--task-blue);color:#fff;
-      padding:6px 12px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;
-    }
-    .subline{
-      margin-top:6px;color:var(--task-orange);font:700 12px/1 "Nunito",sans-serif;
-    }
+    .header{ text-align:center;background:#fff;border-bottom:2px solid var(--task-blue);padding:12px 12px 10px; }
+    .badge{ display:inline-block;background:var(--task-blue);color:#fff;padding:6px 12px;border-radius:999px;
+            font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px; }
+    .subline{ margin-top:6px;color:var(--task-orange);font:700 12px/1 "Nunito",sans-serif; }
 
-    .rail{
-      display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
-      padding:10px 12px;background:#f7fbff;border-bottom:1px solid var(--gray-200);
-    }
-    .rail a{
-      font-weight:600;text-decoration:none;color:var(--task-blue);
-      border:1px solid var(--task-orange);background:#fff;border-radius:999px;
-      padding:6px 10px;font-size:12px;
-    }
-    .rail a:hover{background:var(--task-orange);color:#fff}
+    .rail{ display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+           padding:10px 12px;background:#f7fbff;border-bottom:1px solid var(--gray-200);}
+    .rail a{ font-weight:600;text-decoration:none;color:var(--task-blue);
+             border:1px solid var(--task-orange);background:#fff;border-radius:999px;
+             padding:6px 10px;font-size:12px; }
+    .rail a:hover{ background:var(--task-orange);color:#fff }
 
     .chat{height:360px;overflow:auto;background:#fafafa;padding:14px;scroll-behavior:smooth}
 
@@ -100,8 +80,13 @@
     }
     .status{margin-top:6px;text-align:center;font-size:10px;color:#6b6b6b}
 
+    .ctas{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .ctas a{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--task-orange);text-decoration:none;
+            color:var(--task-blue);font-weight:600;font-size:12px;background:#fff}
+    .ctas a:hover{background:var(--task-orange);color:#fff}
+
     @keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes bob{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+    @keyframes bob{0%,60%,100{transform:translateY(0)}30%{transform:translateY(-8px)}}
 
     @media (max-width:480px){ .app{border-radius:16px}}
   </style>
@@ -113,7 +98,7 @@
       <div class="subline">Trenton Area Soup Kitchen</div>
     </div>
 
-    <!-- Top rail (open links; no messages) -->
+    <!-- Quick links rail (always open in a new tab; no chat side-effects) -->
     <nav class="rail" id="top-rail">
       <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
       <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
@@ -127,7 +112,7 @@
     <section class="chat" id="chat"></section>
 
     <footer class="footer">
-      <div class="hint">I speak English, Español & Kreyòl</div>
+      <div class="hint" id="hint">I speak English, Español & Kreyòl</div>
       <div class="inputrow">
         <input id="box" type="text" placeholder="Type: training, jobs, hours, address, bus…" autocomplete="off"/>
         <button class="send" id="send" aria-label="Send">➤</button>
@@ -135,24 +120,81 @@
       <div class="status" id="status">⚠️ I can make mistakes — please double-check important info!</div>
     </footer>
   </main>
+
   <script>
-    // OPTIONAL: turn on background logo watermark if you set --logo-url above.
-    // document.getElementById('app').setAttribute('data-logo','on');
+    // Optional watermark logo: set --logo-url in :root and uncomment:
+    // document.getElementById('app').setAttribute('data-logo', 'on');
 
-    const chat = document.getElementById('chat');
-    const box  = document.getElementById('box');
+    const chat    = document.getElementById('chat');
+    const box     = document.getElementById('box');
     const sendBtn = document.getElementById('send');
-    const statusEl = document.getElementById('status');
+    const statusEl= document.getElementById('status');
+    const hintEl  = document.getElementById('hint');
 
-    let BUSY = false;
+    // --- i18n -----------------------------------------------------------------
+    const i18n = {
+      en: {
+        hint: 'I speak English, Español & Kreyòl',
+        greet: `👋 Hi! I'm the TASK Assistant.<br>
+                Ask me about <em>training</em>, <em>jobs</em>, <em>appointments</em>, <em>hours</em>,
+                <em>address</em>, or <em>bus</em>.`,
+        asked: 'You asked about',
+        call: 'Call',
+        during: 'During lunch (10:30 AM–1:00 PM)',
+        phoneHtml: '<a href="tel:609-337-1624">(609) 337-1624</a>',
+        workHub: 'Do you want open jobs or career help?',
+        default: `Try “training”, “jobs”, “appointment”, “hours”, “address”, or “bus”.`,
+        welcomeQuick: `Quick links: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
+                       <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
+                       <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`
+      },
+      es: {
+        hint: 'Hablo inglés y español (y Kreyòl)',
+        greet: `👋 ¡Hola! Soy el Asistente de TASK.<br>
+                Pregúntame sobre <em>entrenamientos</em>, <em>empleos</em>, <em>citas</em>, <em>horarios</em>,
+                <em>dirección</em>, o <em>autobús</em>.`,
+        asked: 'Me preguntas sobre',
+        call: 'Llama',
+        during: 'Durante el almuerzo (10:30 AM–1:00 PM)',
+        phoneHtml: '<a href="tel:609-337-1624">(609) 337-1624</a>',
+        workHub: '¿Deseas ver vacantes o ayuda de carrera?',
+        default: `Prueba “entrenamientos”, “empleos”, “cita”, “horarios”, “dirección” o “autobús”.`,
+        welcomeQuick: `Enlaces: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Entrenamientos</a> •
+                       <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Empleos</a> •
+                       <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alertas</a>`
+      },
+      ht: {
+        hint: 'M pale English, Español & Kreyòl',
+        greet: `👋 Bonjou! Mwen se Asistan TASK la.<br>
+                Mande m sou <em>fòmasyon</em>, <em>travay</em>, <em>randevou</em>, <em>lè</em>,
+                <em>adrès</em>, oswa <em>otobis</em>.`,
+        asked: 'W ap mande sou',
+        call: 'Rele',
+        during: 'Lè manje midi (10:30 AM–1:00 PM)',
+        phoneHtml: '<a href="tel:609-337-1624">(609) 337-1624</a>',
+        workHub: 'Ou vle wè travay ki louvri oswa èd ak karyè a?',
+        default: `Eseye “fòmasyon”, “travay”, “randevou”, “lè”, “adrès”, oswa “otobis”.`,
+        welcomeQuick: `Kout lyen: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Fòmasyon</a> •
+                       <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Travay</a> •
+                       <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alèt</a>`
+      }
+    };
 
-    // On load: greet once
-    addBot(`👋 Hi! I'm the TASK Assistant.<br>
-            Ask me about <em>training</em>, <em>jobs</em>, <em>appointments</em>, <em>hours</em>,
-            <em>directions</em>, or <em>transit</em>.<br><br>
-            Quick links: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
-            <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
-            <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
+    let LANG = (localStorage.getItem('task_lang')) ||
+               (navigator.language||'en').slice(0,2).replace('es','es').replace('ht','ht');
+    if (!['en','es','ht'].includes(LANG)) LANG = 'en';
+    setUiLang(LANG);
+
+    // --- helpers --------------------------------------------------------------
+    function setUiLang(l){
+      LANG = l;
+      localStorage.setItem('task_lang', l);
+      hintEl.textContent = i18n[l].hint;
+      // update placeholder to match language tone
+      if(l==='es') box.placeholder = 'Escribe: entrenamientos, empleos, horarios, dirección, autobús…';
+      else if(l==='ht') box.placeholder = 'Tape: fòmasyon, travay, lè, adrès, otobis…';
+      else box.placeholder = 'Type: training, jobs, hours, address, bus…';
+    }
 
     function addUser(text){
       const el = document.createElement('div');
@@ -170,131 +212,169 @@
     }
     function typingOn(){
       const wrap = document.createElement('div');
-      wrap.className = 'msg typing';
-      wrap.id = 'typing';
+      wrap.className = 'msg typing'; wrap.id = 'typing';
       wrap.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
       chat.appendChild(wrap); chat.scrollTop = chat.scrollHeight;
     }
-    function typingOff(){
-      const t = document.getElementById('typing'); if (t) t.remove();
+    function typingOff(){ const t = document.getElementById('typing'); if (t) t.remove(); }
+
+    // greet once
+    addBot(`${i18n[LANG].greet}<br><br>${i18n[LANG].welcomeQuick}`);
+
+    // --- language detection / switching --------------------------------------
+    function detectLang(input){
+      const t = input.toLowerCase();
+      // Explicit switches
+      if (/^\s*(english|ingl[eé]s)\s*$/.test(t)) return 'en';
+      if (/^\s*(espanol|español|spanish)\s*$/.test(t)) return 'es';
+      if (/^\s*(krey[oò]l|creole|kreyol)\s*$/.test(t)) return 'ht';
+
+      // Heuristics
+      const es = /hola|necesit|trabaj|emple|d[oó]nde|cu[aá]ndo|hora|horas|autob[uú]s|gracias|cita|servici|comida|direcci[oó]n|tel[eé]fono|curso|capacitaci[oó]n|entrenam/i.test(t);
+      const ht = /bonjou|bonswa|mwen|bezwen|travay|kote|ede|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis|otobis/i.test(t);
+      return es ? 'es' : (ht ? 'ht' : LANG);
     }
 
-    function detectLang(t){
-      t = t.toLowerCase();
-      const es = /hola|necesito|trabajo|empleo|donde|cuando|hora|horas|español|tel[eé]fono|direcci[oó]n|cita|servicios|comida/.test(t);
-      const ht = /bonjou|bonswa|mwen|bezwen|travay|kote|ede|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis/.test(t);
-      return es ? 'es' : (ht ? 'ht' : 'en');
-    }
+    // --- intent classification -----------------------------------------------
     function classifyIntent(text){
       const t = (' '+text.toLowerCase()+' ').replace(/[^\p{L}\p{N}\s]/gu,' ');
       const bag = {
-        trainings: /(training|trainings|program|programs|class|classes|course|courses|certification|culinary|emilio|academy|sora|forklift|apprenticeship)\b/,
-        jobs: /(job|jobs|work|employment|hiring|hire|opening|openings|apply|application|position|positions|indeed)\b|empleo|trabajo|travay/,
-        alerts: /(alert|alerts|notify|notification|subscribe|updates)/,
-        resume: /(resume|curriculum|currículum|cv|cover\s*letter)/,
-        interview: /(interview|interview\s*tips|mock\s*interview|practice\s*interview)/,
-        appointments: /(appointment|schedule|book|meeting|register|sign\s*up|rsvp|cita|programar|randevou)/,
-        hours: /(hour|hours|time|when|open|close|lunch|dinner|meal|eat|food|hora|almuerzo|cena|manje)/,
-        location: /(where|address|location|directions|map|parking|d[oó]nde|direcci[oó]n|ubicaci[oó]n|kote|adr[eè]s)/,
-        transit: /(bus|nj\s*transit|route|fare|ticket|train|transport|planner)/,
-        computer_lab: /(computer|internet|wifi|lab|email|application\s*online)/,
-        resources: /(resource|resources|assistance|support\s*services|services\s*list)/,
+        trainings: /(training|trainings|program|programs|class|classes|course|courses|certificate|certification|culinary|emilio|academy|sora|forklift|apprentice|curso|capacitaci[oó]n|form[aà]syon)\b/,
+        jobs: /(job|jobs|employment|hiring|opening|openings|apply|application|position|positions|indeed|empleo|trabajo|vacante|travay)\b/,
+        alerts: /(alert|alerts|notify|notification|subscribe|updates|alerta|al[eé]r|alèt)\b/,
+        resume: /(resume|curriculum|curr[ií]culum|cv|cover\s*letter|plantilla)\b/,
+        interview: /(interview(\s*tips)?|mock\s*interview|practice\s*interview|entrevista|kons[eè]y\s*ent[eè]vyou)\b/,
+        appointments: /(appointment|schedule|book|meeting|register|sign\s*up|cita|programar|randevou|enskri)\b/,
+        hours: /(hour|hours|time|when|open|close|lunch|dinner|meal|eat|food|hora|horario|almuerzo|cena|manje|l[eè])\b/,
+        location: /(where|address|location|directions|map|parking|d[oó]nde|direcci[oó]n|ubicaci[oó]n|kote|adr[eè]s)\b/,
+        transit: /(bus|nj\s*transit|route|fare|ticket|train|transport|planner|otobis|autob[uú]s)\b/,
+        computer_lab: /(computer|internet|wifi|lab|email|application\s*online|computadora|òdinat[eè])\b/,
+        resources: /(resource|resources|assistance|support\s*services|services\s*list|legal|immigration|lawyer|court|housing|rent|eviction|benefits|id\s*card|dv|violence|referral|ayuda|asistencia|legal|lojman|imigrasyon)\b/,
+        work_hub: /^\s*(work|trabajo|travay)\s*$/, // ambiguous single word
         greeting: /^( *hi| *hello| *hey| *hola| *bonjou)[!. ]*$/i,
-        thanks: /(thanks|thank you|gracias|mesi)/
+        thanks: /(thanks|thank you|gracias|mesi)\b/
       };
       for (const [k, rx] of Object.entries(bag)){ if (rx.test(t)) return k; }
       return 'default';
     }
 
-    function route(text){
-      const lang = detectLang(text); const intent = classifyIntent(text);
+    // --- response router ------------------------------------------------------
+    function ctas(arr){
+      // arr = [ [label, href], ... ]
+      return `<div class="ctas">${arr.map(([l,h])=>`<a href="${h}" target="_blank" rel="noopener">${l}</a>`).join('')}</div>`;
+    }
 
-      const L = {
-        call: lang==='es' ? 'Llama' : lang==='ht' ? 'Rele' : 'Call',
-        phone: '<a href="tel:609-337-1624">(609) 337-1624</a>',
-        during: lang==='es' ? 'Durante el almuerzo (10:30 AM–1:00 PM)' :
-                lang==='ht' ? 'Lè manje midi (10:30 AM–1:00 PM)' :
-                               'During lunch (10:30 AM–1:00 PM)',
-        asked: lang==='es' ? 'Me preguntas sobre' : lang==='ht' ? 'W ap mande sou' : 'You asked about'
-      };
+    function route(text){
+      // language handling
+      const newLang = detectLang(text);
+      if (newLang !== LANG){ setUiLang(newLang); }
+
+      const L = i18n[LANG];
+      const phone = L.phoneHtml;
+      const asked = L.asked;
+
+      const intent = classifyIntent(text);
 
       const R = {
         trainings: () => (
-          `<strong>🎓 ${L.asked} training.</strong><br><br>
+          `<strong>🎓 ${asked} training.</strong><br><br>
            • Emilio Culinary Academy (10-week)<br>
            • SORA Security Certification<br>
            • Forklift Certification<br><br>
-           <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Browse training & apply</a><br>
-           ${L.call} the Social Services Specialist: ${L.phone}. ${L.during}.`
+           ${ctas([
+              ['Browse Training & Apply','https://bycell.co/ddmtn'],
+              ['Call Social Services','tel:6093371624']
+            ])}
+           ${L.call} the Social Services Specialist: ${phone}. ${L.during}.`
         ),
         jobs: () => (
-          `<strong>💼 ${L.asked} jobs.</strong><br><br>
-           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions (Mercer County)</a><br>
-           <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Get job alerts</a><br><br>
-           Need help applying? ${L.call}: ${L.phone}. ${L.during}.`
+          `<strong>💼 ${asked} jobs.</strong><br><br>
+           ${ctas([
+              ['Open Positions','https://bycell.co/ddmtq'],
+              ['Get Job Alerts','https://bycell.co/ddmtr'],
+              ['Resume Help','https://bycell.co/ddmui']
+            ])}
+           Need help applying? ${L.call}: ${phone}. ${L.during}.`
         ),
         alerts: () => (
-          `<strong>🔔 ${L.asked} job alerts.</strong><br><br>
-           <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Subscribe to alerts</a>`
+          `<strong>🔔 ${asked} job alerts.</strong><br><br>
+           ${ctas([['Subscribe to Alerts','https://bycell.co/ddmtr']])}`
         ),
         resume: () => (
-          `<strong>📄 ${L.asked} resume help.</strong><br><br>
-           <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help & templates</a><br><br>
-           1-on-1 help? ${L.call}: ${L.phone}. ${L.during}.`
+          `<strong>📄 ${asked} resume help.</strong><br><br>
+           ${ctas([['Resume Help & Templates','https://bycell.co/ddmui']])}
+           1-on-1 help? ${L.call}: ${phone}. ${L.during}.`
         ),
         interview: () => (
-          `<strong>🎥 ${L.asked} interview tips.</strong><br><br>
-           <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Watch quick tips</a>`
+          `<strong>🎥 ${asked} interview tips.</strong><br><br>
+           ${ctas([['Watch quick tips','https://www.youtube.com/watch?v=ZU9x1vFx5lI']])}`
         ),
         appointments: () => (
-          `<strong>📅 ${L.asked} an appointment.</strong><br><br>
-           ${L.call} the Social Services Specialist at ${L.phone}. ${L.during}.<br>
-           Or <a href="https://bycell.co/ddmul" target="_blank" rel="noopener">register online</a>.`
+          `<strong>📅 ${asked} an appointment.</strong><br><br>
+           ${L.call} the Social Services Specialist at ${phone}. ${L.during}.<br>
+           Or register online here: ${ctas([['Register','https://bycell.co/ddmul']])}`
         ),
         hours: () => (
-          `<strong>🕒 ${L.asked} hours.</strong><br><br>
-           Meals: Lunch Mon–Fri 10:30a–1:00p • Dinner Mon–Thu 3:30–5:00p<br>
+          `<strong>🕒 ${asked} hours.</strong><br><br>
+           Meals:<br>
+           • Lunch: Mon–Fri 10:30a–1:00p<br>
+           • Dinner: Mon–Thu 3:30–5:00p<br><br>
            Employment appointments are scheduled ${L.during.toLowerCase()}.`
         ),
         location: () => (
-          `<strong>📍 ${L.asked} our location.</strong><br><br>
+          `<strong>📍 ${asked} our location.</strong><br><br>
            72½ Escher St, Trenton, NJ 08609<br>
-           <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">Open Google Maps</a><br><br>
-           Appointments: ${L.phone}.`
+           ${ctas([['Open Google Maps','https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609']])}
+           Appointments: ${phone}.`
         ),
         transit: () => (
-          `<strong>🚌 ${L.asked} transit.</strong><br><br>
-           <a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>
-           Destination: 72½ Escher St, Trenton.`
+          `<strong>🚌 ${asked} transit.</strong><br><br>
+           ${ctas([['NJ Transit Trip Planner','https://www.njtransit.com/trip-planner-to']])}
+           Info line: 1-973-275-5555 • Destination: 72½ Escher St, Trenton.`
         ),
         computer_lab: () => (
-          `<strong>💻 ${L.asked} the computer lab.</strong><br><br>
-           Open during meal hours. Free internet & job applications.`
+          `<strong>💻 ${asked} the computer lab.</strong><br><br>
+           Open during meal hours. Free internet & help with online applications.`
         ),
         resources: () => (
-          `<strong>🧰 ${L.asked} resources.</strong><br><br>
-           <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Additional resources</a><br>
-           <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">Full TASK services</a>`
+          `<strong>🧰 ${asked} resources.</strong><br><br>
+           We can help connect with housing, IDs, benefits, **legal/immigration**, DV, and more.<br><br>
+           ${ctas([
+              ['Additional Resources','https://bycell.co/ddmua'],
+              ['Full TASK Services','https://trentonsoupkitchen.org/what-we-do/'],
+              ['Call Social Services','tel:6093371624']
+           ])}`
+        ),
+        work_hub: () => (
+          `<strong>💼 ${L.workHub}</strong>${ctas([
+            ['Open Jobs','https://bycell.co/ddmtq'],
+            ['Career Help & Training','https://bycell.co/ddmtn'],
+            ['Resume Help','https://bycell.co/ddmui']
+          ])}
+          ${L.call}: ${phone}. ${L.during}.`
         ),
         greeting: () => (
-          `👋 Hello! Tell me <em>training</em>, <em>jobs</em>, <em>hours</em>, <em>address</em>, or <em>bus</em>.<br><br>
-           <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
-           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a>`
+          `${i18n[LANG].greet}<br><br>${i18n[LANG].welcomeQuick}`
         ),
-        thanks: () => `😊 You’re welcome!`,
+        thanks: () => `😊 ${LANG==='es'?'¡Con gusto!':LANG==='ht'?'Pa gen pwoblèm!':'You’re welcome!'}`,
         default: () => (
-          `I’ll keep it simple. Try “training”, “jobs”, “appointment”, “hours”, “address”, or “bus”.<br><br>
-           <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
-           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a>`
+          `${i18n[LANG].default}<br><br>${ctas([
+            ['Training','https://bycell.co/ddmtn'],
+            ['Jobs','https://bycell.co/ddmtq'],
+            ['Address','https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609']
+          ])}`
         )
       };
 
-      return (R[intent] || R.default)();
+      return (R[intent]||R.default)();
     }
+
+    // --- main send loop -------------------------------------------------------
+    let BUSY = false;
 
     function sendMessage(){
       if (BUSY) return;
-      const text = (box.value || '').trim();
+      const text = (box.value||'').trim();
       if (!text) return;
 
       BUSY = true;
@@ -307,22 +387,21 @@
         typingOff();
         addBot(route(text));
         statusEl.textContent = '✅ Answered!';
-        setTimeout(()=> statusEl.textContent = '⚠️ I can make mistakes — please double-check important info!', 1300);
+        setTimeout(()=> statusEl.textContent =
+          (LANG==='es'?'⚠️ Puedo equivocarme — verifique la información importante.':
+           LANG==='ht'?'⚠️ Mwen ka fè erè — tanpri tcheke enfòmasyon enpòtan yo!':
+                        '⚠️ I can make mistakes — please double-check important info!'), 1200);
         BUSY = false;
         box.focus();
-      }, 280);
+      }, 260);
     }
 
-    // Wire events
     sendBtn.addEventListener('click', sendMessage);
-    box.addEventListener('keydown', e=>{
-      if (e.key === 'Enter'){ e.preventDefault(); sendMessage(); }
-    });
+    box.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
 
-    // Rail links: open only; do NOT send chat messages
+    // Keep rail links “pure” (no chat injection)
     document.getElementById('top-rail').addEventListener('click', e=>{
-      const a = e.target.closest('a'); if (!a) return;
-      // Let the browser open the link; do nothing else
+      const a = e.target.closest('a'); if(!a) return;
     });
   </script>
 </body>
