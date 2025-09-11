@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TASK Assistant</title>
+</head>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#fafafa;">
+  
+  <div style="padding:16px;background:linear-gradient(135deg,#ff9068 0%,#fd746c 100%);min-height:100vh;box-sizing:border-box;">
+    <div style="max-width:420px;margin:0 auto;background:#fff;border:3px solid #ff6b47;border-radius:18px;overflow:hidden;box-shadow:0 10px 28px rgba(255,107,71,.28);">
+      
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#ff6b47 0%,#ff8a65 100%);color:#fff;text-align:center;padding:16px 14px 12px;">
+        <h1 style="margin:0;font-size:22px;">🍽️ TASK Assistant</h1>
+        <p style="margin:6px 0 0;font-size:13px;">Trenton Area Soup Kitchen</p>
+        <div style="display:inline-block;margin-top:8px;font-size:11px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.45);padding:6px 10px;border-radius:999px;">
+          🧡 Turning Hunger Into Hope Since 1982
+        </div>
+      </div>
+
+      <!-- Chat Area -->
+      <div id="chatArea" style="padding:14px;height:360px;overflow-y:auto;background:#fff9f7;">
+        
+        <!-- Welcome Message -->
+        <div style="background:linear-gradient(135deg,#fff3e0,#ffe8d6);border:2px solid #ffc09e;border-radius:14px;padding:14px;color:#444;margin-bottom:12px;">
+          <h2 style="margin:0 0 8px;color:#d84315;font-size:18px;">🤝 Welcome! Byenvini! ¡Bienvenidos!</h2>
+          
+          <div style="background:#e8f5e9;border:2px solid #4caf50;color:#1b5e20;border-radius:10px;padding:10px;font-size:11px;text-align:center;margin-top:6px;">
+            <strong>💬 I speak English, Español & Kreyòl.</strong> Just type naturally — I handle typos.
+          </div>
+
+          <!-- Quick Actions -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+            <a href="https://www.google.com/maps/search/Trenton+Area+Soup+Kitchen" 
+               target="_blank" rel="noopener" 
+               style="display:inline-block;padding:6px 10px;font-size:11px;text-decoration:none;color:#bf360c;background:#fff;border:1px solid #ffd0b2;border-radius:999px;cursor:pointer;">
+              📍 Address
+            </a>
+            <a href="https://bycell.co/ddmtq" 
+               target="_blank" rel="noopener" 
+               style="display:inline-block;padding:6px 10px;font-size:11px;text-decoration:none;color:#bf360c;background:#fff;border:1px solid #ffd0b2;border-radius:999px;cursor:pointer;">
+              💼 Openings
+            </a>
+            <a href="https://www.njtransit.com/trip-planner-to" 
+               target="_blank" rel="noopener" 
+               style="display:inline-block;padding:6px 10px;font-size:11px;text-decoration:none;color:#bf360c;background:#fff;border:1px solid #ffd0b2;border-radius:999px;cursor:pointer;">
+              🚌 Transportation
+            </a>
+            <a href="https://youtu.be/ZU9x1vFx5lI?si=qAeHphUr6MU-_u84" 
+               target="_blank" rel="noopener" 
+               style="display:inline-block;padding:6px 10px;font-size:11px;text-decoration:none;color:#bf360c;background:#fff;border:1px solid #ffd0b2;border-radius:999px;cursor:pointer;">
+              🎥 Interview Tips
+            </a>
+          </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div id="messages"></div>
+      </div>
+
+      <!-- Input Area -->
+      <div style="padding:12px;background:#fff9f7;border-top:2px solid #ffc09e;">
+        <div style="font-size:11px;color:#2e7d32;background:linear-gradient(135deg,#e8f5e9,#f3e5f5);border:2px solid #4caf50;border-radius:10px;padding:10px;text-align:center;margin-bottom:8px;">
+          🌍 <strong>Multilingual:</strong> English • Español • Kreyòl
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="userInput" type="text" 
+            onkeypress="if(event.key==='Enter'){sendMessage()}"
+            placeholder="Type: where are you? necesito trabajo? mwen bezwen ede?"
+            style="flex:1;padding:12px 14px;border:2px solid #ff8a65;border-radius:24px;font-size:13px;outline:none;background:#fff;">
+          
+          <button onclick="sendMessage()" 
+             style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:none;border-radius:999px;cursor:pointer;background:linear-gradient(135deg,#ff6b47 0%,#ff8a65 100%);box-shadow:0 3px 10px rgba(255,107,71,.28);color:#fff;font-size:20px;line-height:1;">
+            ➤
+          </button>
+        </div>
+
+        <div id="status" style="text-align:center;font-size:10px;color:#888;margin-top:8px;">⚠️ I can make mistakes - please double-check important info!</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function sendMessage() {
+      var input = document.getElementById('userInput');
+      var messagesDiv = document.getElementById('messages');
+      var status = document.getElementById('status');
+      
+      if (!input || !messagesDiv) return;
+      
+      var message = input.value.trim();
+      if (!message) return;
+      
+      // Add user message
+      var userMsg = document.createElement('div');
+      userMsg.style.cssText = 'margin:10px 0;padding:12px 14px;font-size:13px;background:linear-gradient(135deg,#ff6b47 0%,#ff8a65 100%);color:#fff;margin-left:20%;text-align:right;border-radius:16px 16px 4px 16px;box-shadow:0 4px 12px rgba(255,107,71,.33);';
+      userMsg.textContent = message;
+      messagesDiv.appendChild(userMsg);
+      
+      input.value = '';
+      if (status) status.textContent = '🤖 Thinking…';
+      
+      // Generate response
+      setTimeout(function() {
+        var response = getResponse(message);
+        var botMsg = document.createElement('div');
+        botMsg.style.cssText = 'margin:10px 0;padding:12px 14px;font-size:13px;background:#fff;border:2px solid #ffcc9c;color:#424242;margin-right:20%;border-radius:16px 16px 16px 4px;box-shadow:0 3px 10px rgba(255,204,156,.18);';
+        botMsg.innerHTML = response;
+        messagesDiv.appendChild(botMsg);
+        
+        // Scroll to bottom
+        var chatArea = document.getElementById('chatArea');
+        if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+        
+        if (status) {
+          status.textContent = '✅ Answered!';
+          setTimeout(function() {
+            if (status) status.textContent = '⚠️ I can make mistakes - please double-check important info!';
+          }, 1500);
+        }
+        
+        input.focus();
+      }, 600);
+    }
+    
+    function getResponse(input) {
+      var text = input.toLowerCase().trim();
+      
+      // Early language identification - greetings and keywords
+      var isSpanish = text.includes('hola') || text.includes('necesito') || text.includes('trabajo') || 
+                      text.includes('empleo') || text.includes('ayuda') || text.includes('donde') || 
+                      text.includes('cuando') || text.includes('hora') || text.includes('horas') || 
+                      text.includes('español') || text.includes('¿') || text.includes('teléfono') || 
+                      text.includes('dirección') || text.includes('buenas') || text.includes('buenos');
+      
+      var isCreole = text.includes('bonjou') || text.includes('bonswa') || text.includes('mwen') || 
+                     text.includes('bezwen') || text.includes('travay') || text.includes('kote') || 
+                     text.includes('ede') || text.includes('manje') || text.includes('kreyòl') || 
+                     text.includes('telefòn') || text.includes('adrès') || text.includes('sak pase');
+      
+      // HOURS/TIME QUERIES - Always check first
+      if (text.includes('hour') || text.includes('time') || text.includes('when') || text === 'hours' || 
+          text.includes('open') || text.includes('close') || text.includes('lunch') || text.includes('dinner') || 
+          text.includes('meal') || text.includes('eat') || text.includes('food') ||
+          text.includes('hora') || text.includes('cuando') || text.includes('abierto') || text.includes('cerrado') ||
+          text.includes('almuerzo') || text.includes('cena') || text.includes('comida') ||
+          text.includes('tan') || text.includes('ki tan') || text.includes('manje')) {
+        
+        if (isSpanish) {
+          return '<strong>🕒 Horarios</strong><br><br>' +
+                 '<strong>Almuerzo:</strong> Lunes-Viernes 10:30 AM - 1:00 PM<br>' +
+                 '<strong>Cena:</strong> Lunes-Jueves 3:30 PM - 5:00 PM<br>' +
+                 '<strong>Teléfono:</strong> (609) 695-5456';
+        } else if (isCreole) {
+          return '<strong>🕒 Orè yo</strong><br><br>' +
+                 '<strong>Manje midi:</strong> Lendi-Vandredi 10:30 AM - 1:00 PM<br>' +
+                 '<strong>Manje aswè:</strong> Lendi-Jedi 3:30 PM - 5:00 PM<br>' +
+                 '<strong>Telefòn:</strong> (609) 695-5456';
+        } else {
+          return '<strong>🕒 Hours</strong><br><br>' +
+                 '<strong>Lunch:</strong> Monday-Friday 10:30 AM - 1:00 PM<br>' +
+                 '<strong>Dinner:</strong> Monday-Thursday 3:30 PM - 5:00 PM<br>' +
+                 '<strong>Phone:</strong> (609) 695-5456';
+        }
+      }
+      
+      // LOCATION/ADDRESS QUERIES
+      if (text.includes('where') || text.includes('address') || text.includes('location') || text.includes('directions') || 
+          text.includes('map') || text.includes('find you') || text.includes('how to get') || text.includes('driving') || 
+          text.includes('parking') || text.includes('donde') || text.includes('dirección') || text.includes('ubicación') ||
+          text.includes('como llegar') || text.includes('mapa') || text.includes('kote') || text.includes('ki kote') ||
+          text.includes('nan ki kote') || text.includes('adrès')) {
+        
+        if (isSpanish) {
+          return '<strong>📍 Contacto y Horarios</strong><br><br>' +
+                 '<strong>Dirección:</strong> 72½ Escher St, Trenton, NJ 08609<br>' +
+                 '<strong>Teléfono:</strong> (609) 695-5456<br>' +
+                 '<strong>Email:</strong> EandE@trentonsoupkitchen.org<br>' +
+                 '<a href="https://www.google.com/maps?q=72+1/2,+72+Escher+St,+Trenton,+NJ+08609" target="_blank">Google Maps</a><br><br>' +
+                 '<strong>Almuerzo:</strong> Lunes-Viernes 10:30 AM - 1:00 PM<br>' +
+                 '<strong>Cena:</strong> Lunes-Jueves 3:30 PM - 5:00 PM<br><br>' +
+                 'Todos son bienvenidos — sin preguntas.';
+        } else if (isCreole) {
+          return '<strong>📍 Kontak ak Orè</strong><br><br>' +
+                 '<strong>Adrès:</strong> 72½ Escher St, Trenton, NJ 08609<br>' +
+                 '<strong>Telefòn:</strong> (609) 695-5456<br>' +
+                 '<strong>Email:</strong> EandE@trentonsoupkitchen.org<br>' +
+                 '<a href="https://www.google.com/maps?q=72+1/2,+72+Escher+St,+Trenton,+NJ+08609" target="_blank">Google Maps</a><br><br>' +
+                 '<strong>Manje midi:</strong> Lendi-Vandredi 10:30 AM - 1:00 PM<br>' +
+                 '<strong>Manje aswè:</strong> Lendi-Jedi 3:30 PM - 5:00 PM<br><br>' +
+                 'Tout moun akeyi — pa gen kesyon.';
+        } else {
+          return '<strong>📍 Contact & Hours</strong><br><br>' +
+                 '<strong>Address:</strong> 72½ Escher St, Trenton, NJ 08609<br>' +
+                 '<strong>Phone:</strong> (609) 695-5456<br>' +
+                 '<strong>Email:</strong> EandE@trentonsoupkitchen.org<br>' +
+                 '<a href="https://www.google.com/maps?q=72+1/2,+72+Escher+St,+Trenton,+NJ+08609" target="_blank">Google Maps</a><br><br>' +
+                 '<strong>Lunch:</strong> Monday-Friday 10:30 AM - 1:00 PM<br>' +
+                 '<strong>Dinner:</strong> Monday-Thursday 3:30 PM - 5:00 PM<br><br>' +
+                 'All are welcome — no questions asked.';
+        }
+      }
+      
+      // ABOUT TASK / MISSION QUERIES
+      if (text.includes('about') || text.includes('mission') || text.includes('what do you do') || text.includes('what is task') || 
+          text.includes('history') || text.includes('story') || text.includes('organization') || text.includes('nonprofit') || 
+          text.includes('charity') || text.includes('foundation') || text.includes('who are you') || text.includes('tell me about')) {
+        return '<strong>🍽️ About TASK</strong><br><br>' +
+               'TASK (Trenton Area Soup Kitchen) has been turning hunger into hope since 1982. We provide meals and life-changing services that promote self-sufficiency.<br><br>' +
+               '<strong>Our Services:</strong><br>' +
+               '• Free meals (lunch & dinner)<br>' +
+               '• Employment services & training<br>' +
+               '• Community resources<br>' +
+               '• Case management<br>' +
+               '• Housing support<br><br>' +
+               '<a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank">Learn More About What We Do</a><br>' +
+               '<strong>Main Number:</strong> (609) 695-5456';
+      }
+      
+      // EMPLOYER/PARTNERSHIP QUERIES
+      if (text.includes('partner') || text.includes('employer') || text.includes('hire') || text.includes('hiring') || 
+          text.includes('recruit') || text.includes('business') || text.includes('company') || text.includes('corporation') || 
+          text.includes('post a job') || text.includes('job fair') || text.includes('hiring event') || text.includes('staffing') || 
+          text.includes('candidates') || text.includes('workforce') || text.includes('talent') || text.includes('human resources') || 
+          text.includes('hr')) {
+        return '<strong>🤝 Employer Partnership</strong><br><br>' +
+               'Partner with TASK to hire qualified candidates and strengthen your workforce.<br><br>' +
+               '<strong>We Offer:</strong><br>' +
+               '• Access to trained job seekers<br>' +
+               '• Job posting services<br>' +
+               '• Hiring events & job fairs<br>' +
+               '• Candidate screening & referrals<br>' +
+               '• Retention support<br>' +
+               '• Training program graduates<br><br>' +
+               '<a href="https://bycell.co/ddmun" target="_blank">Employer Hub - Get Started</a><br>' +
+               '<strong>Call Workforce Development Manager Sean:</strong> (609) 697-6215';
+      }
+      
+      // JOB SEEKING QUERIES
+      if (text.includes('job') || text.includes('work') || text.includes('employment') || text.includes('empleo') || 
+          text.includes('travay') || text.includes('career') || text.includes('position') || text.includes('openings') || 
+          text.includes('vacancy') || text.includes('opportunities') || text.includes('full time') || text.includes('part time') || 
+          text.includes('temp') || text.includes('permanent') || text.includes('warehouse') || text.includes('retail') || 
+          text.includes('customer service') || text.includes('admin') || text.includes('office') || text.includes('manual labor') ||
+          text.includes('necesito trabajo') || text.includes('busco trabajo') || text.includes('mwen bezwen travay')) {
+        
+        if (isSpanish) {
+          return '<strong>💼 Empleos en el Condado de Mercer</strong><br><br>' +
+                 '<strong>Recursos de Empleo:</strong><br>' +
+                 '<a href="https://bycell.co/ddmtq" target="_blank">Empleos Disponibles</a> | ' +
+                 '<a href="https://bycell.co/ddmtr" target="_blank">Alertas de Empleo</a><br>' +
+                 '<a href="https://bycell.co/ddmtn" target="_blank">Entrenamientos</a> | ' +
+                 '<a href="https://bycell.co/ddmui" target="_blank">Consejos de CV</a><br><br>' +
+                 '<strong>Llama a Diani (Especialista de Empleo):</strong> (609) 697-6166<br>' +
+                 'Ofrecemos coaching 1-a-1, ayuda con CV, preparación para entrevistas y referencias de empleadores.';
+        } else if (isCreole) {
+          return '<strong>💼 Travay nan Mercer County</strong><br><br>' +
+                 '<strong>Resous Travay:</strong><br>' +
+                 '<a href="https://bycell.co/ddmtq" target="_blank">Travay Disponib</a> | ' +
+                 '<a href="https://bycell.co/ddmtr" target="_blank">Ale Travay</a><br>' +
+                 '<a href="https://bycell.co/ddmtn" target="_blank">Fòmasyon</a> | ' +
+                 '<a href="https://bycell.co/ddmui" target="_blank">Konsèy CV</a><br><br>' +
+                 '<strong>Rele Diani (Espesyalis Travay):</strong> (609) 697-6166<br>' +
+                 'Nou bay coaching 1-sou-1, ede ak CV, preparasyon entèvyou, ak referans employè.';
+        } else {
+          return '<strong>💼 Jobs in Mercer County</strong><br><br>' +
+                 '<strong>Job Resources:</strong><br>' +
+                 '<a href="https://bycell.co/ddmtq" target="_blank">Available Jobs</a> | ' +
+                 '<a href="https://bycell.co/ddmtr" target="_blank">Job Alerts</a><br>' +
+                 '<a href="https://bycell.co/ddmtn" target="_blank">Trainings</a> | ' +
+                 '<a href="https://bycell.co/ddmui" target="_blank">Resume Tips</a><br><br>' +
+                 '<strong>Call Employment Support Specialist Diani:</strong> (609) 697-6166<br>' +
+                 'We provide 1-on-1 coaching, resume help, interview prep, and employer referrals.';
+        }
+      }
+      
+      // TRAINING/EDUCATION QUERIES
+      if (text.includes('training') || text.includes('class') || text.includes('program') || text.includes('school') || 
+          text.includes('learn') || text.includes('education') || text.includes('certification') || text.includes('certificate') || 
+          text.includes('culinary') || text.includes('cooking') || text.includes('chef') || text.includes('kitchen') || 
+          text.includes('security') || text.includes('guard') || text.includes('forklift') || text.includes('warehouse') || 
+          text.includes('skills') || text.includes('soft skills') || text.includes('professional development') || 
+          text.includes('servsafe') || text.includes('sora') || text.includes('eca') || text.includes('emilio')) {
+        return '<strong>📚 Available Training Programs</strong><br><br>' +
+               '<strong>Emilio Culinary Academy (ECA):</strong> 10 weeks, includes ServSafe<br>' +
+               '<strong>SORA Security Training:</strong> 2-day virtual class for NJ license<br>' +
+               '<strong>Forklift Certification:</strong> 2-hour warehouse training<br>' +
+               '<strong>TASK\'d to Work:</strong> 4-week soft skills series<br><br>' +
+               '<a href="https://bycell.co/ddmtn" target="_blank">Apply for Trainings</a><br>' +
+               '<strong>Call Workforce Development Manager Sean:</strong> (609) 697-6215';
+      }
+      
+      // RESUME/INTERVIEW QUERIES
+      if (text.includes('resume') || text.includes('cv') || text.includes('interview') || text.includes('application') || 
+          text.includes('apply') || text.includes('applying') || text.includes('mock interview') || text.includes('practice') || 
+          text.includes('cover letter') || text.includes('references') || text.includes('portfolio') || text.includes('linkedin') || 
+          text.includes('professional') || text.includes('dress code') || text.includes('clothing') || text.includes('attire') || 
+          text.includes('behavioral') || text.includes('star method') || text.includes('follow up')) {
+        return '<strong>📝 Resume & Interview Help</strong><br><br>' +
+               'Get professional help with resumes, cover letters, job applications, and interview preparation.<br><br>' +
+               '<strong>We Provide:</strong><br>' +
+               '• Resume writing & optimization<br>' +
+               '• Interview coaching & practice<br>' +
+               '• Mock interviews<br>' +
+               '• Job application support<br>' +
+               '• Professional clothing resources<br>' +
+               '• LinkedIn profile help<br><br>' +
+               '<a href="https://bycell.co/ddmui" target="_blank">Resume & Interview Tips</a><br>' +
+               '<strong>Call Employment Support:</strong> (609) 697-6166';
+      }
+      
+      // LEGAL/HOUSING/SOCIAL SERVICES
+      if (text.includes('legal') || text.includes('lawyer') || text.includes('attorney') || text.includes('court') || 
+          text.includes('eviction') || text.includes('housing') || text.includes('homeless') || text.includes('shelter') || 
+          text.includes('rent') || text.includes('landlord') || text.includes('mental health') || text.includes('counseling') || 
+          text.includes('therapy') || text.includes('healthcare') || text.includes('medical') || text.includes('benefits') || 
+          text.includes('snap') || text.includes('medicaid') || text.includes('food stamps') || text.includes('wic') || 
+          text.includes('food pantry') || text.includes('emergency') || text.includes('crisis') || text.includes('community') || 
+          text.includes('resources') || text.includes('social services') || text.includes('assistance') || text.includes('support') || 
+          text.includes('help') || text.includes('struggling') || text.includes('need help') || text.includes('domestic violence') || 
+          text.includes('addiction') || text.includes('substance abuse') || text.includes('rehab') || text.includes('recovery') ||
+          text.includes('ayuda') || text.includes('necesito ayuda') || text.includes('ede') || text.includes('mwen bezwen ede')) {
+        
+        if (isSpanish) {
+          return '<strong>🌍 Recursos Comunitarios</strong><br><br>' +
+                 'Te conectamos con socios de confianza para vivienda, comida, ayuda legal, apoyo de salud mental y más.<br><br>' +
+                 '<strong>Apoyo Disponible:</strong><br>' +
+                 '• Asistencia de vivienda y refugios<br>' +
+                 '• Ayuda legal y de corte<br>' +
+                 '• Salud mental y consejería<br>' +
+                 '• Recursos de salud y médicos<br>' +
+                 '• Inscripción de beneficios (SNAP, Medicaid)<br>' +
+                 '• Despensas de comida y ayuda de emergencia<br><br>' +
+                 '<a href="https://bycell.co/ddmua" target="_blank">Ver Todos los Recursos</a><br>' +
+                 '<strong>Llama a Daniel (Manejo de Casos):</strong> (609) 337-1624';
+        } else if (isCreole) {
+          return '<strong>🌍 Resous Kominote</strong><br><br>' +
+                 'Nou konekte ou ak patnè nou yo ki gen konfyans pou kay, manje, ede legal, sipò sante mantal, ak plis.<br><br>' +
+                 '<strong>Sipò Disponib:</strong><br>' +
+                 '• Asistans kay ak abri<br>' +
+                 '• Ede legal ak tribinal<br>' +
+                 '• Sante mantal ak konsèy<br>' +
+                 '• Resous sante ak medikal<br>' +
+                 '• Enskripsyon benefis (SNAP, Medicaid)<br>' +
+                 '• Depo manje ak ede ijans<br><br>' +
+                 '<a href="https://bycell.co/ddmua" target="_blank">Gade Tout Resous yo</a><br>' +
+                 '<strong>Rele Daniel (Jesyon Ka):</strong> (609) 337-1624';
+        } else {
+          return '<strong>🌍 Community Resources</strong><br><br>' +
+                 'We connect you to trusted partners for housing, food, legal aid, mental health support, and more.<br><br>' +
+                 '<strong>Available Support:</strong><br>' +
+                 '• Housing assistance & shelters<br>' +
+                 '• Legal aid & court help<br>' +
+                 '• Mental health & counseling<br>' +
+                 '• Healthcare & medical resources<br>' +
+                 '• Benefits enrollment (SNAP, Medicaid)<br>' +
+                 '• Food pantries & emergency aid<br>' +
+                 '• Addiction & recovery support<br><br>' +
+                 '<a href="https://bycell.co/ddmua" target="_blank">View All Community Resources</a><br>' +
+                 '<strong>Call Case Management Daniel:</strong> (609) 337-1624';
+        }
+      }
+      
+      // JOB ALERTS QUERIES
+      if (text.includes('alert') || text.includes('alerts') || text.includes('notification') || text.includes('notifications') || 
+          text.includes('notify') || text.includes('text me') || text.includes('email me') || text.includes('updates') || 
+          text.includes('subscribe') || text.includes('sign up') || text.includes('register') || text.includes('newsletter') || 
+          text.includes('automatic') || text.includes('when jobs') || text.includes('new jobs') || text.includes('job updates')) {
+        return '<strong>🔔 Job Alerts</strong><br><br>' +
+               'Get text or email notifications when new jobs match your interests in Mercer County.<br><br>' +
+               '<strong>How it works:</strong><br>' +
+               '• Tell us what jobs you want<br>' +
+               '• Choose text or email alerts<br>' +
+               '• We notify you when they\'re posted<br>' +
+               '• Apply quickly before others<br><br>' +
+               '<a href="https://bycell.co/ddmtr" target="_blank">Sign Up for Job Alerts</a><br>' +
+               '<strong>Questions? Call:</strong> (609) 697-6166';
+      }
+      
+      // PHONE/CONTACT QUERIES
+      if (text.includes('phone') || text.includes('call') || text.includes('number') || text.includes('contact') || 
+          text.includes('reach') || text.includes('telephone') || text.includes('speak to someone') || text.includes('talk to') || 
+          text.includes('get in touch') || text.includes('telefono') || text.includes('teléfono') || text.includes('telefòn')) {
+        return '<strong>📞 Who to Call</strong><br><br>' +
+               '<strong>General TASK:</strong> (609) 695-5456<br>' +
+               '<strong>Employment Support Specialist Diani:</strong> (609) 697-6166<br>' +
+               '<strong>Workforce Development Manager Sean:</strong> (609) 697-6215<br>' +
+               '<strong>Social Services (appointments):</strong> (609) 337-1624<br>' +
+               '<strong>Case Management Daniel:</strong> (609) 337-1624';
+      }
+      
+      // APPOINTMENT/SCHEDULING QUERIES
+      if (text.includes('appointment') || text.includes('schedule') || text.includes('meet') || text.includes('visit') || 
+          text.includes('come in') || text.includes('see someone') || text.includes('book') || text.includes('reserve') || 
+          text.includes('availability') || text.includes('calendar') || text.includes('cita') || text.includes('randevou')) {
+        return '<strong>📅 How to Make an Appointment</strong><br><br>' +
+               '<strong>Call Social Services first:</strong> (609) 337-1624<br>' +
+               'They will schedule your Individual Employment Plan (IEP) appointment.<br>' +
+               'Bring your name and phone number. The appointment typically takes 45-60 minutes.<br><br>' +
+               '<strong>What to expect:</strong> We\'ll create your employment plan together and set goals.';
+      }
+      
+      // TRANSPORTATION/BUS QUERIES
+      if (text.includes('bus') || text.includes('transit') || text.includes('transportation') || text.includes('ride') || 
+          text.includes('travel') || text.includes('nj transit') || text.includes('route') || text.includes('schedule') || 
+          text.includes('public transport') || text.includes('commute') || text.includes('uber') || text.includes('lyft') || 
+          text.includes('taxi') || text.includes('autobus') || text.includes('otobis')) {
+        return '<strong>🚌 NJ TRANSIT – Trenton</strong><br><br>' +
+               '<strong>Popular Routes:</strong> 600, 601, 609, 613<br>' +
+               '<a href="https://www.njtransit.com/trip-planner-to" target="_blank">Trip Planner</a><br>' +
+               'We also provide bus tickets for job interviews and work.<br><br>' +
+               '<strong>Need Transportation Help?</strong> Call (609) 697-6166';
+      }
+      
+      // VOLUNTEER QUERIES
+      if (text.includes('volunteer') || text.includes('volunteering') || text.includes('help out') || text.includes('give back') || 
+          text.includes('donate time') || text.includes('community service') || text.includes('unpaid') || text.includes('assist') || 
+          (text.includes('support') && text.includes('you'))) {
+        return '<strong>🤝 Volunteer Opportunities</strong><br><br>' +
+               'We welcome volunteers for our employment programs, meal service, and community events.<br><br>' +
+               '<strong>Ways to Help:</strong><br>' +
+               '• Meal preparation & service<br>' +
+               '• Employment program support<br>' +
+               '• Administrative assistance<br>' +
+               '• Special events<br><br>' +
+               '<strong>Contact us:</strong> (609) 695-5456<br>' +
+               '<strong>Email:</strong> EandE@trentonsoupkitchen.org';
+      }
+      
+      // DEFAULT RESPONSE
+      if (isSpanish) {
+        return '<strong>👋 ¡Hola! Puedo ayudarte.</strong><br><br>' +
+               'Pregunta sobre dirección, comidas, empleos, autobuses, consejos de entrevistas, programas de entrenamiento o citas.<br><br>' +
+               '<strong>Enlaces Rápidos:</strong><br>' +
+               '<a href="https://bycell.co/ddmtq" target="_blank">Empleos Disponibles</a> | ' +
+               '<a href="https://bycell.co/ddmtr" target="_blank">Alertas de Empleo</a> | ' +
+               '<a href="https://bycell.co/ddmtn" target="_blank">Entrenamientos</a><br>' +
+               '<a href="https://bycell.co/ddmui" target="_blank">Consejos de CV</a> | ' +
+               '<a href="https://bycell.co/ddmua" target="_blank">Recursos</a> | ' +
+               '<a href="https://bycell.co/ddmun" target="_blank">Empleadores</a><br><br>' +
+               '<strong>Sitio Web de TASK:</strong> <a href="https://www.trentonsoupkitchen.org/" target="_blank">trentonsoupkitchen.org</a><br><br>' +
+               'Hablo inglés, español y criollo haitiano.';
+      } else if (isCreole) {
+        return '<strong>👋 Bonjou! Mwen ka ede ou.</strong><br><br>' +
+               'Mande sou adrès, manje, travay, otobis, konsèy entèvyou, pwogram fòmasyon oswa randevou.<br><br>' +
+               '<strong>Lyen Rapid yo:</strong><br>' +
+               '<a href="https://bycell.co/ddmtq" target="_blank">Travay Disponib</a> | ' +
+               '<a href="https://bycell.co/ddmtr" target="_blank">Ale Travay</a> | ' +
+               '<a href="https://bycell.co/ddmtn" target="_blank">Fòmasyon</a><br>' +
+               '<a href="https://bycell.co/ddmui" target="_blank">Konsèy CV</a> | ' +
+               '<a href="https://bycell.co/ddmua" target="_blank">Resous</a> | ' +
+               '<a href="https://bycell.co/ddmun" target="_blank">Patwon yo</a><br><br>' +
+               '<strong>Sit TASK:</strong> <a href="https://www.trentonsoupkitchen.org/" target="_blank">trentonsoupkitchen.org</a><br><br>' +
+               'Mwen pale angle, panyòl ak kreyòl.';
+      } else {
+        return '<strong>👋 Hi! I can help.</strong><br><br>' +
+               'Ask about address, meals, jobs, buses, interview tips, training programs, or appointments.<br><br>' +
+               '<strong>Quick Links:</strong><br>' +
+               '<a href="https://bycell.co/ddmtq" target="_blank">Available Jobs</a> | ' +
+               '<a href="https://bycell.co/ddmtr" target="_blank">Job Alerts</a> | ' +
+               '<a href="https://bycell.co/ddmtn" target="_blank">Trainings</a><br>' +
+               '<a href="https://bycell.co/ddmui" target="_blank">Resume Tips</a> | ' +
+               '<a href="https://bycell.co/ddmua" target="_blank">Resources</a> | ' +
+               '<a href="https://bycell.co/ddmun" target="_blank">Employers</a><br><br>' +
+               '<strong>TASK Website:</strong> <a href="https://www.trentonsoupkitchen.org/" target="_blank">trentonsoupkitchen.org</a><br><br>' +
+               'I speak English, Español & Kreyòl.';
+      }
+    }
+    
+    // Focus input on load
+    document.addEventListener('DOMContentLoaded', function() {
+      var input = document.getElementById('userInput');
+      if (input) input.focus();
+    });
+  </script>
+
+</body>
+</html>
