@@ -36,6 +36,9 @@
       --bubble-user-bg: linear-gradient(135deg,var(--accent),var(--accent-2));
       --bubble-user-text: #fff;
       --bubble-user-border: transparent;
+
+      /* typing dots */
+      --typing-dot: #7e8aa3;
     }
 
     /* Sleek ChatGPT-ish dark mode */
@@ -59,10 +62,13 @@
       --bubble-bot: #121e33;
       --bubble-border: #2a3b55;
 
-      /* user bubble like your image (solid blue + tail) */
+      /* user bubble like your image (solid blue + crisp border) */
       --bubble-user-bg: #1f86ff;
       --bubble-user-text: #ffffff;
       --bubble-user-border: #0f5fc3;
+
+      /* typing dots (bright for dark bg) */
+      --typing-dot: #a9c7ff;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -79,19 +85,17 @@
       border:3px solid var(--accent);border-radius:var(--radius);overflow:hidden;
       box-shadow:var(--shadow);
     }
-    /* -------- Header (centered badge; no subtitle) -------- */
+    /* -------- Header -------- */
     .header{
       background:var(--surface-2);
       border-bottom:1px solid var(--border);
       display:flex;align-items:center;justify-content:center;
-      padding:10px 12px;
-      position:relative;
+      padding:10px 12px; position:relative;
     }
     .badge{
       display:inline-block;background:var(--brand);color:#fff;
       padding:8px 14px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;
-      box-shadow:var(--shadow-soft);
-      text-align:center;
+      box-shadow:var(--shadow-soft); text-align:center;
     }
     .theme{
       position:absolute;right:10px;top:10px;border:none;border-radius:999px;
@@ -141,17 +145,39 @@
       border-radius:16px 16px 4px 16px;
       box-shadow:var(--shadow-soft);
     }
-    /* Tail only in dark (so we don’t have a weird gradient tail in light) */
-    [data-theme="dark"] .bubble.user::after{
-      content:""; position:absolute; right:-6px; bottom:10px;
-      width:14px; height:14px; background:var(--bubble-user-bg);
-      border-right:1px solid var(--bubble-user-border);
-      border-bottom:1px solid var(--bubble-user-border);
-      transform:skewX(-18deg) rotate(45deg);
-      border-bottom-left-radius:3px;
+
+    /* Clean, pointed tail with visible border (dark mode only) */
+    [data-theme="dark"] .bubble.user::after,        /* border layer */
+    [data-theme="dark"] .bubble.user::before{       /* fill layer  */
+      content:""; position:absolute; bottom:16px;
+      width:16px; height:14px; right:-11px;
+      clip-path: polygon(100% 50%, 0 0, 0 100%); /* ► small right-pointing triangle */
+    }
+    [data-theme="dark"] .bubble.user::after{        /* border */
+      background:var(--bubble-user-border);
+    }
+    [data-theme="dark"] .bubble.user::before{       /* fill, slightly inset to show border */
+      right:-9px; bottom:17px; width:14px; height:12px;
+      background:var(--bubble-user-bg);
     }
 
     .note{font-size:11px;color:var(--muted)}
+
+    /* -------- Typing indicator (three bouncing dots) -------- */
+    .typing{ display:inline-flex; gap:6px; align-items:flex-end; }
+    .typing .dot{
+      width:6px;height:6px;border-radius:50%;
+      background:var(--typing-dot);
+      animation:bounce 1s infinite ease-in-out;
+      will-change: transform, opacity;
+    }
+    .typing .dot:nth-child(2){ animation-delay:.12s }
+    .typing .dot:nth-child(3){ animation-delay:.24s }
+
+    @keyframes bounce{
+      0%, 80%, 100%{ transform:translateY(0); opacity:.6 }
+      40%{ transform:translateY(-6px); opacity:1 }
+    }
 
     /* -------- Input area -------- */
     .footer{padding:12px;background:var(--surface-2);border-top:1px solid var(--border)}
@@ -246,7 +272,10 @@
       if(on){
         const el=document.createElement('div');
         el.id=id; el.className='bubble bot';
-        el.innerHTML='…';
+        el.innerHTML = `
+          <div class="typing" aria-label="Assistant is typing">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>`;
         chat.appendChild(el);
       }else{
         const t=document.getElementById(id); if(t) t.remove();
