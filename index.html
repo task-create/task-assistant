@@ -13,38 +13,46 @@
       --radius: 18px;
 
       /* Light theme */
-      --bg: #eef3f8;                 /* page background */
-      --surface: #ffffff;            /* cards / chat bubbles */
-      --surface-2: #f7fbff;          /* top rail */
-      --text: #0e1726;               /* main text */
-      --muted: #5f6c80;              /* secondary text */
-      --chip: #ffffff;               /* pill background */
-      --chip-border: #ffd9b0;        /* pill border */
+      --bg: #eef3f8;
+      --surface: #ffffff;
+      --surface-2: #f7fbff;
+      --text: #0e1726;
+      --muted: #5f6c80;
+      --chip: #ffffff;
+      --chip-border: #ffd9b0;
       --border: #d9e2ec;
-      --accent: #ff911f;             /* TASK orange */
-      --accent-2: #ffc91f;           /* yellow blend */
-      --brand: #145078;              /* TASK blue */
+      --accent: #ff911f;
+      --accent-2: #ffc91f;
+      --brand: #145078;
       --link: #0b63c6;
       --shadow: 0 20px 40px rgba(20,80,120,.22);
       --shadow-soft: 0 8px 24px rgba(19, 33, 58, .12);
+
+      /* chat bubbles */
+      --bubble-bot: #ffffff;
+      --bubble-border: #d9e2ec;
     }
 
-    /* Cozy dark like ChatGPT, desaturated + deep blues */
+    /* Sleek ChatGPT-ish dark mode */
     [data-theme="dark"]{
-      --bg: #0f1722;
-      --surface: #111a27;
-      --surface-2: #0f1926;
+      --bg: #0b1220;           /* page */
+      --surface: #0f1726;      /* content slab */
+      --surface-2: #0d1522;    /* rail/footer */
       --text: #e6edf7;
-      --muted: #9fb0c6;
+      --muted: #a7b6c9;
       --chip: #0f1926;
       --chip-border: #2b3a4e;
       --border: #223247;
-      --accent: #ffb357;      /* soften orange */
+      --accent: #ffb357;
       --accent-2: #ffd36a;
-      --brand: #6ec1ff;       /* subtle blue accents */
-      --link: #79b3ff;
+      --brand: #8bd0ff;
+      --link: #87c4ff;
       --shadow: 0 18px 36px rgba(0,0,0,.45);
       --shadow-soft: 0 6px 18px rgba(0,0,0,.35);
+
+      /* darker, readable bot bubble */
+      --bubble-bot: #121e33;   /* ≈ slate/navy mix */
+      --bubble-border: #2a3b55;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -76,7 +84,7 @@
       box-shadow:var(--shadow-soft);
       text-align:center;
     }
-    /* theme toggle (optional, right corner) */
+    /* theme toggle */
     .theme{
       position:absolute;right:10px;top:10px;border:none;border-radius:999px;
       width:30px;height:30px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent-2));
@@ -98,17 +106,186 @@
     .chip:hover{filter:brightness(1.02)}
     .chip i{opacity:.75}
 
-    /* -------- Chat area -------- */
-    .chat{height:420px;overflow:auto;background:var(--surface);padding:14px;scroll-behavior:smooth}
-    .bubble{margin:12px 0;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.45;
-            border:1px solid var(--border);background:var(--surface)}
+    /* -------- Chat area (sleek dark gradient) -------- */
+    .chat{
+      height:420px;overflow:auto;padding:14px;scroll-behavior:smooth;
+      /* layered gradients for a subtle spotlight + depth, only really visible in dark */
+      background:
+        radial-gradient(70% 100% at -10% -20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 65%),
+        radial-gradient(60% 90% at 110% 120%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    }
+
+    /* -------- Bubbles -------- */
+    .bubble{
+      margin:12px 0;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.45;
+      border:1px solid var(--bubble-border);
+      background:var(--bubble-bot);color:var(--text);
+      box-shadow:var(--shadow-soft);
+    }
     .bubble.bot{margin-right:20%;}
     .bubble.user{margin-left:20%;text-align:right;color:#fff;
       background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;
       border-radius:16px 16px 4px 16px;box-shadow:var(--shadow-soft)}
     .note{font-size:11px;color:var(--muted)}
 
-    /* -------- Input area (text clearly visible) -------- */
+    /* -------- Input area -------- */
+    .footer{padding:12px;background:var(--surface-2);border-top:1px solid var(--border)}
+    .hint{
+      font-size:11px;color:var(--brand);
+      background:linear-gradient(135deg,rgba(116,186,88,.12),rgba(51,167,181,.10));
+      border:1px solid var(--border);border-radius:12px;padding:8px 10px;text-align:center;font-weight:600;margin-bottom:10px
+    }
+    .row{display:flex;gap:10px;align-items:center}
+
+    input[type="text"]{
+      flex:1;padding:14px 16px;border:2px solid var(--border);
+      border-radius:25px;font-size:14px;outline:none;background:var(--surface);
+      color:var(--text); caret-color:var(--accent);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
+    }
+    input[type="text"]::placeholder{color:var(--muted)}
+    input[type="text"]:focus{border-color:var(--accent)}
+
+    .send{
+      width:50px;height:50px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft)
+    }
+    .status{margin-top:6px;text-align:center;font-size:10px;color:var(--muted)}
+  </style>
+</head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TASK Assistant</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ---------- Design tokens ---------- */
+    :root{
+      --radius: 18px;
+
+      /* Light theme */
+      --bg: #eef3f8;
+      --surface: #ffffff;
+      --surface-2: #f7fbff;
+      --text: #0e1726;
+      --muted: #5f6c80;
+      --chip: #ffffff;
+      --chip-border: #ffd9b0;
+      --border: #d9e2ec;
+      --accent: #ff911f;
+      --accent-2: #ffc91f;
+      --brand: #145078;
+      --link: #0b63c6;
+      --shadow: 0 20px 40px rgba(20,80,120,.22);
+      --shadow-soft: 0 8px 24px rgba(19, 33, 58, .12);
+
+      /* chat bubbles */
+      --bubble-bot: #ffffff;
+      --bubble-border: #d9e2ec;
+    }
+
+    /* Sleek ChatGPT-ish dark mode */
+    [data-theme="dark"]{
+      --bg: #0b1220;           /* page */
+      --surface: #0f1726;      /* content slab */
+      --surface-2: #0d1522;    /* rail/footer */
+      --text: #e6edf7;
+      --muted: #a7b6c9;
+      --chip: #0f1926;
+      --chip-border: #2b3a4e;
+      --border: #223247;
+      --accent: #ffb357;
+      --accent-2: #ffd36a;
+      --brand: #8bd0ff;
+      --link: #87c4ff;
+      --shadow: 0 18px 36px rgba(0,0,0,.45);
+      --shadow-soft: 0 6px 18px rgba(0,0,0,.35);
+
+      /* darker, readable bot bubble */
+      --bubble-bot: #121e33;   /* ≈ slate/navy mix */
+      --bubble-border: #2a3b55;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px;
+    }
+    a{color:var(--link);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    .app{
+      width:100%;max-width:420px;background:var(--surface);
+      border:3px solid var(--accent);border-radius:var(--radius);overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+
+    /* -------- Header (centered badge; no subtitle) -------- */
+    .header{
+      background:var(--surface-2);
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      padding:10px 12px;
+      position:relative;
+    }
+    .badge{
+      display:inline-block;background:var(--brand);color:#fff;
+      padding:8px 14px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;
+      box-shadow:var(--shadow-soft);
+      text-align:center;
+    }
+    /* theme toggle */
+    .theme{
+      position:absolute;right:10px;top:10px;border:none;border-radius:999px;
+      width:30px;height:30px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#222;display:flex;align-items:center;justify-content:center;font-weight:700;
+      box-shadow:var(--shadow-soft);
+    }
+
+    /* -------- Top link rail -------- */
+    .rail{
+      display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+      padding:12px;background:var(--surface-2);border-bottom:1px solid var(--border);
+    }
+    .chip{
+      display:inline-flex;align-items:center;gap:8px;
+      font-weight:600;font-size:12px;color:var(--brand);
+      border:1px solid var(--chip-border);background:var(--chip);border-radius:999px;
+      padding:8px 12px;box-shadow:var(--shadow-soft);
+    }
+    .chip:hover{filter:brightness(1.02)}
+    .chip i{opacity:.75}
+
+    /* -------- Chat area (sleek dark gradient) -------- */
+    .chat{
+      height:420px;overflow:auto;padding:14px;scroll-behavior:smooth;
+      /* layered gradients for a subtle spotlight + depth, only really visible in dark */
+      background:
+        radial-gradient(70% 100% at -10% -20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 65%),
+        radial-gradient(60% 90% at 110% 120%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    }
+
+    /* -------- Bubbles -------- */
+    .bubble{
+      margin:12px 0;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.45;
+      border:1px solid var(--bubble-border);
+      background:var(--bubble-bot);color:var(--text);
+      box-shadow:var(--shadow-soft);
+    }
+    .bubble.bot{margin-right:20%;}
+    .bubble.user{margin-left:20%;text-align:right;color:#fff;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;
+      border-radius:16px 16px 4px 16px;box-shadow:var(--shadow-soft)}
+    .note{font-size:11px;color:var(--muted)}
+
+    /* -------- Input area -------- */
     .footer{padding:12px;background:var(--surface-2);border-top:1px solid var(--border)}
     .hint{
       font-size:11px;color:var(--brand);
@@ -171,7 +348,7 @@
     const themeToggle = document.getElementById('themeToggle');
     const langHint = document.getElementById('langHint');
 
-    // Theme (soft dark by default? keep light first; user can toggle)
+    // Theme
     const THEME_KEY = 'task_theme';
     function setTheme(t){
       document.documentElement.setAttribute('data-theme', t);
@@ -221,19 +398,18 @@
     }
     function maybeSwitchLang(userText){
       const lang = detectLang(userText);
-      // Explicit back to English
       if (/\benglish\b/i.test(userText) || /\bingl[eé]s\b/i.test(userText) || /\bangle\b/i.test(userText)){
-        currentLang = 'en'; return;
+        currentLang = 'en';
+      } else if (lang !== 'en'){
+        currentLang = lang;
       }
-      if (lang !== 'en'){ currentLang = lang; }
-      // Update hint
       langHint.textContent =
         currentLang==='es' ? 'Hablo inglés y español (y Kreyòl)' :
         currentLang==='ht' ? 'M pale Angle, Panyòl & Kreyòl' :
         'I speak English, Español & Kreyòl';
     }
 
-    // ------- Intent classification -------
+    // ------- Intent classification (includes profanity) -------
     function intent(text){
       const t=(' '+text.toLowerCase()+' ').replace(/[^\p{L}\p{N}\s]/gu,' ');
       const tests = [
@@ -248,7 +424,8 @@
         ['transit', /(bus|nj\s*transit|route|fare|ticket|train|transport|planner)/],
         ['computer_lab', /(computer|internet|wifi|lab|email|application\s*online)/],
         ['resources', /(resource|resources|assistance|support\s*services|services\s*list|legal|benefits|housing)/],
-        ['frustrated', /(this\s+is\s+(not|no)\s+help|useless|frustrat|mad|angry|annoyed|wtf|\bhelp\s*me\b)/],
+        ['profanity', /\b(fuck|shit|bitch|asshole|bastard|dick|pussy|cunt|motherfucker|bullshit|wtf)\b/i],
+        ['frustrated', /(this\s+is\s+(not|no)\s+help|useless|frustrat|mad|angry|annoyed|stupid|idiot)/],
         ['greeting', /^( *hi| *hello| *hey| *hola| *bonjou)[!. ]*$/i],
         ['thanks', /(thanks|thank you|gracias|mesi)/]
       ];
@@ -271,7 +448,6 @@
           alerts: 'Subscribe to alerts',
           resume: 'Resume help & templates',
           tips: 'Watch quick tips',
-          register: '(online registration removed by request)',
           mealHours: 'Meals: Lunch Mon–Fri 10:30a–1:00p • Dinner Mon–Thu 3:30–5:00p',
           address: '72½ Escher St, Trenton, NJ 08609',
           maps: 'Open Google Maps',
@@ -279,7 +455,7 @@
           more: 'Additional resources',
           allsvc: 'Full TASK services',
           thanks: '😊 You’re welcome!',
-          sorry: 'Sorry this is frustrating. I can connect you fast:',
+          sorry: 'I hear you — this stuff can be stressful. Let me help fast:',
           talk: 'Call now',
           choices: 'Or pick one:',
           train: 'Training', jobs: 'Jobs', addr: 'Address'
@@ -296,7 +472,6 @@
           alerts: 'Suscribirme a alertas',
           resume: 'Ayuda con currículum y plantillas',
           tips: 'Ver consejos rápidos',
-          register: '(registro en línea desactivado por solicitud)',
           mealHours: 'Comidas: Almuerzo Lun–Vie 10:30–1:00 • Cena Lun–Jue 3:30–5:00',
           address: '72½ Escher St, Trenton, NJ 08609',
           maps: 'Abrir Google Maps',
@@ -304,7 +479,7 @@
           more: 'Recursos adicionales',
           allsvc: 'Todos los servicios de TASK',
           thanks: '😊 ¡Con gusto!',
-          sorry: 'Siento tu frustración. Puedo ayudarte rápido:',
+          sorry: 'Entiendo que esto puede ser frustrante. Te ayudo rápido:',
           talk: 'Llamar ahora',
           choices: 'O elige:',
           train: 'Entrenamiento', jobs: 'Empleos', addr: 'Dirección'
@@ -321,7 +496,6 @@
           alerts: 'Abònman ak alèt',
           resume: 'Ede ak CV & modèl',
           tips: 'Gade konsèy rapid yo',
-          register: '(enskripsyon sou entènèt retire pa demann)',
           mealHours: 'Manje: Madi–Vandredi 10:30–1:00 • Aswè Lendi–Jedi 3:30–5:00',
           address: '72½ Escher St, Trenton, NJ 08609',
           maps: 'Louvri Google Maps',
@@ -329,7 +503,7 @@
           more: 'Resous adisyonèl',
           allsvc: 'Tout sèvis TASK yo',
           thanks: '😊 Pa gen pwoblèm!',
-          sorry: 'M regrèt fristrasyon an. M ka konekte w vit:',
+          sorry: 'M konprann sa ka fristre. Ann regle sa rapid:',
           talk: 'Rele kounye a',
           choices: 'Oswa chwazi youn:',
           train: 'Fòmasyon', jobs: 'Travay', addr: 'Adrès'
@@ -372,6 +546,11 @@
         resources: () => `<strong>🧰 ${t('asked')} resources.</strong><br><br>
           <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">${t('more')}</a><br>
           <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('allsvc')}</a>`,
+        profanity: () => `<strong>🙏 ${t('sorry')}</strong><br><br>
+          ${t('talk')}: <a href="tel:609-337-1624">(609) 337-1624</a><br><br>
+          ${t('choices')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('train')}</a> ·
+          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('jobs')}</a> ·
+          <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${t('addr')}</a>`,
         frustrated: () => `<strong>🙏 ${t('sorry')}</strong><br><br>
           ${t('talk')}: <a href="tel:609-337-1624">(609) 337-1624</a><br><br>
           ${t('choices')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('train')}</a> ·
