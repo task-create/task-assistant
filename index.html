@@ -112,7 +112,7 @@
     .status{margin-top:6px;text-align:center;font-size:10px;color:#6b6b6b}
 
     @keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes bob{0%,60%,100{transform:translateY(0)}30%{transform:translateY(-8px)}}
+    @keyframes bob{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
 
     @media (max-width:480px){ .app{border-radius:16px} }
   </style>
@@ -158,7 +158,7 @@
     const hintEl = document.getElementById('hint');
 
     let BUSY = false;
-    let sessionLang = 'en';   // 'en' | 'es' | 'ht'
+    let sessionLang = 'en';   // start in ENGLISH
 
     // --------- UI helpers ---------
     function addUser(text){
@@ -219,17 +219,17 @@
       else hintEl.textContent = 'I speak English, Español & Kreyòl';
     }
 
-    // --------- Time helpers (for hours/today/now) ---------
+    // --------- Time helpers ---------
     function nowInfo(){
       const d = new Date();
       const dow = d.getDay(); // 0=Sun
       const hr = d.getHours() + d.getMinutes()/60;
-      const afterLunch = hr >= 13; // 1:00 PM
+      const afterLunch = hr >= 13;
       const weekend = (dow===0 || dow===6);
       return {d, dow, hr, afterLunch, weekend};
     }
 
-    // --------- Intent classification (rich keywords) ---------
+    // --------- Intent classification ---------
     const bag = {
       trainings: /(training|trainings|program|programs|class|classes|course|courses|certificate|certification|servsafe|culinary|emilio|academy|sora|forklift|osha|apprenticeship|ged|hiset)\b|capacitaci[oó]n|curso|cursos|clases|certificado|certificaci[oó]n|culinaria|aprendizaje|montacargas|ged|hiset|f[oò]masyon|kou|klas|s[eè]tifikasyon|akademi|kwizin|forklift|ged|hiset/i,
       jobs: /(job|jobs|opening|openings|hiring|hire|career|careers|apply|application|posting|position|positions|full[- ]?time|part[- ]?time|temp|seasonal|warehouse|security|guard|janitorial|dishwasher|line cook|cdl|ups|amazon)\b|empleo|empleos|vacante|vacantes|contratando|carreras|aplicar|solicitud|puesto|puestos|tiempo completo|medio tiempo|almac[eé]n|guardia|lavaplatos|cocinero|cdl|travay|pozisyon|ap anboche|kary[eè]|apl(e|i)ke|depo|gad sekirite|kwizin/i,
@@ -245,7 +245,6 @@
       greeting: /^( *hi| *hello| *hey| *hola| *bonjou)[!. ]*$/i,
       thanks: /(thanks|thank you|gracias|m[eè]si)\b/i,
       crisis: /(suicide|self[- ]?harm|overdose|kill myself|hurt myself|danger|assault)\b|suicidio|autolesi[oó]n|sobredosis|peligro|agresi[oó]n|swisid|f[eè] t[eè]t li mal|surd[oò]z|danje|agresyon/i,
-      // Special: ambiguous "work"
       work_hub: /(work|trabajo|travay)\b/i
     };
 
@@ -260,10 +259,7 @@
       for (const [k, rx] of Object.entries(bag)){
         if (rx.test(t)) hits.push(k);
       }
-      // If both jobs & trainings absent but we saw generic "work", map to work_hub
       if (!hits.includes('jobs') && !hits.includes('trainings') && bag.work_hub.test(t)) hits.push('work_hub');
-
-      // If multiple, sort by priority
       hits.sort((a,b)=>PRIORITY.indexOf(a)-PRIORITY.indexOf(b));
       return hits.length ? hits : ['default'];
     }
@@ -329,9 +325,9 @@
               <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Watch quick tips</a>`;
     }
     function resp_appt(){
+      /* PHONE ONLY — no register-online link */
       return `<strong>📅 ${L('asked')} ${L('appt')}.</strong><br><br>
-              ${L('call')} ${L('sss')} at ${L('phone')}. ${L('during')}.<br>
-              Or <a href="https://bycell.co/ddmul" target="_blank" rel="noopener">register online</a>.`;
+              ${L('call')} ${L('sss')} at ${L('phone')}. ${L('during')}.`;
     }
     function resp_hours(){
       const {afterLunch, weekend} = nowInfo();
@@ -367,7 +363,7 @@
               <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">Full TASK services</a>`;
     }
     function resp_greeting(){
-      return `👋 ${L('hello')} Tell me <em>training</em>, <em>jobs</em>, <em>hours</em>, <em>address</em>, or <em>bus</em>.<br><br>
+      return `👋 Hello! Tell me <em>training</em>, <em>jobs</em>, <em>hours</em>, <em>address</em>, or <em>bus</em>.<br><br>
               <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
               <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a>`;
     }
@@ -396,7 +392,7 @@
       const switchTo = tryExplicitLangSwitch(text);
       if (switchTo){ setLang(switchTo); return resp_greeting(); }
 
-      // set/remember language from message
+      // set/remember language from message (EARLY detection)
       setLang(detectLang(text));
 
       const intents = findIntents(text);
@@ -434,7 +430,7 @@
       switch(intent){
         case 'trainings': return [{label:'Apply for Training', ask:'training programs'}, {label:'Open Jobs', ask:'jobs'}, {label:'Make Appointment', ask:'appointment'}];
         case 'jobs':      return [{label:'Get Job Alerts', ask:'alerts'}, {label:'Resume Help', ask:'resume'}, {label:'Interview Tips', ask:'interview'}];
-        case 'appointments': return [{label:'Register Online', ask:'register'}, {label:'Training', ask:'training'}, {label:'Open Jobs', ask:'jobs'}];
+        case 'appointments': return [{label:'Training', ask:'training'}, {label:'Open Jobs', ask:'jobs'}]; /* removed Register Online */
         case 'hours':     return [{label:'Address', ask:'address'}, {label:'Transit', ask:'bus to TASK'}, {label:'Make Appointment', ask:'appointment'}];
         case 'location':  return [{label:'Transit', ask:'bus'}, {label:'Hours', ask:'hours today'}, {label:'Make Appointment', ask:'appointment'}];
         case 'resources': return [{label:'Legal Help', ask:'legal'}, {label:'Housing', ask:'housing'}, {label:'Benefits', ask:'benefits'}];
@@ -481,8 +477,9 @@
       const a = e.target.closest('a'); if (!a) return;
     });
 
-    // Greet on load
-    addBot(`👋 Hi! I'm the TASK Assistant.<br>
+    // Force initial language to ENGLISH and greet
+    setLang('en');
+    addBot(`👋 Hello! I'm the TASK Assistant.<br>
             Ask me about <em>training</em>, <em>jobs</em>, <em>appointments</em>, <em>hours</em>,
             <em>directions</em>, or <em>transit</em>.<br><br>
             Quick links: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
