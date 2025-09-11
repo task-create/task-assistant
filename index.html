@@ -1,326 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TASK Assistant</title>
+<script>
+  /* ---------- Helpers: language + intent ---------- */
+  function detectLang(t){
+    t = t.toLowerCase();
+    const es = /hola|necesito|trabajo|empleo|donde|cuando|hora|horas|español|tel[eé]fono|direcci[oó]n|cita|servicios|comida/.test(t);
+    const ht = /bonjou|bonswa|mwen|bezwen|travay|kote|ede|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis/.test(t);
+    return es ? 'es' : (ht ? 'ht' : 'en');
+  }
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  function classifyIntent(text){
+    const t = (' ' + text.toLowerCase() + ' ').replace(/[^\p{L}\p{N}\s]/gu,' ');
 
-  <style>
-    :root{
-      --task-blue-primary:#145078;
-      --task-orange-primary:#ff911f;
-      --task-blue-logo:#0085CA;
-      --task-green-secondary:#74ba58;
-      --task-yellow-secondary:#ffc91f;
-      --task-teal-secondary:#33A7B5;
-      --task-gray-light:#d9dad9;
-      --task-gray-dark:#6b6b6b;
-      /* 👇 replace with your hosted logo url */
-      --task-logo-url: url('LOGO_URL_HERE');
+    const bag = {
+      trainings: /(training|trainings|program|programs|class|classes|course|courses|certification|culinary|emilio|sora|forklift|academy|apprenticeship)\b/,
+      jobs: /(job|jobs|work|employment|hiring|hire|opening|openings|apply|application|position|positions|indeed)\b|empleo|trabajo|travay/,
+      alerts: /(alert|alerts|notify|notification|subscribe|text alert|updates)/,
+      resume: /(resume|curriculum|currículum|cv|cover\s*letter)/,
+      interview: /(interview|interview\s*tips|mock\s*interview|practice\s*interview)/,
+      resources: /(resource|resources|help|assistance|support\s*services|services\s*list)/,
+      appointments: /(appointment|schedule|book|meeting|register|sign\s*up|rsvp|cita|programar|randevou)/,
+      hours: /(hour|hours|time|when|open|close|lunch|dinner|meal|eat|food|hora|almuerzo|cena|manje)/,
+      location: /(where|address|location|directions|map|parking|d[oó]nde|direcci[oó]n|ubicaci[oó]n|kote|adr[eè]s)/,
+      transit: /(bus|nj\s*transit|route|fare|ticket|train|transport|planner)/,
+      computer_lab: /(computer|internet|wifi|lab|email|application\s*online)/,
+      support: /(case\s*management|housing|benefits|id|veterans|domestic\s*violence|recovery|peer)/,
+      greeting: /(hi|hello|hey|hola|bonjou|buenas)/,
+      thanks: /(thanks|thank you|gracias|mesi)/
+    };
+
+    for (const [k, rx] of Object.entries(bag)) {
+      if (rx.test(t)) return k;
     }
+    return 'default';
+  }
 
-    *{margin:0;padding:0;box-sizing:border-box}
+  /* ---------- Router: returns ONE focused answer ---------- */
+  function getResponse(input){
+    const lang = detectLang(input || '');
+    const intent = classifyIntent(input || '');
 
-    /* soft animated gradient */
-    @keyframes bgMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    // Small i18n helpers
+    const L = {
+      call: lang==='es' ? 'Llama' : lang==='ht' ? 'Rele' : 'Call',
+      duringLunch: lang==='es' ? 'Durante el almuerzo (10:30 AM–1:00 PM)'
+                  : lang==='ht' ? 'Lè manje midi (10:30 AM–1:00 PM)'
+                  : 'During lunch (10:30 AM–1:00 PM)',
+      map: lang==='es' ? 'Google Maps' : lang==='ht' ? 'Google Maps' : 'Google Maps',
+      phone: '<a href="tel:609-337-1624">(609) 337-1624</a>',
+      asked: lang==='es' ? 'Me preguntas sobre' : lang==='ht' ? 'W ap mande sou' : 'You asked about',
+      suggestions: lang==='es' ? 'Sugerencias' : lang==='ht' ? 'Sijesyon' : 'Suggestions',
+      trainings: lang==='es' ? 'entrenamientos' : lang==='ht' ? 'fòmasyon' : 'training',
+      jobs: lang==='es' ? 'empleos' : lang==='ht' ? 'travay' : 'jobs'
+    };
 
-    body{
-      font-family:'Open Sans',sans-serif;
-      background:linear-gradient(135deg,var(--task-blue-primary),var(--task-teal-secondary));
-      background-size:200% 200%;
-      animation:bgMove 18s ease infinite;
-      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;
-      position:relative;
-    }
-    @media (prefers-reduced-motion:reduce){ body{animation:none} }
+    // Builders for each intent
+    const R = {
+      trainings: () => (
+        `<strong>🎓 ${L.asked} ${L.trainings}.</strong><br><br>
+         • Emilio Culinary Academy (10-week)<br>
+         • SORA Security Certification<br>
+         • Forklift Certification<br><br>
+         <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Browse training & apply</a><br>
+         ${L.call} the Social Services Specialist: ${L.phone}. ${L.duringLunch}.<br><br>
+         <em>${L.suggestions}:</em> <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">See ${L.jobs}</a> •
+         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help</a>`
+      ),
 
-    /* TASK logo watermark */
-    body::before{
-      content:"";
-      position:fixed; inset:0;
-      background-image: var(--task-logo-url);
-      background-repeat:no-repeat;
-      background-position:center 8%;
-      background-size: 70% auto;
-      opacity:.06;
-      pointer-events:none;
-      filter:grayscale(100%);
-      mix-blend-mode:luminosity;
-    }
+      jobs: () => (
+        `<strong>💼 ${L.asked} ${L.jobs}.</strong><br><br>
+         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions (Mercer County)</a><br>
+         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Get job alerts by text</a><br><br>
+         Need help applying? ${L.call}: ${L.phone}. ${L.duringLunch}.<br><br>
+         <em>${L.suggestions}:</em> <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help</a> •
+         <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Interview tips</a>`
+      ),
 
-    .app-container{
-      width:100%;max-width:420px;background:#fff;border:3px solid var(--task-orange-primary);
-      border-radius:18px;overflow:hidden;box-shadow:0 20px 40px rgba(20,80,120,.3);
-      position:relative; z-index:1;
-    }
+      alerts: () => (
+        `<strong>🔔 ${L.asked} job alerts.</strong><br><br>
+         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Subscribe to job alerts</a><br>
+         You can unsubscribe any time.`
+      ),
 
-    .header{background:#fff;text-align:center;padding:14px 16px 12px;border-bottom:2px solid var(--task-blue-primary)}
-    .assistant-banner{display:inline-block;background:var(--task-blue-primary);color:#fff;padding:6px 12px;border-radius:999px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;letter-spacing:.2px}
-    .subline{color:var(--task-orange-primary);font-weight:700;font-size:12px;margin-top:6px;font-family:'Nunito',sans-serif}
+      resume: () => (
+        `<strong>📄 ${L.asked} resume help.</strong><br><br>
+         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help & templates</a><br><br>
+         Want 1-on-1 help? ${L.call}: ${L.phone}. ${L.duringLunch}.`
+      ),
 
-    .chat-area{height:360px;overflow-y:auto;padding:16px;background:#fafafa;scroll-behavior:smooth}
-    .welcome-message{background:linear-gradient(135deg,#fff3e0,#ffe8d6);border:2px solid var(--task-orange-primary);border-radius:14px;padding:16px;margin-bottom:16px}
-    .welcome-message h2{font-family:'Nunito',sans-serif;color:var(--task-blue-primary);font-size:18px;margin-bottom:10px}
-    .language-notice{background:var(--task-green-secondary);color:#fff;border-radius:10px;padding:8px 12px;font-size:11px;text-align:center;margin:10px 0;font-weight:600}
+      interview: () => (
+        `<strong>🎥 ${L.asked} interview tips.</strong><br><br>
+         <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">Watch quick interview tips</a><br><br>
+         Practice with us: ${L.call} ${L.phone}.`
+      ),
 
-    .quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
-    .quick-actions a{display:inline-block;padding:6px 12px;font-size:11px;text-decoration:none;color:var(--task-blue-primary);background:#fff;border:1px solid var(--task-orange-primary);border-radius:20px;transition:.2s;font-weight:600}
-    .quick-actions a:hover{background:var(--task-orange-primary);color:#fff;transform:translateY(-1px)}
+      appointments: () => (
+        `<strong>📅 ${L.asked} an employment appointment.</strong><br><br>
+         ${L.call} the Social Services Specialist at ${L.phone}. ${L.duringLunch}.<br>
+         Or <a href="https://bycell.co/ddmul" target="_blank" rel="noopener">register online</a>.`
+      ),
 
-    .message{margin:12px 0;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.4;animation:slideIn .3s ease}
-    .user-message{background:linear-gradient(135deg,var(--task-orange-primary),var(--task-yellow-secondary));color:#fff;margin-left:20%;text-align:right;border-radius:16px 16px 4px 16px;box-shadow:0 4px 12px rgba(255,145,31,.3)}
-    .bot-message{background:#fff;border:2px solid var(--task-blue-logo);color:var(--task-gray-dark);margin-right:20%;border-radius:16px 16px 16px 4px;box-shadow:0 3px 10px rgba(0,133,202,.15)}
-    .typing-indicator{display:flex;align-items:center;background:var(--task-gray-light);padding:12px 16px;margin-right:20%;border-radius:16px 16px 16px 4px}
-    .typing-dots span{width:6px;height:6px;background:var(--task-gray-dark);border-radius:50%;display:inline-block;margin:0 2px;animation:typing 1.4s infinite}
-    .typing-dots span:nth-child(2){animation-delay:.2s}
-    .typing-dots span:nth-child(3){animation-delay:.4s}
+      hours: () => (
+        `<strong>🕒 ${L.asked} our hours.</strong><br><br>
+         Lunch: Mon–Fri 10:30 AM–1:00 PM • Dinner: Mon–Thu 3:30–5:00 PM<br>
+         Employment appointments are scheduled ${L.duringLunch.toLowerCase()}.`
+      ),
 
-    .input-area{padding:16px;background:#fafafa;border-top:2px solid var(--task-blue-logo)}
-    .language-reminder{font-size:11px;color:var(--task-blue-primary);background:linear-gradient(135deg,rgba(116,186,88,.1),rgba(51,167,181,.1));border:2px solid var(--task-green-secondary);border-radius:12px;padding:10px;text-align:center;margin-bottom:12px;font-weight:600}
-    .input-container{display:flex;gap:10px;align-items:center}
-    .input-container input{flex:1;padding:14px 18px;border:2px solid var(--task-blue-logo);border-radius:25px;font-size:13px;outline:none;background:#fff;transition:border-color .2s}
-    .input-container input:focus{border-color:var(--task-orange-primary)}
-    .send-button{display:flex;align-items:center;justify-content:center;width:50px;height:50px;border:none;border-radius:50%;cursor:pointer;background:linear-gradient(135deg,var(--task-orange-primary),var(--task-yellow-secondary));box-shadow:0 4px 15px rgba(255,145,31,.3);color:#fff;font-size:18px;font-weight:bold;transition:transform .2s}
-    .send-button:hover{transform:scale(1.05)}
-    .status{text-align:center;font-size:10px;color:var(--task-gray-dark);margin-top:8px}
+      location: () => (
+        `<strong>📍 ${L.asked} our location.</strong><br><br>
+         72½ Escher St, Trenton, NJ 08609<br>
+         <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">Open ${L.map}</a><br><br>
+         Appointments: ${L.phone}.`
+      ),
 
-    @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-10px)}}
+      transit: () => (
+        `<strong>🚌 ${L.asked} transit.</strong><br><br>
+         <a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>
+         Destination: 72½ Escher St, Trenton.`
+      ),
 
-    @media (max-width:480px){
-      .app-container{margin:8px;border-radius:16px}
-      .quick-actions{justify-content:center}
-      .quick-actions a{font-size:10px;padding:5px 10px}
-      body::before{background-size:95% auto; background-position:center 5%;}
-    }
-  </style>
-</head>
-<body>
-  <div class="app-container">
-    <div class="header">
-      <div class="assistant-banner" role="heading" aria-level="1">TASK Assistant</div>
-      <div class="subline">Trenton Area Soup Kitchen</div>
-    </div>
+      computer_lab: () => (
+        `<strong>💻 ${L.asked} the computer lab.</strong><br><br>
+         Open during meal hours (see hours). Free internet & job applications.<br>
+         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume help</a>`
+      ),
 
-    <div class="chat-area" id="chatArea" role="log" aria-live="polite" aria-label="Chat conversation">
-      <div class="welcome-message">
-        <h2>Welcome! Byenvini! ¡Bienvenidos!</h2>
-        <div class="language-notice">I speak English, Español &amp; Kreyòl</div>
+      resources: () => (
+        `<strong>🧰 ${L.asked} resources/services.</strong><br><br>
+         <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Additional resources</a><br>
+         <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">Full TASK services</a>`
+      ),
 
-        <!-- Quick action pills -->
-        <div class="quick-actions" id="quickRow">
-          <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
-          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener" data-ask="I need job help">💼 Jobs</a>
-          <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener" data-ask="Job alerts">🔔 Alerts</a>
-          <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener" data-ask="Training programs">🎓 Training</a>
-          <a href="https://bycell.co/ddmui" target="_blank" rel="noopener" data-ask="Resume help">📄 Resume</a>
-          <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">🎥 Interview Tips</a>
-          <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">🧰 Resources</a>
-        </div>
-      </div>
+      support: () => (
+        `<strong>🤝 ${L.asked} support services.</strong><br><br>
+         Case management, housing/ID help, DV assistance, peer recovery, veterans support.<br>
+         ${L.call}: ${L.phone}.`
+      ),
 
-      <div id="messages"></div>
-    </div>
+      greeting: () => (
+        `<strong>👋 Hi! I'm the TASK Assistant.</strong><br>
+         Ask me about trainings, jobs, appointments, hours, directions or transit.<br><br>
+         <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
+         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
+         <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a>`
+      ),
 
-    <div class="input-area">
-      <div class="language-reminder">I speak English, Español &amp; Kreyòl</div>
+      thanks: () => `<strong>😊 You’re welcome!</strong> Anything else I can help with?`,
 
-      <div class="input-container">
-        <input id="userInput" type="text"
-               placeholder="Type: where are you? necesito trabajo? mwen bezwen ede?"
-               autocomplete="off" inputmode="text" aria-label="Type your message"
-               onkeydown="if(event.key==='Enter'){event.preventDefault(); if(window.sendMessage){window.sendMessage();}}">
-        <button id="sendButton" class="send-button" type="button"
-                onclick="if(window.sendMessage){window.sendMessage();}" aria-label="Send">➤</button>
-      </div>
+      default: () => (
+        `<strong>💬 I’ll keep it simple.</strong><br>
+         Tell me “training”, “jobs”, “hours”, “address”, “bus”, or “appointment”.<br><br>
+         Quick links: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
+         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
+         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Job alerts</a>`
+      )
+    };
 
-      <div class="status" id="status">⚠️ I can make mistakes - please double-check important info!</div>
-      <noscript><p style="font-size:12px;margin-top:8px">JavaScript seems blocked. Quick buttons above still open helpful pages.</p></noscript>
-    </div>
-  </div>
-  <script>
-    // Send message (click or Enter)
-    function sendMessage(){
-      var input = document.getElementById('userInput');
-      var messages = document.getElementById('messages');
-      var status = document.getElementById('status');
-      if(!input || !messages) return;
-
-      var text = (input.value || '').trim();
-      if(!text) return;
-
-      var u = document.createElement('div');
-      u.className = 'message user-message';
-      u.textContent = text;
-      messages.appendChild(u);
-
-      input.value = '';
-      if(status) status.textContent = '🤖 Thinking…';
-
-      var typing = document.createElement('div');
-      typing.className = 'typing-indicator';
-      typing.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-      messages.appendChild(typing);
-
-      var chat = document.getElementById('chatArea');
-      if(chat) chat.scrollTop = chat.scrollHeight;
-
-      setTimeout(function(){
-        if(typing.parentNode) typing.parentNode.removeChild(typing);
-        var html = getResponse(text);
-        var b = document.createElement('div');
-        b.className = 'message bot-message';
-        b.innerHTML = html;
-        messages.appendChild(b);
-        if(chat) chat.scrollTop = chat.scrollHeight;
-        if(status){
-          status.textContent = '✅ Answered!';
-          setTimeout(function(){ status.textContent = '⚠️ I can make mistakes - please double-check important info!'; }, 1500);
-        }
-        input.focus();
-      }, 320);
-    }
-    window.sendMessage = sendMessage;
-
-    // Simple tri-lingual responses
-    function getResponse(raw){
-      var t = (raw||'').toLowerCase().trim();
-      var isSpanish = /hola|necesito|trabajo|empleo|ayuda|donde|cuando|hora|horas|español|teléfono|dirección|cita|servicios|comida/.test(t);
-      var isCreole  = /bonjou|bonswa|mwen|bezwen|travay|kote|ede|manje|kreyòl|telefòn|adrès|randevou|sèvis/.test(t);
-
-      // Employment
-      if (/(^|\s)(job|jobs|work|employment|career|hire|hiring|resume|interview|training|certification|forklift|sora|culinary|kitchen|cook|chef|warehouse)(\s|$)|empleo|trabajo|entrevista|cocin|seguridad|travay|fòmasyon/.test(t)) {
-        if (isSpanish) {
-          return '<strong>💼 Servicios de Empleo de TASK</strong><br><br>'
-            + '<strong>Para programar una cita:</strong> Llame al <a href="tel:609-337-1624">(609) 337-1624</a> (Social Services Specialist).<br><br>'
-            + '<strong>Enlaces:</strong> '
-            + '<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Empleos</a> • '
-            + '<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alertas</a> • '
-            + '<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Entrenamientos</a> • '
-            + '<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Currículum</a> • '
-            + '<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Recursos</a>';
-        } else if (isCreole) {
-          return '<strong>💼 Sèvis Travay TASK</strong><br><br>'
-            + '<strong>Pou randevou:</strong> Rele <a href="tel:609-337-1624">(609) 337-1624</a> (Social Services Specialist).<br><br>'
-            + '<strong>Lyen:</strong> '
-            + '<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Travay</a> • '
-            + '<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alèt Travay</a> • '
-            + '<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Fòmasyon</a> • '
-            + '<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">CV</a> • '
-            + '<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resous</a>';
-        } else {
-          return '<strong>💼 TASK Employment Services</strong><br><br>'
-            + '<strong>To make an appointment:</strong> Call <a href="tel:609-337-1624">(609) 337-1624</a> (Social Services Specialist).<br><br>'
-            + '<strong>Links:</strong> '
-            + '<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • '
-            + '<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Job Alerts</a> • '
-            + '<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • '
-            + '<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume Help</a> • '
-            + '<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resources</a>';
-        }
-      }
-
-      // Appointments
-      if (/appointment|schedule|meeting|book|cita|programar|randevou|ki lè/.test(t)) {
-        var core = '<strong>📅 Employment Services Appointments</strong><br><br>'
-          + '<strong>Call the Social Services Specialist:</strong> '
-          + '<a href="tel:609-337-1624">(609) 337-1624</a><br>'
-          + '<strong>When:</strong> During lunch (10:30 AM–1:00 PM).<br><br>'
-          + '<a href="https://bycell.co/ddmul" target="_blank" rel="noopener">Register online</a> • '
-          + '<a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">Full TASK services</a>';
-        if (isSpanish) return core.replace('Employment Services Appointments','Citas de Servicios de Empleo')
-                                  .replace('Call the Social Services Specialist:','Llame al Especialista de Servicios Sociales:')
-                                  .replace('During lunch (10:30 AM–1:00 PM)','Durante el almuerzo (10:30 AM–1:00 PM)')
-                                  .replace('Register online','Registrarse en línea')
-                                  .replace('Full TASK services','Servicios de TASK');
-        if (isCreole)  return core.replace('Employment Services Appointments','Randevou Sèvis Travay')
-                                  .replace('Call the Social Services Specialist:','Rele Espesyalis Sèvis Sosyal la:')
-                                  .replace('During lunch (10:30 AM–1:00 PM)','Lè manje midi (10:30 AM–1:00 PM)')
-                                  .replace('Register online','Enskri sou entènèt')
-                                  .replace('Full TASK services','Tout sèvis TASK');
-        return core;
-      }
-
-      // Hours / Meals
-      if (/hour|time|when|open|close|lunch|dinner|meal|eat|food|hora|almuerzo|cena|manje/.test(t)) {
-        if (isSpanish) return '<strong>🕒 Horarios</strong><br><br>'
-          + 'Almuerzo: Lun–Vie 10:30 AM–1:00 PM • Cena: Lun–Jue 3:30–5:00 PM<br>'
-          + 'Citas de empleo durante el almuerzo. Tel: <a href="tel:609-337-1624">(609) 337-1624</a>';
-        if (isCreole)  return '<strong>🕒 Orè</strong><br><br>'
-          + 'Manje midi: Len–Van 10:30 AM–1:00 PM • Aswè: Len–Jed 3:30–5:00 PM<br>'
-          + 'Randevou travay pandan manje midi. Tel: <a href="tel:609-337-1624">(609) 337-1624</a>';
-        return '<strong>🕒 Hours</strong><br><br>'
-          + 'Lunch: Mon–Fri 10:30 AM–1:00 PM • Dinner: Mon–Thu 3:30–5:00 PM<br>'
-          + 'Employment appointments during lunch. Phone: <a href="tel:609-337-1624">(609) 337-1624</a>';
-      }
-
-      // Location
-      if (/where|address|location|directions|map|parking|donde|dirección|ubicación|kote|adrès/.test(t)) {
-        return '<strong>📍 Location & Contact</strong><br><br>'
-          + '72½ Escher St, Trenton, NJ 08609<br>'
-          + 'Appointments: <a href="tel:609-337-1624">(609) 337-1624</a><br>'
-          + '<a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Google Maps</a>';
-      }
-
-      // Transit
-      if (/bus|transport|nj transit|route|fare|ticket/.test(t)) {
-        return '<strong>🚌 Getting to TASK</strong><br>'
-          + '<a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • Call 1-973-275-5555';
-      }
-
-      // Default
-      if (isSpanish) {
-        return '<strong>👋 ¡Hola! Soy el Asistente de TASK.</strong><br>'
-          + 'Pregúntame sobre empleo, horarios, direcciones o transporte.<br><br>'
-          + '<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Empleos</a> • '
-          + '<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alertas</a> • '
-          + '<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Entrenamientos</a> • '
-          + '<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Currículum</a> • '
-          + '<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Recursos</a>';
-      }
-      if (isCreole) {
-        return '<strong>👋 Bonjou! Mwen se Asistan TASK la.</strong><br>'
-          + 'Mande m sou travay, orè, direksyon oswa transpò.<br><br>'
-          + '<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Travay</a> • '
-          + '<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alèt</a> • '
-          + '<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Fòmasyon</a> • '
-          + '<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">CV</a> • '
-          + '<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resous</a>';
-      }
-      return '<strong>👋 Hi! I\'m the TASK Assistant.</strong><br>'
-        + 'Ask me about jobs, hours, appointments, directions, or transit.<br><br>'
-        + '<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • '
-        + '<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a> • '
-        + '<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • '
-        + '<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a> • '
-        + '<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resources</a>';
-    }
-
-    // Wire up buttons + Enter key (extra robust)
-    document.addEventListener('DOMContentLoaded', function(){
-      var input = document.getElementById('userInput');
-      var btn   = document.getElementById('sendButton');
-      var quick = document.getElementById('quickRow');
-
-      if (input){ input.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); sendMessage(); }}); input.focus(); }
-      if (btn){ btn.addEventListener('click', function(e){ e.preventDefault(); sendMessage(); }); }
-
-      // If a quick pill has data-ask and user didn't hold a modifier, treat it as a chat prompt
-      if (quick){
-        quick.addEventListener('click', function(e){
-          var a = e.target.closest('a'); if(!a) return;
-          var ask = a.getAttribute('data-ask');
-          if (ask && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey){
-            e.preventDefault();
-            input.value = ask;
-            sendMessage();
-          }
-        });
-      }
-    });
-  </script>
-</body>
-</html>
+    return (R[intent] || R.default)();
+  }
+</script>
