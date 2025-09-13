@@ -88,7 +88,6 @@
       flex-direction:column;
       min-height:min(92vh,860px);    /* mobile+desktop friendly */
     }
-
     @media (max-width:420px){
       .app{min-height:92vh; max-width:100%}
     }
@@ -184,6 +183,7 @@
     /* Footer */
     .footer{padding:12px;background:var(--surface-2);border-top:1px solid var(--border)}
     .hint{
+      display:none; /* hidden hint per your request */
       font-size:11px;color:var(--brand);
       background:linear-gradient(135deg,rgba(116,186,88,.12),rgba(51,167,181,.10));
       border:1px solid var(--border);border-radius:12px;padding:8px 10px;text-align:center;font-weight:600;margin-bottom:10px
@@ -247,7 +247,7 @@
       <button class="lang-chip" data-lang="ht" aria-label="Chanje pou Kreyòl">HT</button>
     </div>
 
-    <!-- Quick links (labels will translate) -->
+    <!-- Quick links (labels translate) -->
     <nav class="rail" id="top-rail">
       <a class="chip" id="chip-address" href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
       <a class="chip" id="chip-jobs" href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
@@ -263,21 +263,20 @@
 
     <!-- Footer / Input -->
     <footer class="footer">
-      <div class="hint" id="langHint">I speak English, Español & Kreyòl</div>
+      <div class="hint" id="langHint"></div> <!-- hidden on purpose -->
       <div class="row">
         <input id="box" type="text" placeholder="Type keywords: training, jobs, hours, address, bus…" autocomplete="off" aria-label="Type your message"/>
         <button class="send" id="send" aria-label="Send">➤</button>
       </div>
       <div class="status" id="status">⚠️ I can make mistakes — please double-check important info!</div>
-      <div class="status">Admin: press <span class="k">Ctrl</span>+<span class="k">Alt</span>+<span class="k">A</span> (PIN required)</div>
+      <!-- Removed public admin hint per your request -->
     </footer>
   </main>
 
-  <!-- Admin PIN Modal -->
+  <!-- Admin PIN Modal (hidden, opened by Ctrl+Alt+A) -->
   <div class="modal" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
     <div class="card">
       <h4 id="pinTitle">Enter admin PIN</h4>
-      <p style="font-size:12px;color:var(--muted)">Shortcut: <span class="k">Ctrl</span>+<span class="k">Alt</span>+<span class="k">A</span></p>
       <div class="row">
         <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" aria-label="Admin PIN"/>
       </div>
@@ -314,7 +313,6 @@
     const sendBtn = document.getElementById('send');
     const statusEl = document.getElementById('status');
     const themeToggle = document.getElementById('themeToggle');
-    const langHint = document.getElementById('langHint');
     const langbar = document.getElementById('langbar');
     const pinModal = document.getElementById('pinModal');
     const pinInput = document.getElementById('pinInput');
@@ -344,6 +342,10 @@
     let lastIntent = null;
     const logs = [];
     const missed = [];
+
+    /* ========= FIX MIC SCOPE (declare before setLang) ========= */
+    let recognizing = false;
+    let rec = null; // declared early so setLang can safely reference it
 
     /* ===========================
        THEME
@@ -434,7 +436,7 @@
         alerts: 'Abònman ak alèt',
         resume: 'Ede ak CV & modèl',
         tips: 'Gade konsèy rapid yo',
-        mealHours: 'Manje: Madi–Vandredi 10:30–1:00 • Aswè Lendi–Jedi 3:30–5:00',
+        mealHours: 'Manje: Manje midi Lendi–Vandredi 10:30–1:00 • Manje aswè Lendi–Jedi 3:30–5:00',
         address: '72½ Escher St, Trenton, NJ 08609',
         maps: 'Louvri Google Maps',
         bus: 'Planifikatè vwayaj NJ Transit',
@@ -457,10 +459,7 @@
     function setLang(lang){
       currentLang = (lang in L10N) ? lang : 'en';
       localStorage.setItem(LANG_KEY, currentLang);
-      langHint.textContent =
-        currentLang==='es' ? 'Hablo inglés, español y Kreyòl' :
-        currentLang==='ht' ? 'M pale Angle, Panyòl & Kreyòl' :
-        'I speak English, Español & Kreyòl';
+
       // Update chip labels
       chipAddress.textContent = '📍 ' + t('rail_address');
       chipJobs.textContent = '💼 ' + t('rail_jobs');
@@ -469,11 +468,12 @@
       chipResume.textContent = '📄 ' + t('rail_resume');
       chipTips.textContent = '🎥 ' + t('rail_tips');
       chipResources.textContent = '🧰 ' + t('rail_resources');
-      // Update voice language if active later
-      if(rec) rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
-    }
-    setLang(currentLang);
 
+      // Safe voice lang update (rec exists only after setup)
+      if (rec) rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
+    }
+
+    // Initialize language selection bar clicks
     langbar.addEventListener('click', (e)=>{
       const btn = e.target.closest('.lang-chip'); if(!btn) return;
       setLang(btn.dataset.lang);
@@ -558,22 +558,17 @@
       return best <= 2;
     }
 
-    // Expanded synonyms (EN/ES/HT + common misspellings/variants)
     const SYN = {
       trainings: [
         'training','trainings','program','programs','class','classes','course','courses',
         'certificate','certification','license','licence','licensee','sora','security license','security guard',
         'culinary','academy','forklift','food handler','servsafe',
-        // ES
         'entrenamiento','entrenamientos','curso','cursos','certificado','certificación','licencia','licencia de seguridad','sora',
-        // HT
         'fòmasyon','fomasyon','lisans','sekirite','sora','lekòl kwizin','forklift'
       ],
       jobs: [
         'job','jobs','work','employment','hiring','hire','opening','openings','apply','application','position','positions','career',
-        // ES
         'empleo','empleos','trabajo','trabajar','aplicar','postular','vacante','vacantes',
-        // HT
         'travay','anbochaj','pozisyon','aplika'
       ],
       alerts: ['alert','alerts','notify','notification','subscribe','updates','signup',
@@ -600,7 +595,7 @@
         'hora','horario','abren','cierran','almuerzo','cena','comida',
         'lè','lè yo louvri','lè yo fèmen','manje','manje midi','manje aswè'
       ],
-      meals: [ // alias to hours
+      meals: [
         'meal','meals','food','kitchen','soup','eat','dining',
         'comida','comidas','cocina','comedor',
         'manje','kwizin'
@@ -631,40 +626,31 @@
     };
 
     function classify(input){
-      const raw = input;
       const t = input.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').trim();
       if(!t) return 'default';
 
-      // Manual commands
       if(/^\/lang\s+(en|es|ht)\b/.test(t)){ setLang(t.match(/^\/lang\s+(en|es|ht)\b/)[1]); return 'greeting'; }
       if(/^(menu|help|ayuda|ede|aide)\b/.test(t)) return 'greeting';
 
-      // Language auto-switch
       const guess = detectLang(t);
       if(guess !== currentLang && !/\/lang/.test(t)) setLang(guess);
 
-      // quick includes
       for(const key of Object.keys(SYN)){
         for(const kw of SYN[key]){
           if(t.includes(kw)) return key;
         }
       }
-      // fuzzy tokens
       const tokens = t.split(/\s+/).slice(0,8);
       for(const key of Object.keys(SYN)){
         if(tokens.some(tok=>fuzzyMatch(tok, SYN[key]))) return key;
       }
 
-      // fallback context
       if(/(when|what\s*time|hour|hours|dinner|lunch|open|close|horas|hora|horario|lè|manje)/.test(t)) return 'hours';
       if(/(where|address|map|kote|adr[eè]s|direcci[oó]n|parking|parqueo)/.test(t)) return 'location';
 
       return 'default';
     }
 
-    /* ===========================
-       RESPONSES
-    ============================*/
     function respond(intentKey){
       const showHours = () => `<strong>🕒 ${t('asked')} hours.</strong><br><br>${t('mealHours')}`;
       const M = {
@@ -750,6 +736,7 @@
     }
 
     // Initial welcome
+    setLang(currentLang); // safe now (rec declared)
     addBot(`🟡 <strong>${t('welcome')}</strong><br><br>
             ${t('quick')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('rail_training')}</a> •
             <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('rail_jobs')}</a> •
@@ -787,14 +774,13 @@
       }
     });
     pinSubmit.addEventListener('click', ()=>{
-      if(pinInput.value.trim()===ADMIN_PIN){
+      if(pinInput.value.trim()==='1234'){
         closePinModal(); openAdmin();
       }else{
         pinInput.value=''; pinInput.focus(); alert('Incorrect PIN');
       }
     });
     pinCancel.addEventListener('click', closePinModal);
-
     document.getElementById('closeAdmin').addEventListener('click', closeAdmin);
 
     exportCsvBtn.addEventListener('click', ()=>{
@@ -828,13 +814,15 @@ ${missed.slice(0,15).map(x=>'– '+x).join('\n')}`;
     });
 
     /* ===========================
-       VOICE INPUT (optional)
+       VOICE INPUT (optional, HTTPS/localhost only)
     ============================*/
-    let recognizing = false;
-    let rec = null;
     (function setupVoice(){
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if(!SR){ micBtn.style.display='none'; return; }
+      const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      const SR = (window.SpeechRecognition || window.webkitSpeechRecognition);
+      if(!isSecure || !SR){
+        micBtn.style.display='none';
+        return;
+      }
       rec = new SR();
       rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
       rec.interimResults = false; rec.maxAlternatives = 1;
@@ -844,7 +832,7 @@ ${missed.slice(0,15).map(x=>'– '+x).join('\n')}`;
     })();
 
     micBtn.addEventListener('click', ()=>{
-      if(!rec) return;
+      if(!rec) return; // hidden earlier if unsupported
       if(recognizing){ rec.stop(); recognizing=false; micBtn.textContent='🎙'; return; }
       try{
         rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
