@@ -377,13 +377,17 @@
     const chipTips = document.getElementById('chip-tips');
     const chipResources = document.getElementById('chip-resources');
 
-    const PHONE_HTML = '<a href="tel:609-337-1624">(609) 337-1624</a>';
+    // Phone numbers
+    const CALL_ME_HTML = '<a href="tel:609-697-6215">(609) 697-6215</a>';  // Your direct line
+    const APPT_HTML    = '<a href="tel:609-337-1624">(609) 337-1624</a>';  // Appointment line
+
     const ADMIN_PIN = '1234';
     const THEME_KEY = 'task_theme';
     const LANG_KEY = 'task_lang';
 
     let currentLang = localStorage.getItem(LANG_KEY) || 'en';
     let lastIntent = null;
+    let missStreak = 0;  // track consecutive "default" results for escalation
     const logs = [];
     const missed = [];
 
@@ -444,7 +448,9 @@
         rail_address:'Address', rail_jobs:'Jobs', rail_alerts:'Alerts',
         rail_training:'Training', rail_resume:'Resume',
         rail_tips:'Interview Tips', rail_resources:'Resources',
-        ph: 'Type: training, jobs, hours, address, bus…'
+        ph: 'Type: training, jobs, hours, address, bus…',
+        having_trouble: 'Having a hard time finding what you need? Call me:',
+        appointments_note: 'For appointments, please use:',
       },
       es: {
         welcome: '👋 ¡Bienvenido! Usa palabras como <em>entrenamiento</em>, <em>empleos</em>, <em>horas</em>, <em>dirección</em> o <em>autobús</em>.',
@@ -475,7 +481,9 @@
         rail_address:'Dirección', rail_jobs:'Empleos', rail_alerts:'Alertas',
         rail_training:'Entrenamiento', rail_resume:'Currículum',
         rail_tips:'Consejos de entrevista', rail_resources:'Recursos',
-        ph: 'Escribe: entrenamiento, empleos, horas, dirección, bus…'
+        ph: 'Escribe: entrenamiento, empleos, horas, dirección, bus…',
+        having_trouble: '¿Te cuesta encontrar lo que buscas? Llámame:',
+        appointments_note: 'Para citas, usa:'
       },
       ht: {
         welcome: '👋 Byenvini! Itilize mo tankou <em>fòmasyon</em>, <em>travay</em>, <em>lè</em>, <em>adrès</em>, oswa <em>otobis</em>.',
@@ -506,7 +514,9 @@
         rail_address:'Adrès', rail_jobs:'Travay', rail_alerts:'Alèt',
         rail_training:'Fòmasyon', rail_resume:'CV',
         rail_tips:'Konsèy entèvyou', rail_resources:'Resous',
-        ph: 'Tape: fòmasyon, travay, lè, adrès, otobis…'
+        ph: 'Tape: fòmasyon, travay, lè, adrès, otobis…',
+        having_trouble: 'Ou gen difikilte pou jwenn sa w bezwen? Rele mwen:',
+        appointments_note: 'Pou randevou, tanpri itilize:'
       }
     };
     function t(key){ return L10N[currentLang][key]; }
@@ -616,16 +626,23 @@
       return best <= 2;
     }
 
+    /* ===== Expanded synonym banks =====
+       New: more topic keywords + stronger anger/frustration triggers.
+    */
     const SYN = {
       trainings: [
         'training','trainings','program','programs','class','classes','course','courses',
         'certificate','certification','license','licence','licensee','sora','security license','security guard',
-        'culinary','academy','forklift','food handler','servsafe',
-        'entrenamiento','entrenamientos','curso','cursos','certificado','certificación','licencia','licencia de seguridad','sora',
-        'fòmasyon','fomasyon','lisans','sekirite','sora','lekòl kwizin','forklift'
+        'culinary','academy','forklift','food handler','servsafe','osha','warehouse',
+        'ged','high school','hse','esl','english classes','citizenship','apprenticeship',
+        // es
+        'entrenamiento','entrenamientos','curso','cursos','certificado','certificación','licencia','licencia de seguridad','sora','academia','culinario','montacargas','osha','ingles','clases de ingles','ged','ciudadanía',
+        // ht
+        'fòmasyon','fomasyon','lisans','sekirite','sora','lekòl kwizin','forklift','anglais','klas angle','ged'
       ],
       jobs: [
-        'job','jobs','work','employment','hiring','hire','opening','openings','apply','application','position','positions','career',
+        'job','jobs','work','employment','hiring','hire','opening','openings','apply','application','position','positions','career','career services',
+        'job fair','indeed','resume help','cover letter',
         'empleo','empleos','trabajo','trabajar','aplicar','postular','vacante','vacantes',
         'travay','anbochaj','pozisyon','aplika'
       ],
@@ -634,54 +651,97 @@
         'alèt','abònman','notifikasyon'
       ],
       resume: [
-        'resume','cv','curriculum','currículum','cover','cover letter','template','templates','format',
+        'resume','cv','curriculum','currículum','cover','cover letter','template','templates','format','portfolio',
         'curriculo','hoja de vida','plantilla','modelo',
         'cv modèl','modèl','modèl cv'
       ],
       interview: [
-        'interview','interviews','tips','mock','practice','practice interview',
-        'entrevista','entrevistas','consejos','práctica',
+        'interview','interviews','tips','mock','practice','practice interview','questions','behavioral',
+        'entrevista','entrevistas','consejos','práctica','preguntas',
         'entèvyou','konsèy','pratik'
       ],
       appointments: [
-        'appointment','appointments','schedule','book','meeting','register','sign','rsvp','call me','call back',
-        'cita','citas','programar','agendar','registrar','inscribirme','llamada',
-        'randevou','randevou a','pwograme','enskri','rele'
+        'appointment','appointments','schedule','book','booking','meeting','register','sign','rsvp','call me back','call back',
+        'cita','citas','programar','agendar','reservar','inscribirme','llamada',
+        'randevou','pwograme','enskri','rele'
       ],
       hours: [
         'hour','hours','time','when','open','close','opening','closing','lunch','dinner','meal','food',
-        'hora','horario','abren','cierran','almuerzo','cena','comida',
+        'hora','horario','abren','cierran','almuerzo','cena','comida','desayuno',
         'lè','lè yo louvri','lè yo fèmen','manje','manje midi','manje aswè'
       ],
       meals: [
-        'meal','meals','food','kitchen','soup','eat','dining',
-        'comida','comidas','cocina','comedor',
-        'manje','kwizin'
+        'meal','meals','food','kitchen','soup','eat','dining','pantry','groceries','food stamps','snap','ebt',
+        'comida','comidas','cocina','comedor','despensa','mercado','estampillas','alimentos','ebt','snap',
+        'manje','kwizin','pàntri','manje bank','ebt','snap'
       ],
       location: [
-        'where','address','location','directions','map','parking','drive','gps',
-        'donde','dirección','ubicación','mapa','estacionamiento','parqueo','ruta',
-        'kote','adrès','kat','pakin','direksyon'
+        'where','address','location','directions','map','parking','drive','gps','mailing address','mail',
+        'donde','dirección','ubicación','mapa','estacionamiento','parqueo','correo','direccion postal',
+        'kote','adrès','kat','pakin','lapòs','adrès postal'
       ],
       transit: [
-        'bus','nj','transit','route','routes','fare','ticket','train','transport','planner','schedule',
-        'autobús','bus','rutas','billete','tarifa','tren','transporte','horario',
-        'otobis','otobys','bous','chemen','tikè','pri','tren','orè'
+        'bus','nj','transit','route','routes','fare','ticket','train','transport','planner','schedule','pass','monthly pass',
+        'autobús','rutas','billete','tarifa','tren','transporte','horario','pase',
+        'otobis','bous','chemen','tikè','pri','tren','orè','pase'
       ],
       computer_lab: [
-        'computer','internet','wifi','lab','email','application','online','printer','print','scan',
-        'computadora','internet','laboratorio','correo','imprimir','escanear',
-        'odinatè','entènèt','lab','enprime','eskane'
+        'computer','internet','wifi','lab','email','application','online','printer','print','scan','wi-fi','hotspot',
+        'computadora','internet','laboratorio','correo','imprimir','escanear','wifi','hotspot',
+        'odinatè','entènèt','lab','enprime','eskane','wifi','hotspot'
       ],
       resources: [
-        'resource','resources','assistance','support','services','benefits','snap','tanf','welfare','housing','shelter','rent','utilities','legal','expungement','id','birth certificate','clothes','mental health','wellness','therapy','counseling',
-        'recursos','asistencia','apoyo','beneficios','vivienda','albergue','renta','utilidades','legal','expurgación','expungement','identificación','certificado de nacimiento','ropa','salud mental','terapia','orientación',
-        'resous','asistans','sipò','benefis','lojman','abri','lwaye','dlo','kouran','legal','efasman','idantite','sètifika nesans','rad','sante mantal','terapi','konsèy'
+        // IDs & docs
+        'id','state id','birth certificate','dmv','identification','social security card',
+        // housing & utilities
+        'housing','shelter','code blue','warming center','rent','eviction','utilities','pseg','electric bill','water bill','gas bill',
+        // legal & reentry
+        'legal','expungement','record','probation','parole','warrant','reentry',
+        // benefits
+        'snap','ebt','food stamps','wic','tanf','ssi','ssdi','benefits','medicaid','medicare',
+        // health & mental health
+        'clinic','doctor','dentist','mental health','counseling','therapy','rehab','recovery','substance','addiction','na','aa',
+        // family & special populations
+        'childcare','daycare','domestic violence','veteran','seniors','elderly',
+        // clothing & hygiene
+        'clothes','closet','coat','laundry','shower','hygiene','toiletries',
+        // phones & mail
+        'obama phone','lifeline','free phone','mail','mailbox','address',
+        // es
+        'identificación','tarjeta','acta de nacimiento','dmv','seguro social',
+        'vivienda','refugio','albergue','codigo azul','renta','desalojo','utilidades','luz','agua','gas',
+        'legal','expurgación','antecedentes','libertad condicional','reingreso',
+        'estampillas','beneficios','medicaid','medicare','wic','tanf','ssi','ssdi',
+        'clínica','médico','dentista','salud mental','terapia','rehabilitación','adicción',
+        'cuidado de niños','guardería','violencia doméstica','veterano','ancianos','mayores',
+        'ropa','abrigo','lavandería','ducha','higiene','toallas','teléfono gratis','lifeline','correo',
+        // ht
+        'kat idantite','sètifika nesans','dmv','sekirite sosyal',
+        'lojman','abri','code blue','santral chofe','lwaye','ekspilsyon','dlo','gaz','kouran',
+        'legal','efasman','dosye','próbasyon','paròl','reintegration',
+        'benefis','medicaid','medicare','wic','tanf','ssi','ssdi',
+        'klinick','dokte','dantis','sante mantal','terapi','reyabilitasyon','addiksyon',
+        'gadri','vyolans domestik','veteran','granmesi','rad','kabann','lesiv','douch','ijyèn','telefòn gratis','lifeline','lapòs'
       ],
-      greeting: ['hi','hello','hey','hola','bonjou','bonswa','salut'],
-      thanks: ['thanks','thank','gracias','mesi','thank you','ty','thx'],
+      // Greeting/thanks same as before
+      greeting: ['hi','hello','hey','hola','bonjou','bonswa','salut','good morning','good afternoon','good evening'],
+      thanks: ['thanks','thank','gracias','mesi','thank you','ty','thx','appreciate it','much appreciated'],
+      // Stronger anger/frustration vocabulary (routes to YOU)
+      angry: [
+        'angry','mad','pissed','upset','annoyed','irritated','frustrated','frustrating',
+        'furious','rage','hate this','this sucks','sucks','wtf','wth','bs','bullshit','damn',
+        'not helpful','unhelpful','useless','waste of time','stupid','dumb','idiot','crap',
+        'annoying','ridiculous','impossible','can’t figure','cant figure','can’t find','cant find','can’t see','cant see',
+        'confusing','confused','lost','broken','doesn’t work','doesnt work','not working','help me','need help',
+        // es / ht approximate triggers
+        'enoja','enojado','molesto','frustrado','esto apesta','no ayuda','inútil','wtf',
+        'fache','fache anpil','m fache','sa pa mache','pa mache','m pèdu','m konfonn'
+      ],
       profanity: ['fuck','shit','bitch','asshole','bastard','dick','pussy','cunt','motherfucker','bullshit','wtf','coño','mierda']
     };
+
+    // Extra regex for "hard time finding" phrasing
+    const HARD_TIME_REGEX = /(can[’']?t|cannot|not)\s+(find|figure|see|locate|get)\b|confus|lost|not\s+working|doesn[’']?t\s+work|no\s+ayuda|pa\s+mache/i;
 
     function classify(input){
       const t = input.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').trim();
@@ -693,20 +753,44 @@
       const guess = detectLang(t);
       if(guess !== currentLang && !/\/lang/.test(t)) setLang(guess);
 
-      for(const key of Object.keys(SYN)){
-        for(const kw of SYN[key]){
+      // Direct contact/human requests -> angry/escalate route to you
+      if(/\b(human|real person|talk to (someone|a person)|call|phone|speak to|contact)\b/.test(t)) return 'angry';
+
+      // Expanded anger/frustration detection
+      for(const kw of SYN.angry){ if(t.includes(kw)) return 'angry'; }
+      if(HARD_TIME_REGEX.test(t)) return 'angry';
+
+      // Profanity detection
+      for(const kw of SYN.profanity){ if(t.includes(kw)) return 'angry'; } // route to you
+
+      // Topic buckets
+      for(const key of ['trainings','jobs','alerts','resume','interview','appointments','hours','meals','location','transit','computer_lab','resources','greeting','thanks']){
+        for(const kw of SYN[key] || []){
           if(t.includes(kw)) return key;
         }
       }
-      const tokens = t.split(/\s+/).slice(0,8);
-      for(const key of Object.keys(SYN)){
+
+      // fuzzy fallback tokens
+      const tokens = t.split(/\s+/).slice(0,10);
+      for(const key of ['trainings','jobs','alerts','resume','interview','appointments','hours','meals','location','transit','computer_lab','resources']){
         if(tokens.some(tok=>fuzzyMatch(tok, SYN[key]))) return key;
       }
 
+      // contextual fallback
       if(/(when|what\s*time|hour|hours|dinner|lunch|open|close|horas|hora|horario|lè|manje)/.test(t)) return 'hours';
       if(/(where|address|map|kote|adr[eè]s|direcci[oó]n|parking|parqueo)/.test(t)) return 'location';
 
       return 'default';
+    }
+
+    /* ===========================
+       RESPONSES
+    ============================*/
+    function escalateBanner(){
+      return `<div style="margin-top:10px;padding:8px;border:1px dashed var(--border);border-radius:10px">
+        📞 <strong>${t('having_trouble')}</strong> ${CALL_ME_HTML}<br>
+        🗓️ ${t('appointments_note')} ${APPT_HTML}
+      </div>`;
     }
 
     function respond(intentKey){
@@ -715,22 +799,23 @@
         trainings: () => `<strong>🎓 ${t('asked')} training.</strong><br><br>
           • Emilio Culinary Academy (10-week)<br>
           • SORA Security Certification<br>
-          • Forklift Certification<br><br>
+          • Forklift Certification<br>
+          • GED / ESL resources<br><br>
           <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('view')}</a><br>
-          ${t('call')} ${PHONE_HTML}. ${t('during')}.`,
+          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
         jobs: () => `<strong>💼 ${t('asked')} jobs.</strong><br><br>
           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('jobs_open')}</a><br>
           <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">${t('alerts')}</a><br><br>
-          ${t('call')} ${PHONE_HTML}. ${t('during')}.`,
+          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
         alerts: () => `<strong>🔔 ${t('asked')} alerts.</strong><br><br>
           <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">${t('alerts')}</a>`,
         resume: () => `<strong>📄 ${t('asked')} resume help.</strong><br><br>
           <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">${t('resume')}</a><br><br>
-          ${t('call')} ${PHONE_HTML}. ${t('during')}.`,
+          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
         interview: () => `<strong>🎥 ${t('asked')} interview tips.</strong><br><br>
           <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">${t('tips')}</a>`,
         appointments: () => `<strong>📅 ${t('asked')} an appointment.</strong><br><br>
-          ${t('call')} ${PHONE_HTML}. ${t('during')}.`,
+          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
         hours: showHours,
         meals: showHours,
         location: () => `<strong>📍 ${t('asked')} our location.</strong><br><br>
@@ -742,18 +827,30 @@
         computer_lab: () => `<strong>💻 ${t('asked')} the computer lab.</strong><br><br>
           Open during meal hours. Free internet, printing & job applications.`,
         resources: () => `<strong>🧰 ${t('asked')} resources.</strong><br><br>
+          • IDs & documents (State ID, birth certificate, SS card)<br>
+          • Housing / shelter / utilities help<br>
+          • Legal & record expungement, reentry support<br>
+          • SNAP/EBT, WIC, TANF, SSI/SSDI, Medicaid/Medicare<br>
+          • Clinics, mental health, recovery/addiction support<br>
+          • Childcare, seniors, veterans, DV resources<br>
+          • Clothing, showers, laundry, free phone, mail<br><br>
           <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">${t('more')}</a><br>
           <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('allsvc')}</a>`,
-        profanity: () => `<strong>🙏 ${t('sorry')}</strong><br><br>
-          ${t('talk')}: ${PHONE_HTML}<br><br>
-          ${t('choices')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('train')}</a> ·
-          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('jobs')}</a> ·
-          <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${t('addr')}</a>`,
+        // Escalation route (anger/frustration/profanity/hard time) -> YOUR number
+        angry: () => `<strong>🙏 ${t('sorry')}</strong><br><br>
+          📞 ${t('having_trouble')} ${CALL_ME_HTML}<br>
+          🗓️ ${t('appointments_note')} ${APPT_HTML}<br><br>
+          ${t('choices')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> ·
+          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> ·
+          <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">Address</a>`,
         greeting: () => `👋 ${t('simple')}<br><span class="pill">${t('say')}</span>`,
         thanks: () => `${t('thanks')}`,
-        default: () => `<strong>🔗 ${t('notFound')}</strong><br>
-          <a href="https://trentonsoupkitchen.org/" target="_blank" rel="noopener">${t('site_home')}</a> •
-          <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('site_services')}</a>`
+        default: () => {
+          const base = `<strong>🔗 ${t('notFound')}</strong><br>
+            <a href="https://trentonsoupkitchen.org/" target="_blank" rel="noopener">${t('site_home')}</a> •
+            <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('site_services')}</a>`;
+          return missStreak >= 2 ? base + escalateBanner() : base;
+        }
       };
       return (M[intentKey] || M.default)();
     }
@@ -772,10 +869,9 @@
       if(maybe !== currentLang) setLang(maybe);
 
       let key = classify(text);
-      if(/(useless|stupid|idiot|annoy|angry|mad|frustrat)/i.test(text)) key = 'profanity';
-      if(/thank/i.test(text)) key = 'thanks';
 
-      if(key !== 'default'){ lastIntent = key; }
+      // Track misses for escalation
+      if(key === 'default'){ missStreak++; } else { missStreak = 0; }
 
       setTimeout(()=>{
         typing(false);
