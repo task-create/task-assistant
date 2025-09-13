@@ -2,297 +2,155 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>TASK Assistant</title>
 
-  <!-- Performance: speed up font loads -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
-
-  <!-- Address bar color (updated dynamically too) -->
   <meta name="theme-color" content="#ffffff">
 
   <style>
-    /* =========================
-       Design Tokens / Themes
-    ==========================*/
     :root{
       --radius:18px;
 
       /* Light */
-      --bg:#eef3f8;
-      --surface:#ffffff;
-      --surface-2:#f7fbff;
-      --text:#0e1726;
-      --muted:#5f6c80;
-      --brand:#145078;
-      --accent:#ff911f;
-      --accent-2:#ffc91f;
-      --border:#d9e2ec;
-      --link:#0b63c6;
-      --shadow:0 18px 36px rgba(20,80,120,.18);
-      --shadow-soft:0 8px 20px rgba(19,33,58,.12);
-
-      --bubble-bot:#ffffff;
-      --bubble-border:#d9e2ec;
-
-      --bubble-user-bg:linear-gradient(135deg,var(--accent),var(--accent-2));
-      --bubble-user-text:#fff;
-      --bubble-user-border:transparent;
-
+      --bg:#eef3f8; --surface:#ffffff; --surface-2:#f7fbff; --text:#0e1726; --muted:#5f6c80;
+      --brand:#145078; --accent:#ff911f; --accent-2:#ffc91f; --border:#d9e2ec; --link:#0b63c6;
+      --shadow:0 18px 36px rgba(20,80,120,.18); --shadow-soft:0 8px 20px rgba(19,33,58,.12);
+      --bubble-bot:#ffffff; --bubble-border:#d9e2ec;
+      --bubble-user-bg:linear-gradient(135deg,#ff911f,#ffc91f); --bubble-user-text:#fff; --bubble-user-border:transparent;
       --typing:#7e8aa3;
+
+      /* dynamic (JS updates) */
+      --footer-h:76px;  /* measured footer height */
+      --keyboard-h:0px; /* measured keyboard overlap */
     }
 
     [data-theme="dark"]{
-      --bg:#0b1220;
-      --surface:#0f1726;
-      --surface-2:#0d1522;
-      --text:#e6edf7;
-      --muted:#a7b6c9;
-      --brand:#8bd0ff;
-      --accent:#ffb357;
-      --accent-2:#ffd36a;
-      --border:#223247;
-      --link:#87c4ff;
-
-      --bubble-bot:#121e33;
-      --bubble-border:#2a3b55;
-
-      --bubble-user-bg:#1f86ff;
-      --bubble-user-text:#ffffff;
-      --bubble-user-border:#0f5fc3;
-
-      --typing:#a9c7ff;
-      --shadow:0 20px 44px rgba(0,0,0,.45);
-      --shadow-soft:0 10px 28px rgba(0,0,0,.35);
+      --bg:#0b1220; --surface:#0f1726; --surface-2:#0d1522; --text:#e6edf7; --muted:#a7b6c9;
+      --brand:#8bd0ff; --accent:#ffb357; --accent-2:#ffd36a; --border:#223247; --link:#87c4ff;
+      --bubble-bot:#121e33; --bubble-border:#2a3b55;
+      --bubble-user-bg:#1f86ff; --bubble-user-text:#ffffff; --bubble-user-border:#0f5fc3;
+      --typing:#a9c7ff; --shadow:0 20px 44px rgba(0,0,0,.45); --shadow-soft:0 10px 28px rgba(0,0,0,.35);
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
-
     body{
       font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-
-      /* Mobile safe areas + general padding */
+      background:var(--bg); color:var(--text);
       padding:12px;
       padding-bottom:calc(12px + env(safe-area-inset-bottom));
       padding-left:calc(12px + env(safe-area-inset-left));
       padding-right:calc(12px + env(safe-area-inset-right));
-
       display:flex;align-items:center;justify-content:center;
+      font-size: clamp(14px, 1.6vw, 16px);
     }
     a{color:var(--link);text-decoration:none}
     a:hover{text-decoration:underline}
-
-    /* Responsive type */
-    body{ font-size: clamp(14px, 1.6vw, 16px); }
     .bubble{ font-size: clamp(13px, 1.4vw, 15px); }
     .badge{ font-size: clamp(12px, 1.2vw, 13px); }
-
-    /* Better focus visibility */
     :focus-visible { outline:3px solid #87c4ff; outline-offset:2px; }
+    @media (prefers-reduced-motion: reduce){ *{ animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      *{ animation: none !important; transition:none !important; scroll-behavior:auto !important; }
-    }
-
-    /* =========================
-       App Shell / Responsive
-    ==========================*/
+    /* APP — use dvh so viewport shrinks when keyboard opens */
     .app{
-      width:100%;
-      max-width:560px;               /* wider for desktop */
-      background:var(--surface);
-      border:3px solid var(--accent);
-      border-radius:var(--radius);
-      overflow:hidden;
-      box-shadow:var(--shadow);
-      display:flex;
-      flex-direction:column;
-      min-height:min(92dvh, 860px);  /* dvh = mobile-friendly viewport height */
+      width:100%; max-width:560px; background:var(--surface);
+      border:3px solid var(--accent); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);
+      display:flex; flex-direction:column;
+      height:100svh;  /* fallback */
+      height:100dvh;  /* dynamic viewport (iOS-friendly) */
     }
-    @media (max-width:420px){
-      .app{min-height:92dvh; max-width:100%}
-    }
+    @media (max-width:420px){ .app{ max-width:100% } }
 
-    /* Header */
     .header{
-      background:var(--surface-2);
-      border-bottom:1px solid var(--border);
-      padding:10px 46px;
-      position:relative;text-align:center;
+      background:var(--surface-2); border-bottom:1px solid var(--border);
+      padding:10px 46px; position:relative; text-align:center;
+      transition:padding .15s ease;
     }
-    .badge{
-      display:inline-block;background:var(--brand);color:#fff;
-      padding:8px 14px;border-radius:999px;
-      font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;
-      box-shadow:var(--shadow-soft);
+    .badge{ display:inline-block;background:var(--brand);color:#fff;padding:8px 14px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;box-shadow:var(--shadow-soft); }
+    .theme,.mic{
+      position:absolute; top:8px; border:none; border-radius:999px; cursor:pointer;
+      width:44px;height:44px; min-width:44px;min-height:44px; display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#222; font-weight:700; box-shadow:var(--shadow-soft); touch-action:manipulation;
     }
-    .theme, .mic{
-      position:absolute;top:8px;border:none;border-radius:999px;cursor:pointer;
-      width:44px;height:44px; /* finger-friendly */
-      min-width:44px;min-height:44px;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      color:#222;font-weight:700;box-shadow:var(--shadow-soft);
-      touch-action: manipulation;
-    }
-    .mic{right:56px}
-    .theme{right:8px}
-    .theme:active, .mic:active{ transform: scale(.98); }
+    .mic{right:56px} .theme{right:8px}
+    .theme:active,.mic:active{ transform:scale(.98); }
 
-    /* Language prompt bar */
-    .langbar{
-      display:flex;gap:8px;justify-content:center;align-items:center;
-      padding:8px;background:var(--surface-2);border-bottom:1px solid var(--border);
-      flex-wrap:wrap;
-    }
+    .langbar{ display:flex;gap:8px;justify-content:center;align-items:center;padding:8px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap; transition:max-height .15s ease, opacity .15s ease; }
     .lang-label{font:700 12px/1 "Nunito",sans-serif;color:var(--muted)}
-    .lang-chip{
-      display:inline-flex;align-items:center;justify-content:center;
-      padding:8px 10px;border-radius:999px;cursor:pointer;
-      min-width:44px;min-height:36px;
-      border:1px solid rgba(0,0,0,.08);background:#fff;font-weight:700;font-size:12px;
-      touch-action: manipulation;
-    }
-    .lang-chip:active{ transform: scale(.98); }
+    .lang-chip{ display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:999px;cursor:pointer;min-width:44px;min-height:36px;border:1px solid rgba(0,0,0,.08);background:#fff;font-weight:700;font-size:12px; }
     [data-theme="dark"] .lang-chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
 
-    /* Quick links rail */
-    .rail{
-      display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
-      padding:10px;background:var(--surface-2);border-bottom:1px solid var(--border);
-    }
-    .chip{
-      display:inline-flex;align-items:center;gap:8px;
-      font-weight:600;font-size:12px;color:var(--brand);
-      border:1px solid rgba(255,145,31,.35);
-      background:#fff;border-radius:999px;padding:9px 12px;
-      min-height:40px; min-width:44px;
-      box-shadow:var(--shadow-soft);
-      touch-action: manipulation;
-    }
-    .chip:active{ transform: scale(.98); }
+    .rail{ display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px;background:var(--surface-2);border-bottom:1px solid var(--border); transition:max-height .15s ease, opacity .15s ease; }
+    .chip{ display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:12px;color:var(--brand);border:1px solid rgba(255,145,31,.35);background:#fff;border-radius:999px;padding:9px 12px;min-height:40px;min-width:44px;box-shadow:var(--shadow-soft)}
     [data-theme="dark"] .chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
 
-    /* Chat region */
     .chat{
-      flex:1;overflow:auto;padding:14px;scroll-behavior:smooth;
-      overscroll-behavior: contain; /* avoid pull-to-refresh fighting scroll */
+      flex:1; overflow:auto; padding:14px;
+      /* Keep space for the footer so last bubble isn't hidden */
+      padding-bottom: calc(14px + var(--footer-h) + var(--keyboard-h));
+      scroll-behavior:smooth; overscroll-behavior:contain;
       background:
         radial-gradient(70% 100% at -10% -20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 65%),
         radial-gradient(60% 90% at 110% 120%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 60%),
         linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
     }
     .bubble{
-      margin:12px 0;padding:12px 16px;border-radius:16px;
-      line-height:1.45;border:1px solid var(--bubble-border);
-      background:var(--bubble-bot);color:var(--text);box-shadow:var(--shadow-soft);
-      max-width:90%;
+      margin:12px 0; padding:12px 16px; border-radius:16px; line-height:1.45;
+      border:1px solid var(--bubble-border); background:var(--bubble-bot); color:var(--text);
+      box-shadow:var(--shadow-soft); max-width:90%;
     }
     .bubble.bot{margin-right:20%}
-    .bubble.user{
-      position:relative;margin-left:20%;text-align:right;
-      color:var(--bubble-user-text);
-      background:var(--bubble-user-bg);
-      border:1px solid var(--bubble-user-border);
-      border-radius:16px 16px 4px 16px;max-width:90%;
-    }
-    /* User tail for dark mode */
-    [data-theme="dark"] .bubble.user::after,
-    [data-theme="dark"] .bubble.user::before{
-      content:""; position:absolute; bottom:16px; right:-11px;
-      width:16px;height:14px; clip-path:polygon(100% 50%,0 0,0 100%);
-    }
+    .bubble.user{ position:relative; margin-left:20%; text-align:right; color:var(--bubble-user-text); background:var(--bubble-user-bg); border:1px solid var(--bubble-user-border); border-radius:16px 16px 4px 16px; max-width:90%; }
+    [data-theme="dark"] .bubble.user::after, [data-theme="dark"] .bubble.user::before{ content:""; position:absolute; bottom:16px; right:-11px; width:16px;height:14px; clip-path:polygon(100% 50%,0 0,0 100%); }
     [data-theme="dark"] .bubble.user::after{ background:var(--bubble-user-border) }
-    [data-theme="dark"] .bubble.user::before{ right:-9px;bottom:17px;width:14px;height:12px;background:var(--bubble-user-bg) }
+    [data-theme="dark"] .bubble.user::before{ right:-9px; bottom:17px; width:14px; height:12px; background:var(--bubble-user-bg) }
 
-    /* Typing */
     .typing{display:inline-flex;gap:6px;align-items:flex-end}
-    .typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);
-      animation:bounce 1s infinite ease-in-out;will-change:transform,opacity;}
-    .typing .dot:nth-child(2){animation-delay:.12s}
-    .typing .dot:nth-child(3){animation-delay:.24s}
+    .typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);animation:bounce 1s infinite ease-in-out;will-change:transform,opacity}
+    .typing .dot:nth-child(2){animation-delay:.12s} .typing .dot:nth-child(3){animation-delay:.24s}
     @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.6}40%{transform:translateY(-6px);opacity:1}}
 
-    /* Footer */
+    /* FOOTER — pinned to bottom; JS lifts it above keyboard */
     .footer{
-      padding:12px;background:var(--surface-2);border-top:1px solid var(--border);
-      /* Will be translated up when keyboard opens (see JS) */
-      transition: transform .15s ease;
+      position:sticky; bottom:0;
+      padding:12px; background:var(--surface-2); border-top:1px solid var(--border);
+      transform: translateY(0); transition: transform .15s ease;
+      z-index:5;
     }
-    .hint{ display:none; } /* hidden on purpose */
     .row{display:flex;gap:10px;align-items:center}
     input[type="text"]{
-      flex:1;padding:14px 16px;border:2px solid var(--border);border-radius:25px;
-      font-size:16px; /* >=16px prevents iOS zoom */
-      outline:none;background:var(--surface);color:var(--text);caret-color:var(--accent);
+      flex:1; padding:14px 16px; border:2px solid var(--border); border-radius:25px;
+      font-size:16px; outline:none; background:var(--surface); color:var(--text); caret-color:var(--accent);
       box-shadow:inset 0 1px 2px rgba(0,0,0,.06);
     }
-    input[type="text"]::placeholder{color:var(--muted)}
-    input[type="text"]:focus{border-color:var(--accent)}
-    .send{
-      width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;
-      min-width:44px; min-height:44px;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft);
-      touch-action: manipulation;
-    }
-    .send:active{ transform: scale(.98); }
-    .status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
-    .pill{display:inline-block;padding:.5px 8px;border-radius:999px;background:rgba(25,169,116,.1);color:#19a974;font-weight:700;font-size:11px}
+    input::placeholder{color:var(--muted)}
+    input:focus{border-color:var(--accent)}
+    .send{ width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft) }
+    .status{ margin-top:6px; text-align:center; font-size:11px; color:var(--muted) }
+    .pill{ display:inline-block; padding:.5px 8px; border-radius:999px; background:rgba(25,169,116,.1); color:#19a974; font-weight:700; font-size:11px }
 
-    /* Admin modal and panel */
-    .modal{
-      position:fixed;inset:0;background:rgba(0,0,0,.45);
-      display:none;align-items:center;justify-content:center;z-index:9998;
-    }
-    .modal .card{
-      background:var(--surface);border:1px solid var(--border);border-radius:14px;
-      padding:16px;min-width:280px;max-width:90%;box-shadow:var(--shadow);
-    }
-    .modal h4{font:700 14px "Nunito",sans-serif;margin-bottom:8px}
-    .modal .row{margin-top:10px}
-    .modal input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text)}
-    .modal .btn{margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);cursor:pointer;background:var(--surface-2)}
-    .modal .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#222;border:none}
-
-    .admin-panel{
-      position:fixed;inset:auto 12px 12px 12px;background:var(--surface);
-      border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);
-      padding:12px;max-width:720px;display:none;z-index:9999;
-    }
-    .admin-panel h3{font:700 14px "Nunito",sans-serif;margin-bottom:8px}
-    .admin-panel .row{gap:8px;margin-top:8px}
-    .admin-panel textarea{width:100%;min-height:140px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text);padding:8px}
-    .btn{border:1px solid var(--border);background:var(--surface-2);padding:8px 12px;border-radius:10px;cursor:pointer}
-    .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#222;border:none}
-    .k{font-family:ui-monospace,Consolas,monospace;background:rgba(0,0,0,.07);padding:1px 6px;border-radius:6px}
+    /* Collapse top bars while keyboard is open to reveal input on small phones */
+    body.kb .langbar, body.kb .rail { max-height:0; opacity:0; overflow:hidden; padding:0; border:0; }
+    body.kb .header{ padding:6px 46px; }
   </style>
 </head>
 <body>
   <main class="app" id="app">
     <header class="header">
       <div class="badge" aria-label="TASK Assistant">TASK Assistant</div>
-      <button class="mic" id="micBtn" title="Voice input" aria-label="Voice input">🎙</button>
-      <button class="theme" id="themeToggle" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">☼</button>
+      <button class="theme" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">☼</button>
     </header>
 
-    <!-- Language prompt bar (manual override) -->
     <div class="langbar" id="langbar" role="group" aria-label="Language selection">
       <span class="lang-label">Language / Idioma / Lang:</span>
-      <button class="lang-chip" data-lang="en" aria-label="Switch to English">EN</button>
-      <button class="lang-chip" data-lang="es" aria-label="Cambiar a Español">ES</button>
-      <button class="lang-chip" data-lang="ht" aria-label="Chanje pou Kreyòl">HT</button>
+      <button class="lang-chip" data-lang="en">EN</button>
+      <button class="lang-chip" data-lang="es">ES</button>
+      <button class="lang-chip" data-lang="ht">HT</button>
     </div>
 
-    <!-- Quick links (labels translate) -->
     <nav class="rail" id="top-rail">
       <a class="chip" id="chip-address" href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
       <a class="chip" id="chip-jobs" href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
@@ -303,254 +161,59 @@
       <a class="chip" id="chip-resources" href="https://bycell.co/ddmua" target="_blank" rel="noopener">🧰 Resources</a>
     </nav>
 
-    <!-- Chat area (ARIA live) -->
     <section class="chat" id="chat" role="log" aria-live="polite" aria-atomic="false"></section>
 
-    <!-- Footer / Input -->
-    <footer class="footer">
-      <div class="hint" id="langHint"></div> <!-- hidden on purpose -->
+    <footer class="footer" id="footer">
       <div class="row">
-        <input id="box" type="text" placeholder="Type: training, jobs, hours, address, bus…" autocomplete="off" aria-label="Type your message"/>
+        <input id="box" type="text" placeholder="Type: training, jobs, hours, address, bus…" autocomplete="off" enterkeyhint="send" aria-label="Type your message"/>
         <button class="send" id="send" aria-label="Send">➤</button>
       </div>
       <div class="status" id="status">⚠️ I can make mistakes — please double-check important info!</div>
     </footer>
   </main>
 
-  <!-- Admin PIN Modal (hidden, opened by Ctrl+Alt+A) -->
-  <div class="modal" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
-    <div class="card">
-      <h4 id="pinTitle">Enter admin PIN</h4>
-      <div class="row">
-        <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" aria-label="Admin PIN"/>
-      </div>
-      <button class="btn primary" id="pinSubmit">Unlock</button>
-      <button class="btn" id="pinCancel">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Admin Panel -->
-  <div class="admin-panel" id="adminPanel" aria-hidden="true" aria-label="Admin Panel">
-    <h3>Admin • TASK Assistant</h3>
-    <p class="note" style="font-size:12px;color:var(--muted);margin-bottom:6px">
-      Export logs, see missed intents, or copy a usage summary. Close with Esc.
-    </p>
-    <div class="row">
-      <button class="btn" id="exportCsv">Export CSV</button>
-      <button class="btn" id="copySummary">Copy Summary</button>
-      <button class="btn" id="clearLogs">Clear Logs</button>
-      <button class="btn" id="closeAdmin" style="margin-left:auto">Close</button>
-    </div>
-    <div style="margin-top:10px">
-      <strong style="font:700 13px Nunito, sans-serif">Missed / default queries</strong>
-      <textarea id="missedBox" readonly></textarea>
-    </div>
-  </div>
-
   <script>
-    /* ===========================
-       CONSTANTS / STATE
-    ============================*/
-    const app  = document.getElementById('app');
+    /* ======= Minimal i18n (keep English text; add more if you want) ======= */
+    const L = {
+      en: {
+        welcome: '👋 Welcome! Use keywords like <em>training</em>, <em>jobs</em>, <em>hours</em>, <em>address</em>, or <em>bus</em>.',
+        quick: 'Quick links:',
+        asked: 'You asked about',
+        mealHours: 'Meals: Lunch Mon–Fri 10:30a–1:00p • Dinner Mon–Thu 3:30–5:00p',
+        address: '72½ Escher St, Trenton, NJ 08609',
+        maps: 'Open Google Maps',
+        notFound: 'I might not have that yet. For more help, visit:',
+        site_home: 'TASK website', site_services: 'What we do',
+        escalate: 'Having trouble? Call me at',
+        appt: 'For appointments, use',
+      }
+    };
+    let currentLang = 'en';
+    function t(k){ return L[currentLang][k]; }
+
+    /* ======= Theme ======= */
+    const themeToggle = document.getElementById('themeToggle');
+    const THEME_KEY = 'task_theme';
+    function setTheme(mode){
+      document.documentElement.setAttribute('data-theme', mode);
+      localStorage.setItem(THEME_KEY, mode);
+      themeToggle.textContent = mode==='dark' ? '☾' : '☼';
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', mode==='dark' ? '#0f1726' : '#ffffff');
+    }
+    setTheme(localStorage.getItem(THEME_KEY)||'light');
+    themeToggle.addEventListener('click', ()=> setTheme(
+      document.documentElement.getAttribute('data-theme')==='dark' ? 'light':'dark'
+    ));
+
+    /* ======= DOM refs ======= */
     const chat = document.getElementById('chat');
     const box  = document.getElementById('box');
     const sendBtn = document.getElementById('send');
     const statusEl = document.getElementById('status');
-    const themeToggle = document.getElementById('themeToggle');
-    const langbar = document.getElementById('langbar');
-    const pinModal = document.getElementById('pinModal');
-    const pinInput = document.getElementById('pinInput');
-    const pinSubmit = document.getElementById('pinSubmit');
-    const pinCancel = document.getElementById('pinCancel');
-    const adminPanel = document.getElementById('adminPanel');
-    const exportCsvBtn = document.getElementById('exportCsv');
-    const copySummaryBtn = document.getElementById('copySummary');
-    const clearLogsBtn = document.getElementById('clearLogs');
-    const missedBox = document.getElementById('missedBox');
-    const micBtn = document.getElementById('micBtn');
+    const footer = document.getElementById('footer');
 
-    const chipAddress = document.getElementById('chip-address');
-    const chipJobs = document.getElementById('chip-jobs');
-    const chipAlerts = document.getElementById('chip-alerts');
-    const chipTraining = document.getElementById('chip-training');
-    const chipResume = document.getElementById('chip-resume');
-    const chipTips = document.getElementById('chip-tips');
-    const chipResources = document.getElementById('chip-resources');
-
-    // Phone numbers
-    const CALL_ME_HTML = '<a href="tel:609-697-6215">(609) 697-6215</a>';  // Your direct line
-    const APPT_HTML    = '<a href="tel:609-337-1624">(609) 337-1624</a>';  // Appointment line
-
-    const ADMIN_PIN = '1234';
-    const THEME_KEY = 'task_theme';
-    const LANG_KEY = 'task_lang';
-
-    let currentLang = localStorage.getItem(LANG_KEY) || 'en';
-    let lastIntent = null;
-    let missStreak = 0;  // track consecutive "default" results for escalation
-    const logs = [];
-    const missed = [];
-
-    /* ========= Voice: declare early to avoid scope issues ========= */
-    let recognizing = false;
-    let rec = null;
-
-    /* ===========================
-       THEME
-    ============================*/
-    function setTheme(t){
-      document.documentElement.setAttribute('data-theme', t);
-      localStorage.setItem(THEME_KEY, t);
-
-      // Toggle button label + aria state
-      themeToggle.textContent = t === 'dark' ? '☾' : '☼';
-      themeToggle.setAttribute('aria-pressed', t === 'dark');
-
-      // Update browser address bar color
-      const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', t === 'dark' ? '#0f1726' : '#ffffff');
-    }
-    setTheme(localStorage.getItem(THEME_KEY) || 'light');
-    themeToggle.addEventListener('click', ()=> setTheme(
-      (document.documentElement.getAttribute('data-theme')==='dark') ? 'light' : 'dark'
-    ));
-
-    /* ===========================
-       TRANSLATIONS
-    ============================*/
-    const L10N = {
-      en: {
-        welcome: '👋 Welcome! Use keywords like <em>training</em>, <em>jobs</em>, <em>hours</em>, <em>address</em>, or <em>bus</em>.',
-        quick: 'Quick links:',
-        simple: 'Try “training”, “jobs”, “hours”, “address”, “appointment”, or “bus”.',
-        asked: 'You asked about',
-        call: 'Call the Social Services Specialist at',
-        during: 'During lunch (10:30 AM–1:00 PM).',
-        view: 'Browse training & apply',
-        jobs_open: 'Open positions (Mercer County)',
-        alerts: 'Subscribe to alerts',
-        resume: 'Resume help & templates',
-        tips: 'Watch quick tips',
-        mealHours: 'Meals: Lunch Mon–Fri 10:30a–1:00p • Dinner Mon–Thu 3:30–5:00p',
-        address: '72½ Escher St, Trenton, NJ 08609',
-        maps: 'Open Google Maps',
-        bus: 'NJ Transit Trip Planner',
-        more: 'Additional resources',
-        allsvc: 'Full TASK services',
-        thanks: '😊 You’re welcome!',
-        sorry: 'I hear you — let me help fast:',
-        talk: 'Call now',
-        choices: 'Or pick one:',
-        train: 'Training', jobs: 'Jobs', addr: 'Address',
-        notFound: 'I might not have that yet. For more help, visit:',
-        site_home: 'TASK website', site_services: 'What we do',
-        say: 'You can also say: menu, help, language.',
-        rail_address:'Address', rail_jobs:'Jobs', rail_alerts:'Alerts',
-        rail_training:'Training', rail_resume:'Resume',
-        rail_tips:'Interview Tips', rail_resources:'Resources',
-        ph: 'Type: training, jobs, hours, address, bus…',
-        having_trouble: 'Having a hard time finding what you need? Call me:',
-        appointments_note: 'For appointments, please use:',
-      },
-      es: {
-        welcome: '👋 ¡Bienvenido! Usa palabras como <em>entrenamiento</em>, <em>empleos</em>, <em>horas</em>, <em>dirección</em> o <em>autobús</em>.',
-        quick: 'Enlaces rápidos:',
-        simple: 'Prueba “entrenamiento”, “empleos”, “horas”, “dirección”, “cita” o “autobús”.',
-        asked: 'Preguntaste sobre',
-        call: 'Llama al Especialista de Servicios Sociales al',
-        during: 'Durante el almuerzo (10:30 AM–1:00 PM).',
-        view: 'Ver entrenamientos y postular',
-        jobs_open: 'Puestos disponibles (Condado de Mercer)',
-        alerts: 'Suscribirme a alertas',
-        resume: 'Ayuda con currículum y plantillas',
-        tips: 'Ver consejos rápidos',
-        mealHours: 'Comidas: Almuerzo Lun–Vie 10:30–1:00 • Cena Lun–Jue 3:30–5:00',
-        address: '72½ Escher St, Trenton, NJ 08609',
-        maps: 'Abrir Google Maps',
-        bus: 'Planificador de viaje de NJ Transit',
-        more: 'Recursos adicionales',
-        allsvc: 'Todos los servicios de TASK',
-        thanks: '😊 ¡Con gusto!',
-        sorry: 'Entiendo — te ayudo rápido:',
-        talk: 'Llamar ahora',
-        choices: 'O elige:',
-        train: 'Entrenamiento', jobs: 'Empleos', addr: 'Dirección',
-        notFound: 'Puede que aún no tenga eso. Para más ayuda, visita:',
-        site_home: 'Sitio de TASK', site_services: 'Qué hacemos',
-        say: 'También puedes decir: menú, ayuda, idioma.',
-        rail_address:'Dirección', rail_jobs:'Empleos', rail_alerts:'Alertas',
-        rail_training:'Entrenamiento', rail_resume:'Currículum',
-        rail_tips:'Consejos de entrevista', rail_resources:'Recursos',
-        ph: 'Escribe: entrenamiento, empleos, horas, dirección, bus…',
-        having_trouble: '¿Te cuesta encontrar lo que buscas? Llámame:',
-        appointments_note: 'Para citas, usa:'
-      },
-      ht: {
-        welcome: '👋 Byenvini! Itilize mo tankou <em>fòmasyon</em>, <em>travay</em>, <em>lè</em>, <em>adrès</em>, oswa <em>otobis</em>.',
-        quick: 'Lyen rapid:',
-        simple: 'Eseye “fòmasyon”, “travay”, “lè”, “adrès”, “randevou”, oswa “otobis”.',
-        asked: 'Ou te mande sou',
-        call: 'Rele Espesyalis Sèvis Sosyal la nan',
-        during: 'Pandan manje midi (10:30 AM–1:00 PM).',
-        view: 'Gade fòmasyon & aplike',
-        jobs_open: 'Travay ki disponib (Mercer County)',
-        alerts: 'Abònman ak alèt',
-        resume: 'Ede ak CV & modèl',
-        tips: 'Gade konsèy rapid yo',
-        mealHours: 'Manje: Manje midi Lendi–Vandredi 10:30–1:00 • Manje aswè Lendi–Jedi 3:30–5:00',
-        address: '72½ Escher St, Trenton, NJ 08609',
-        maps: 'Louvri Google Maps',
-        bus: 'Planifikatè vwayaj NJ Transit',
-        more: 'Resous adisyonèl',
-        allsvc: 'Tout sèvis TASK yo',
-        thanks: '😊 Pa gen pwoblèm!',
-        sorry: 'M konprann — ann regle sa vit:',
-        talk: 'Rele kounye a',
-        choices: 'Oswa chwazi youn:',
-        train: 'Fòmasyon', jobs: 'Travay', addr: 'Adrès',
-        notFound: 'M pa gen enfòmasyon sa a kounye a. Pou plis èd, vizite:',
-        site_home: 'Sit wèb TASK', site_services: 'Sa n ap fè',
-        say: 'Ou ka di tou: meni, èd, lang.',
-        rail_address:'Adrès', rail_jobs:'Travay', rail_alerts:'Alèt',
-        rail_training:'Fòmasyon', rail_resume:'CV',
-        rail_tips:'Konsèy entèvyou', rail_resources:'Resous',
-        ph: 'Tape: fòmasyon, travay, lè, adrès, otobis…',
-        having_trouble: 'Ou gen difikilte pou jwenn sa w bezwen? Rele mwen:',
-        appointments_note: 'Pou randevou, tanpri itilize:'
-      }
-    };
-    function t(key){ return L10N[currentLang][key]; }
-    function setLang(lang){
-      currentLang = (lang in L10N) ? lang : 'en';
-      localStorage.setItem(LANG_KEY, currentLang);
-
-      // Update rail chip labels
-      chipAddress.textContent = '📍 ' + t('rail_address');
-      chipJobs.textContent = '💼 ' + t('rail_jobs');
-      chipAlerts.textContent = '🔔 ' + t('rail_alerts');
-      chipTraining.textContent = '🎓 ' + t('rail_training');
-      chipResume.textContent = '📄 ' + t('rail_resume');
-      chipTips.textContent = '🎥 ' + t('rail_tips');
-      chipResources.textContent = '🧰 ' + t('rail_resources');
-
-      // Update input placeholder
-      box.placeholder = t('ph');
-
-      // Safe voice lang update (rec exists only after setup)
-      if (rec) rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
-    }
-    setLang(localStorage.getItem(LANG_KEY) || 'en');
-
-    // Language bar clicks
-    langbar.addEventListener('click', (e)=>{
-      const btn = e.target.closest('.lang-chip'); if(!btn) return;
-      setLang(btn.dataset.lang);
-      addBot(`🌐 Language set to <strong>${btn.dataset.lang.toUpperCase()}</strong>.`);
-    });
-
-    /* ===========================
-       CHAT HELPERS
-    ============================*/
+    /* ======= Chat helpers ======= */
     function addUser(text){
       const el = document.createElement('div');
       el.className = 'bubble user';
@@ -570,447 +233,224 @@
       if(on){
         const el=document.createElement('div');
         el.id=id; el.className='bubble bot';
-        el.innerHTML = `<div class="typing" aria-label="Assistant is typing">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          </div>`;
+        el.innerHTML = `<div class="typing">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>`;
         chat.appendChild(el);
       }else{
         const t=document.getElementById(id); if(t) t.remove();
       }
       chat.scrollTop = chat.scrollHeight;
     }
-    function logEvent(text, intent, resolved=true){
-      const row={ts:new Date().toISOString(), lang:currentLang, text, intent, resolved};
-      logs.push(row);
-      if(!resolved || intent==='default'){
-        missed.push(`${row.ts} • [${row.lang}] ${row.text}`);
-        missedBox.value = missed.join('\n');
-      }
-    }
-    function toCSV(rows){
-      if(!rows.length) return '';
-      const headers = Object.keys(rows[0]);
-      const esc = v => `"${String(v).replace(/"/g,'""')}"`;
-      return [headers.map(esc).join(','), ...rows.map(r=>headers.map(h=>esc(r[h]??'')).join(','))].join('\n');
-    }
 
-    /* ===========================
-       LANGUAGE DETECT (auto)
-    ============================*/
-    function detectLang(text){
-      const t = text.toLowerCase();
-      const es = /(hola|necesito|trabaj|emple|d[oó]nde|horari|cita|servici|comida|entrenam|tel[eé]fono|direcci[oó]n|curso|cursos|seguridad|licencia)/.test(t);
-      const ht = /(bonjou|bonswa|mwen|bezwen|travay|kote|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis|f[òo]masyon|lisans)/.test(t);
-      return es ? 'es' : (ht ? 'ht' : 'en');
-    }
+    /* ======= Multi-intent understanding ======= */
+    const PHONE_ME = '<a href="tel:609-697-6215">(609) 697-6215</a>';
+    const PHONE_APPT = '<a href="tel:609-337-1624">(609) 337-1624</a>';
 
-    /* ===========================
-       INTENT: KEYWORDS + FUZZY
-    ============================*/
-    function lev(a,b){
-      a=a.toLowerCase(); b=b.toLowerCase();
-      const m=a.length,n=b.length; const dp=Array.from({length:m+1},(_,i)=>Array(n+1).fill(0));
-      for(let i=0;i<=m;i++) dp[i][0]=i;
-      for(let j=0;j<=n;j++) dp[0][j]=j;
-      for(let i=1;i<=m;i++){
-        for(let j=1;j<=n;j++){
-          const cost = a[i-1]===b[j-1] ? 0 : 1;
-          dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
-        }
-      }
-      return dp[m][n];
-    }
-    function fuzzyMatch(word, candidates){
-      let best = 99;
-      for(const k of candidates){ best = Math.min(best, lev(word,k)); if(best===0) break; }
-      return best <= 2;
-    }
-
-    /* ===== Expanded synonym banks =====
-       New: more topic keywords + stronger anger/frustration triggers.
-    */
-    const SYN = {
-      trainings: [
-        'training','trainings','program','programs','class','classes','course','courses',
-        'certificate','certification','license','licence','licensee','sora','security license','security guard',
-        'culinary','academy','forklift','food handler','servsafe','osha','warehouse',
-        'ged','high school','hse','esl','english classes','citizenship','apprenticeship',
-        // es
-        'entrenamiento','entrenamientos','curso','cursos','certificado','certificación','licencia','licencia de seguridad','sora','academia','culinario','montacargas','osha','ingles','clases de ingles','ged','ciudadanía',
-        // ht
-        'fòmasyon','fomasyon','lisans','sekirite','sora','lekòl kwizin','forklift','anglais','klas angle','ged'
-      ],
-      jobs: [
-        'job','jobs','work','employment','hiring','hire','opening','openings','apply','application','position','positions','career','career services',
-        'job fair','indeed','resume help','cover letter',
-        'empleo','empleos','trabajo','trabajar','aplicar','postular','vacante','vacantes',
-        'travay','anbochaj','pozisyon','aplika'
-      ],
-      alerts: ['alert','alerts','notify','notification','subscribe','updates','signup',
-        'alertas','suscribirme','notificación','notificaciones',
-        'alèt','abònman','notifikasyon'
-      ],
-      resume: [
-        'resume','cv','curriculum','currículum','cover','cover letter','template','templates','format','portfolio',
-        'curriculo','hoja de vida','plantilla','modelo',
-        'cv modèl','modèl','modèl cv'
-      ],
-      interview: [
-        'interview','interviews','tips','mock','practice','practice interview','questions','behavioral',
-        'entrevista','entrevistas','consejos','práctica','preguntas',
-        'entèvyou','konsèy','pratik'
-      ],
-      appointments: [
-        'appointment','appointments','schedule','book','booking','meeting','register','sign','rsvp','call me back','call back',
-        'cita','citas','programar','agendar','reservar','inscribirme','llamada',
-        'randevou','pwograme','enskri','rele'
-      ],
-      hours: [
-        'hour','hours','time','when','open','close','opening','closing','lunch','dinner','meal','food',
-        'hora','horario','abren','cierran','almuerzo','cena','comida','desayuno',
-        'lè','lè yo louvri','lè yo fèmen','manje','manje midi','manje aswè'
-      ],
-      meals: [
-        'meal','meals','food','kitchen','soup','eat','dining','pantry','groceries','food stamps','snap','ebt',
-        'comida','comidas','cocina','comedor','despensa','mercado','estampillas','alimentos','ebt','snap',
-        'manje','kwizin','pàntri','manje bank','ebt','snap'
-      ],
-      location: [
-        'where','address','location','directions','map','parking','drive','gps','mailing address','mail',
-        'donde','dirección','ubicación','mapa','estacionamiento','parqueo','correo','direccion postal',
-        'kote','adrès','kat','pakin','lapòs','adrès postal'
-      ],
-      transit: [
-        'bus','nj','transit','route','routes','fare','ticket','train','transport','planner','schedule','pass','monthly pass',
-        'autobús','rutas','billete','tarifa','tren','transporte','horario','pase',
-        'otobis','bous','chemen','tikè','pri','tren','orè','pase'
-      ],
-      computer_lab: [
-        'computer','internet','wifi','lab','email','application','online','printer','print','scan','wi-fi','hotspot',
-        'computadora','internet','laboratorio','correo','imprimir','escanear','wifi','hotspot',
-        'odinatè','entènèt','lab','enprime','eskane','wifi','hotspot'
-      ],
-      resources: [
-        // IDs & docs
-        'id','state id','birth certificate','dmv','identification','social security card',
-        // housing & utilities
-        'housing','shelter','code blue','warming center','rent','eviction','utilities','pseg','electric bill','water bill','gas bill',
-        // legal & reentry
-        'legal','expungement','record','probation','parole','warrant','reentry',
-        // benefits
-        'snap','ebt','food stamps','wic','tanf','ssi','ssdi','benefits','medicaid','medicare',
-        // health & mental health
-        'clinic','doctor','dentist','mental health','counseling','therapy','rehab','recovery','substance','addiction','na','aa',
-        // family & special populations
-        'childcare','daycare','domestic violence','veteran','seniors','elderly',
-        // clothing & hygiene
-        'clothes','closet','coat','laundry','shower','hygiene','toiletries',
-        // phones & mail
-        'obama phone','lifeline','free phone','mail','mailbox','address',
-        // es
-        'identificación','tarjeta','acta de nacimiento','dmv','seguro social',
-        'vivienda','refugio','albergue','codigo azul','renta','desalojo','utilidades','luz','agua','gas',
-        'legal','expurgación','antecedentes','libertad condicional','reingreso',
-        'estampillas','beneficios','medicaid','medicare','wic','tanf','ssi','ssdi',
-        'clínica','médico','dentista','salud mental','terapia','rehabilitación','adicción',
-        'cuidado de niños','guardería','violencia doméstica','veterano','ancianos','mayores',
-        'ropa','abrigo','lavandería','ducha','higiene','toallas','teléfono gratis','lifeline','correo',
-        // ht
-        'kat idantite','sètifika nesans','dmv','sekirite sosyal',
-        'lojman','abri','code blue','santral chofe','lwaye','ekspilsyon','dlo','gaz','kouran',
-        'legal','efasman','dosye','próbasyon','paròl','reintegration',
-        'benefis','medicaid','medicare','wic','tanf','ssi','ssdi',
-        'klinick','dokte','dantis','sante mantal','terapi','reyabilitasyon','addiksyon',
-        'gadri','vyolans domestik','veteran','granmesi','rad','kabann','lesiv','douch','ijyèn','telefòn gratis','lifeline','lapòs'
-      ],
-      // Greeting/thanks same as before
-      greeting: ['hi','hello','hey','hola','bonjou','bonswa','salut','good morning','good afternoon','good evening'],
-      thanks: ['thanks','thank','gracias','mesi','thank you','ty','thx','appreciate it','much appreciated'],
-      // Stronger anger/frustration vocabulary (routes to YOU)
-      angry: [
-        'angry','mad','pissed','upset','annoyed','irritated','frustrated','frustrating',
-        'furious','rage','hate this','this sucks','sucks','wtf','wth','bs','bullshit','damn',
-        'not helpful','unhelpful','useless','waste of time','stupid','dumb','idiot','crap',
-        'annoying','ridiculous','impossible','can’t figure','cant figure','can’t find','cant find','can’t see','cant see',
-        'confusing','confused','lost','broken','doesn’t work','doesnt work','not working','help me','need help',
-        // es / ht approximate triggers
-        'enoja','enojado','molesto','frustrado','esto apesta','no ayuda','inútil','wtf',
-        'fache','fache anpil','m fache','sa pa mache','pa mache','m pèdu','m konfonn'
-      ],
-      profanity: ['fuck','shit','bitch','asshole','bastard','dick','pussy','cunt','motherfucker','bullshit','wtf','coño','mierda']
+    // Keywords per intent
+    const BANK = {
+      jobs:       ['job','jobs','employment','hiring','apply','application','position','work','career'],
+      housing:    ['homeless','shelter','housing','code blue','warming center'],
+      resume:     ['resume','cv','cover letter','template','write my resume','help resume','build resume'],
+      culinary:   ['culinary','kitchen training','emilio','academy','cooking program'],
+      forklift:   ['forklift','warehouse license','oscha','osha'],
+      appointment:['appointment','book','schedule','rsvp','register','make an appointment'],
+      hours:      ['hours','time','open','close','lunch','dinner','meal','when'],
+      location:   ['address','location','map','where'],
+      transit:    ['bus','nj transit','route','ticket','fare','train','planner'],
+      resources:  ['id','state id','birth certificate','mail','benefits','snap','ebt','wic','tanf','ssi','ssdi','utilities','pseg','rent','shelter','legal','expungement','rehab','recovery','counseling','mental health'],
+      angry:      ['angry','mad','pissed','upset','annoyed','frustrated','useless','not helpful','this sucks','wtf','bullshit','help me','can’t find','cant find','lost','confusing','not working','broken']
     };
 
-    // Extra regex for "hard time finding" phrasing
-    const HARD_TIME_REGEX = /(can[’']?t|cannot|not)\s+(find|figure|see|locate|get)\b|confus|lost|not\s+working|doesn[’']?t\s+work|no\s+ayuda|pa\s+mache/i;
+    function findIntents(text){
+      const t = text.toLowerCase();
+      const hits = new Set();
+      // simple contains match
+      for(const [intent, words] of Object.entries(BANK)){
+        for(const w of words){ if(t.includes(w)){ hits.add(intent); break; } }
+      }
+      // grammar helpers
+      if(/\b(i\s+need|i\s+want).+job/.test(t)) hits.add('jobs');
+      if(/\b(i\s+am|i'm)\s+homeless\b/.test(t)) hits.add('housing');
+      if(/forklift/.test(t) && /(next|when)/.test(t)) hits.add('forklift');
+      if(/appointment|schedule|book/.test(t)) hits.add('appointment');
+      return [...hits];
+    }
 
-    function classify(input){
-      const t = input.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').trim();
-      if(!t) return 'default';
+    function section(title, body){
+      return `<div style="margin-bottom:10px"><strong>${title}</strong><br>${body}</div>`;
+    }
 
-      if(/^\/lang\s+(en|es|ht)\b/.test(t)){ setLang(t.match(/^\/lang\s+(en|es|ht)\b/)[1]); return 'greeting'; }
-      if(/^(menu|help|ayuda|ede|aide)\b/.test(t)) return 'greeting';
+    function replyFor(intents){
+      // always keep a predictable order
+      const order = ['jobs','housing','resume','culinary','forklift','hours','location','transit','resources','appointment','angry'];
+      intents.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
 
-      const guess = detectLang(t);
-      if(guess !== currentLang && !/\/lang/.test(t)) setLang(guess);
-
-      // Direct contact/human requests -> angry/escalate route to you
-      if(/\b(human|real person|talk to (someone|a person)|call|phone|speak to|contact)\b/.test(t)) return 'angry';
-
-      // Expanded anger/frustration detection
-      for(const kw of SYN.angry){ if(t.includes(kw)) return 'angry'; }
-      if(HARD_TIME_REGEX.test(t)) return 'angry';
-
-      // Profanity detection
-      for(const kw of SYN.profanity){ if(t.includes(kw)) return 'angry'; } // route to you
-
-      // Topic buckets
-      for(const key of ['trainings','jobs','alerts','resume','interview','appointments','hours','meals','location','transit','computer_lab','resources','greeting','thanks']){
-        for(const kw of SYN[key] || []){
-          if(t.includes(kw)) return key;
-        }
+      if(intents.length===0){
+        return `<strong>🔗 ${t('notFound')}</strong><br>
+          <a href="https://trentonsoupkitchen.org/" target="_blank" rel="noopener">${t('site_home')}</a> •
+          <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('site_services')}</a>`;
       }
 
-      // fuzzy fallback tokens
-      const tokens = t.split(/\s+/).slice(0,10);
-      for(const key of ['trainings','jobs','alerts','resume','interview','appointments','hours','meals','location','transit','computer_lab','resources']){
-        if(tokens.some(tok=>fuzzyMatch(tok, SYN[key]))) return key;
-      }
-
-      // contextual fallback
-      if(/(when|what\s*time|hour|hours|dinner|lunch|open|close|horas|hora|horario|lè|manje)/.test(t)) return 'hours';
-      if(/(where|address|map|kote|adr[eè]s|direcci[oó]n|parking|parqueo)/.test(t)) return 'location';
-
-      return 'default';
-    }
-
-    /* ===========================
-       RESPONSES
-    ============================*/
-    function escalateBanner(){
-      return `<div style="margin-top:10px;padding:8px;border:1px dashed var(--border);border-radius:10px">
-        📞 <strong>${t('having_trouble')}</strong> ${CALL_ME_HTML}<br>
-        🗓️ ${t('appointments_note')} ${APPT_HTML}
-      </div>`;
-    }
-
-    function respond(intentKey){
-      const showHours = () => `<strong>🕒 ${t('asked')} hours.</strong><br><br>${t('mealHours')}`;
-      const M = {
-        trainings: () => `<strong>🎓 ${t('asked')} training.</strong><br><br>
-          • Emilio Culinary Academy (10-week)<br>
-          • SORA Security Certification<br>
-          • Forklift Certification<br>
-          • GED / ESL resources<br><br>
-          <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('view')}</a><br>
-          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
-        jobs: () => `<strong>💼 ${t('asked')} jobs.</strong><br><br>
-          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('jobs_open')}</a><br>
-          <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">${t('alerts')}</a><br><br>
-          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
-        alerts: () => `<strong>🔔 ${t('asked')} alerts.</strong><br><br>
-          <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">${t('alerts')}</a>`,
-        resume: () => `<strong>📄 ${t('asked')} resume help.</strong><br><br>
-          <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">${t('resume')}</a><br><br>
-          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
-        interview: () => `<strong>🎥 ${t('asked')} interview tips.</strong><br><br>
-          <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">${t('tips')}</a>`,
-        appointments: () => `<strong>📅 ${t('asked')} an appointment.</strong><br><br>
-          ${t('call')} ${APPT_HTML}. ${t('during')}.`,
-        hours: showHours,
-        meals: showHours,
-        location: () => `<strong>📍 ${t('asked')} our location.</strong><br><br>
-          ${t('address')}<br>
-          <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${t('maps')}</a>`,
-        transit: () => `<strong>🚌 ${t('asked')} transit.</strong><br><br>
-          <a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">${t('bus')}</a> • 1-973-275-5555<br>
-          Destination: 72½ Escher St, Trenton.`,
-        computer_lab: () => `<strong>💻 ${t('asked')} the computer lab.</strong><br><br>
-          Open during meal hours. Free internet, printing & job applications.`,
-        resources: () => `<strong>🧰 ${t('asked')} resources.</strong><br><br>
-          • IDs & documents (State ID, birth certificate, SS card)<br>
-          • Housing / shelter / utilities help<br>
-          • Legal & record expungement, reentry support<br>
-          • SNAP/EBT, WIC, TANF, SSI/SSDI, Medicaid/Medicare<br>
-          • Clinics, mental health, recovery/addiction support<br>
-          • Childcare, seniors, veterans, DV resources<br>
-          • Clothing, showers, laundry, free phone, mail<br><br>
-          <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">${t('more')}</a><br>
-          <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('allsvc')}</a>`,
-        // Escalation route (anger/frustration/profanity/hard time) -> YOUR number
-        angry: () => `<strong>🙏 ${t('sorry')}</strong><br><br>
-          📞 ${t('having_trouble')} ${CALL_ME_HTML}<br>
-          🗓️ ${t('appointments_note')} ${APPT_HTML}<br><br>
-          ${t('choices')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> ·
-          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> ·
-          <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">Address</a>`,
-        greeting: () => `👋 ${t('simple')}<br><span class="pill">${t('say')}</span>`,
-        thanks: () => `${t('thanks')}`,
-        default: () => {
-          const base = `<strong>🔗 ${t('notFound')}</strong><br>
-            <a href="https://trentonsoupkitchen.org/" target="_blank" rel="noopener">${t('site_home')}</a> •
-            <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('site_services')}</a>`;
-          return missStreak >= 2 ? base + escalateBanner() : base;
+      const blocks = [];
+      for(const key of intents){
+        if(key==='jobs'){
+          blocks.push(section('💼 Jobs',
+            `<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions (Mercer County)</a><br>
+             Sign up for alerts: <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Job Alerts</a>`));
         }
-      };
-      return (M[intentKey] || M.default)();
+        if(key==='housing'){
+          blocks.push(section('🏠 Housing / Shelter',
+            `If you need immediate shelter or Code Blue info, ask for resources:<br>
+             <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resources</a><br>
+             Having trouble? Call me at ${PHONE_ME}.`));
+        }
+        if(key==='resume'){
+          blocks.push(section('📄 Resume help',
+            `Templates & guidance: <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a><br>
+             For 1-on-1 help, call ${PHONE_APPT}.`));
+        }
+        if(key==='culinary'){
+          blocks.push(section('👨‍🍳 Emilio Culinary Academy',
+            `10-week culinary training. Details & apply here: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>
+             Appointments/questions: ${PHONE_APPT}.`));
+        }
+        if(key==='forklift'){
+          blocks.push(section('🛠️ Forklift Certification',
+            `Check dates/availability on the Training page: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>
+             You can call ${PHONE_APPT} to confirm the next class and whether you need an appointment.`));
+        }
+        if(key==='hours'){
+          blocks.push(section('🕒 Hours', t('mealHours')));
+        }
+        if(key==='location'){
+          blocks.push(section('📍 Address',
+            `${t('address')}<br><a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${t('maps')}</a>`));
+        }
+        if(key==='transit'){
+          blocks.push(section('🚌 Transit',
+            `<a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>
+             Destination: 72½ Escher St, Trenton.`));
+        }
+        if(key==='resources'){
+          blocks.push(section('🧰 Resources',
+            `IDs, benefits, housing, legal, phones, and more:<br>
+             <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a>`));
+        }
+        if(key==='appointment'){
+          blocks.push(section('📅 Appointments', `Please call ${PHONE_APPT} (best during lunch hours).`));
+        }
+        if(key==='angry'){
+          blocks.push(section('🙏 Let me help',
+            `${t('escalate')} ${PHONE_ME}.<br>${t('appt')}: ${PHONE_APPT}.`));
+        }
+      }
+      return blocks.join('<hr style="border:none;height:8px;background:transparent">');
     }
 
-    /* ===========================
-       SEND / FLOW
-    ============================*/
     function handle(text){
       if(!text) return;
       addUser(text);
-
-      statusEl.textContent = '🤖 Thinking…';
+      statusEl.textContent='🤖 Thinking…';
       typing(true);
 
-      const maybe = detectLang(text);
-      if(maybe !== currentLang) setLang(maybe);
-
-      let key = classify(text);
-
-      // Track misses for escalation
-      if(key === 'default'){ missStreak++; } else { missStreak = 0; }
+      const intents = findIntents(text);
 
       setTimeout(()=>{
         typing(false);
-        addBot(respond(key));
-        statusEl.textContent = '✅ Answered!';
-        setTimeout(()=> statusEl.textContent = '⚠️ I can make mistakes — please double-check important info!', 1200);
-        logEvent(text, key, key!=='default');
+        addBot(replyFor(intents));
+        statusEl.textContent='✅ Answered!';
+        setTimeout(()=> statusEl.textContent='⚠️ I can make mistakes — please double-check important info!', 1200);
       }, 260);
     }
 
     function send(){
       const text = (box.value || '').trim();
       if(!text) return;
-      box.value = ''; box.focus();
+      box.value = ''; box.blur(); // blur to reduce stuck keyboards on older phones
       handle(text);
+      setTimeout(()=>box.focus(), 100); // refocus so user keeps typing
     }
 
     // Initial welcome
     addBot(`🟡 <strong>${t('welcome')}</strong><br><br>
-            ${t('quick')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('rail_training')}</a> •
-            <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('rail_jobs')}</a> •
-            <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">${t('rail_alerts')}</a>`);
+            ${t('quick')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
+            <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
+            <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
 
-    // Events
     sendBtn.addEventListener('click', send);
     box.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
 
-    /* ===========================
-       Keyboard-aware layout (mobile)
-    ============================*/
-    (function keyboardAware(){
-      if (!window.visualViewport) return;
-      const footer = document.querySelector('.footer');
+    /* ========= MOBILE KEYBOARD FIX =========
+       Works on iOS Safari + Android/Budget phones.
+       - Uses visualViewport when available
+       - Fallback: when input focused, pin footer as fixed to viewport
+    =======================================*/
+    function measureFooter(){
+      const h = footer.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--footer-h', `${Math.round(h)}px`);
+    }
+    measureFooter();
+    addEventListener('resize', measureFooter);
 
-      function adjust(){
-        const vv = visualViewport;
-        // translate footer up by the overlap amount
-        const delta = (vv.height + vv.offsetTop) - window.innerHeight;
-        footer.style.transform = `translateY(${delta}px)`;
-        // keep last chat item visible
+    (function keyboardAware(){
+      const vv = window.visualViewport;
+      const useVV = !!vv && typeof vv.height === 'number';
+
+      function setKeyboard(px){
+        document.documentElement.style.setProperty('--keyboard-h', `${Math.max(0, Math.round(px))}px`);
+        // if keyboard is showing, collapse top bars to keep input visible
+        document.body.classList.toggle('kb', px > 0);
+        // keep last message in view
         chat.lastElementChild?.scrollIntoView({block:'end'});
       }
-      visualViewport.addEventListener('resize', adjust);
-      visualViewport.addEventListener('scroll', adjust);
+
+      if(useVV){
+        const adjust = () => {
+          // Layout viewport height
+          const layoutH = document.documentElement.clientHeight;
+          // How much of layout viewport is obscured by the keyboard
+          const overlap = Math.max(0, layoutH - (vv.height + vv.offsetTop));
+          // Move footer up by overlap (CSS uses --keyboard-h for padding)
+          footer.style.transform = `translateY(${-overlap}px)`;
+          setKeyboard(overlap);
+          measureFooter();
+        };
+        vv.addEventListener('resize', adjust);
+        vv.addEventListener('scroll', adjust);
+        box.addEventListener('focus', ()=>{ requestAnimationFrame(adjust); });
+        box.addEventListener('blur',  ()=>{ setKeyboard(0); footer.style.transform='translateY(0)'; });
+      } else {
+        // Fallback for very old browsers / some government phones
+        function pinFooter(pinned){
+          if(pinned){
+            const rect = document.getElementById('app').getBoundingClientRect();
+            footer.style.position='fixed';
+            footer.style.left = rect.left+'px';
+            footer.style.right = (window.innerWidth-rect.right)+'px';
+            footer.style.bottom = 'env(safe-area-inset-bottom)';
+            footer.style.width = rect.width+'px';
+            document.body.classList.add('kb');
+          }else{
+            footer.style.position='sticky';
+            footer.style.left = footer.style.right = footer.style.bottom = footer.style.width = '';
+            document.body.classList.remove('kb');
+          }
+          measureFooter();
+          chat.lastElementChild?.scrollIntoView({block:'end'});
+        }
+        box.addEventListener('focus', ()=> pinFooter(true));
+        box.addEventListener('blur',  ()=> pinFooter(false));
+      }
+
+      // Extra nudge for iOS AutoFill bar
+      box.addEventListener('focus', ()=>{
+        setTimeout(()=>{
+          window.scrollTo(0, document.body.scrollHeight);
+          chat.lastElementChild?.scrollIntoView({block:'end'});
+        }, 50);
+      });
     })();
-
-    /* ===========================
-       ADMIN: Ctrl + Alt + A + PIN
-    ============================*/
-    function openPinModal(){
-      pinModal.style.display='flex';
-      pinInput.value='';
-      pinInput.focus();
-    }
-    function closePinModal(){ pinModal.style.display='none'; }
-    function openAdmin(){
-      adminPanel.style.display='block';
-      adminPanel.setAttribute('aria-hidden','false');
-    }
-    function closeAdmin(){
-      adminPanel.style.display='none';
-      adminPanel.setAttribute('aria-hidden','true');
-    }
-
-    document.addEventListener('keydown', (e)=>{
-      if(e.ctrlKey && e.altKey && e.key.toLowerCase()==='a'){
-        e.preventDefault(); openPinModal();
-      }
-      if(e.key==='Escape'){
-        if(pinModal.style.display==='flex') closePinModal();
-        else if(adminPanel.style.display==='block') closeAdmin();
-      }
-    });
-    pinSubmit.addEventListener('click', ()=>{
-      if(pinInput.value.trim()===ADMIN_PIN){
-        closePinModal(); openAdmin();
-      }else{
-        pinInput.value=''; pinInput.focus(); alert('Incorrect PIN');
-      }
-    });
-    pinCancel.addEventListener('click', closePinModal);
-    document.getElementById('closeAdmin').addEventListener('click', closeAdmin);
-
-    exportCsvBtn.addEventListener('click', ()=>{
-      const csv = toCSV(logs);
-      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `task-assistant-logs-${Date.now()}.csv`;
-      a.click(); URL.revokeObjectURL(url);
-    });
-
-    copySummaryBtn.addEventListener('click', ()=>{
-      const counts = logs.reduce((acc,r)=>{ acc[r.intent]=(acc[r.intent]||0)+1; return acc; },{});
-      const lines = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`• ${k}: ${v}`).join('\n');
-      const summary =
-`TASK Assistant Summary
-Total messages: ${logs.length}
-Top intents:
-${lines||'(no data)'}
-Missed: ${missed.length}
-
-Missed examples:
-${missed.slice(0,15).map(x=>'– '+x).join('\n')}`;
-      navigator.clipboard.writeText(summary).then(()=>alert('Summary copied to clipboard.'));
-    });
-
-    clearLogsBtn.addEventListener('click', ()=>{
-      if(!confirm('Clear all session logs?')) return;
-      logs.length = 0; missed.length = 0; missedBox.value = '';
-      alert('Logs cleared for this session.');
-    });
-
-    /* ===========================
-       VOICE INPUT (HTTPS/localhost only)
-    ============================*/
-    (function setupVoice(){
-      const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-      const SR = (window.SpeechRecognition || window.webkitSpeechRecognition);
-      if(!isSecure || !SR){
-        micBtn.style.display='none';
-        return;
-      }
-      rec = new SR();
-      rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
-      rec.interimResults = false; rec.maxAlternatives = 1;
-      rec.onresult = (e)=>{ const transcript = e.results[0][0].transcript; box.value = transcript; handle(transcript); };
-      rec.onend = ()=>{ recognizing=false; micBtn.textContent='🎙'; };
-      rec.onerror = ()=>{ recognizing=false; micBtn.textContent='🎙'; };
-    })();
-
-    micBtn.addEventListener('click', ()=>{
-      if(!rec) return; // hidden earlier if unsupported
-      if(recognizing){ rec.stop(); recognizing=false; micBtn.textContent='🎙'; return; }
-      try{
-        rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
-        rec.start(); recognizing=true; micBtn.textContent='⏺';
-      }catch(e){ recognizing=false; micBtn.textContent='🎙'; }
-    });
   </script>
 </body>
 </html>
