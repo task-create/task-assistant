@@ -7,7 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
 
   <style>
-    /* ---------- Design Tokens ---------- */
+    /* =========================
+       Design Tokens / Themes
+    ==========================*/
     :root{
       --radius:18px;
 
@@ -33,11 +35,8 @@
       --bubble-user-border:transparent;
 
       --typing:#7e8aa3;
-      --ok:#19a974;
-      --warn:#ffb020;
     }
 
-    /* Dark (sleek ChatGPT-ish) */
     [data-theme="dark"]{
       --bg:#0b1220;
       --surface:#0f1726;
@@ -69,24 +68,36 @@
       background:var(--bg);
       color:var(--text);
       display:flex;align-items:center;justify-content:center;
-      padding:16px;
+      padding:12px;
     }
     a{color:var(--link);text-decoration:none}
     a:hover{text-decoration:underline}
 
+    /* =========================
+       App Shell / Responsive
+    ==========================*/
     .app{
-      width:100%;max-width:460px;background:var(--surface);
+      width:100%;
+      max-width:560px;               /* wider for desktop */
+      background:var(--surface);
       border:3px solid var(--accent);
-      border-radius:var(--radius);overflow:hidden;
+      border-radius:var(--radius);
+      overflow:hidden;
       box-shadow:var(--shadow);
-      display:flex;flex-direction:column;min-height:70vh;
+      display:flex;
+      flex-direction:column;
+      min-height:min(92vh,860px);    /* mobile+desktop friendly */
+    }
+
+    @media (max-width:420px){
+      .app{min-height:92vh; max-width:100%}
     }
 
     /* Header */
     .header{
       background:var(--surface-2);
       border-bottom:1px solid var(--border);
-      padding:10px 46px 10px 46px;
+      padding:10px 46px;
       position:relative;text-align:center;
     }
     .badge{
@@ -95,15 +106,27 @@
       font:700 13px/1 "Nunito",sans-serif;letter-spacing:.2px;
       box-shadow:var(--shadow-soft);
     }
-    .theme, .admin, .mic{
+    .theme, .mic{
       position:absolute;top:8px;border:none;border-radius:999px;cursor:pointer;
       width:34px;height:34px;display:flex;align-items:center;justify-content:center;
       background:linear-gradient(135deg,var(--accent),var(--accent-2));
       color:#222;font-weight:700;box-shadow:var(--shadow-soft);
     }
+    .mic{right:52px}
     .theme{right:8px}
-    .admin{left:8px}
-    .mic{right:48px}
+
+    /* Language prompt bar */
+    .langbar{
+      display:flex;gap:8px;justify-content:center;align-items:center;
+      padding:8px;background:var(--surface-2);border-bottom:1px solid var(--border);
+      flex-wrap:wrap;
+    }
+    .lang-label{font:700 12px/1 "Nunito",sans-serif;color:var(--muted)}
+    .lang-chip{
+      display:inline-block;padding:6px 9px;border-radius:999px;cursor:pointer;
+      border:1px solid rgba(0,0,0,.08);background:#fff;font-weight:700;font-size:12px;
+    }
+    [data-theme="dark"] .lang-chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
 
     /* Quick links rail */
     .rail{
@@ -121,7 +144,7 @@
 
     /* Chat region */
     .chat{
-      flex:1;height:420px;overflow:auto;padding:14px;scroll-behavior:smooth;
+      flex:1;overflow:auto;padding:14px;scroll-behavior:smooth;
       background:
         radial-gradient(70% 100% at -10% -20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 65%),
         radial-gradient(60% 90% at 110% 120%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 60%),
@@ -131,7 +154,7 @@
       margin:12px 0;padding:12px 16px;border-radius:16px;
       font-size:14px;line-height:1.45;border:1px solid var(--bubble-border);
       background:var(--bubble-bot);color:var(--text);box-shadow:var(--shadow-soft);
-      max-width:85%;
+      max-width:90%;
     }
     .bubble.bot{margin-right:20%}
     .bubble.user{
@@ -139,7 +162,7 @@
       color:var(--bubble-user-text);
       background:var(--bubble-user-bg);
       border:1px solid var(--bubble-user-border);
-      border-radius:16px 16px 4px 16px;max-width:85%;
+      border-radius:16px 16px 4px 16px;max-width:90%;
     }
     /* User tail for dark mode */
     [data-theme="dark"] .bubble.user::after,
@@ -152,10 +175,8 @@
 
     /* Typing */
     .typing{display:inline-flex;gap:6px;align-items:flex-end}
-    .typing .dot{
-      width:6px;height:6px;border-radius:50%;background:var(--typing);
-      animation:bounce 1s infinite ease-in-out;will-change:transform,opacity;
-    }
+    .typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);
+      animation:bounce 1s infinite ease-in-out;will-change:transform,opacity;}
     .typing .dot:nth-child(2){animation-delay:.12s}
     .typing .dot:nth-child(3){animation-delay:.24s}
     @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.6}40%{transform:translateY(-6px);opacity:1}}
@@ -170,27 +191,41 @@
     .row{display:flex;gap:10px;align-items:center}
     input[type="text"]{
       flex:1;padding:14px 16px;border:2px solid var(--border);border-radius:25px;
-      font-size:14px;outline:none;background:var(--surface);color:var(--text);caret-color:var(--accent);
+      font-size:16px;outline:none;background:var(--surface);color:var(--text);caret-color:var(--accent);
       box-shadow:inset 0 1px 2px rgba(0,0,0,.06);
     }
     input[type="text"]::placeholder{color:var(--muted)}
     input[type="text"]:focus{border-color:var(--accent)}
     .send{
-      width:50px;height:50px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;
+      width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;
       background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft)
     }
-    .status{margin-top:6px;text-align:center;font-size:10px;color:var(--muted)}
+    .status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
     .pill{display:inline-block;padding:.5px 8px;border-radius:999px;background:rgba(25,169,116,.1);color:#19a974;font-weight:700;font-size:11px}
 
-    /* Admin panel */
+    /* Admin modal and panel */
+    .modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.45);
+      display:none;align-items:center;justify-content:center;z-index:9998;
+    }
+    .modal .card{
+      background:var(--surface);border:1px solid var(--border);border-radius:14px;
+      padding:16px;min-width:280px;max-width:90%;box-shadow:var(--shadow);
+    }
+    .modal h4{font:700 14px "Nunito",sans-serif;margin-bottom:8px}
+    .modal .row{margin-top:10px}
+    .modal input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text)}
+    .modal .btn{margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);cursor:pointer;background:var(--surface-2)}
+    .modal .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#222;border:none}
+
     .admin-panel{
       position:fixed;inset:auto 12px 12px 12px;background:var(--surface);
       border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);
-      padding:12px;max-width:640px;display:none;z-index:9999;
+      padding:12px;max-width:720px;display:none;z-index:9999;
     }
     .admin-panel h3{font:700 14px "Nunito",sans-serif;margin-bottom:8px}
     .admin-panel .row{gap:8px;margin-top:8px}
-    .admin-panel textarea{width:100%;min-height:120px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text);padding:8px}
+    .admin-panel textarea{width:100%;min-height:140px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text);padding:8px}
     .btn{border:1px solid var(--border);background:var(--surface-2);padding:8px 12px;border-radius:10px;cursor:pointer}
     .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#222;border:none}
     .k{font-family:ui-monospace,Consolas,monospace;background:rgba(0,0,0,.07);padding:1px 6px;border-radius:6px}
@@ -199,21 +234,28 @@
 <body>
   <main class="app" id="app">
     <header class="header">
-      <button class="admin" id="adminBtn" title="Admin (Ctrl+Shift+S)">⚙</button>
       <div class="badge" aria-label="TASK Assistant">TASK Assistant</div>
       <button class="mic" id="micBtn" title="Voice input">🎙</button>
       <button class="theme" id="themeToggle" title="Toggle theme">☼</button>
     </header>
 
-    <!-- Quick links -->
+    <!-- Language prompt bar (manual override) -->
+    <div class="langbar" id="langbar" role="group" aria-label="Language selection">
+      <span class="lang-label">Language / Idioma / Lang:</span>
+      <button class="lang-chip" data-lang="en" aria-label="Switch to English">EN</button>
+      <button class="lang-chip" data-lang="es" aria-label="Cambiar a Español">ES</button>
+      <button class="lang-chip" data-lang="ht" aria-label="Chanje pou Kreyòl">HT</button>
+    </div>
+
+    <!-- Quick links (labels will translate) -->
     <nav class="rail" id="top-rail">
-      <a class="chip" href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
-      <a class="chip" href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
-      <a class="chip" href="https://bycell.co/ddmtr" target="_blank" rel="noopener">🔔 Alerts</a>
-      <a class="chip" href="https://bycell.co/ddmtn" target="_blank" rel="noopener">🎓 Training</a>
-      <a class="chip" href="https://bycell.co/ddmui" target="_blank" rel="noopener">📄 Resume</a>
-      <a class="chip" href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">🎥 Interview Tips</a>
-      <a class="chip" href="https://bycell.co/ddmua" target="_blank" rel="noopener">🧰 Resources</a>
+      <a class="chip" id="chip-address" href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
+      <a class="chip" id="chip-jobs" href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
+      <a class="chip" id="chip-alerts" href="https://bycell.co/ddmtr" target="_blank" rel="noopener">🔔 Alerts</a>
+      <a class="chip" id="chip-training" href="https://bycell.co/ddmtn" target="_blank" rel="noopener">🎓 Training</a>
+      <a class="chip" id="chip-resume" href="https://bycell.co/ddmui" target="_blank" rel="noopener">📄 Resume</a>
+      <a class="chip" id="chip-tips" href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">🎥 Interview Tips</a>
+      <a class="chip" id="chip-resources" href="https://bycell.co/ddmua" target="_blank" rel="noopener">🧰 Resources</a>
     </nav>
 
     <!-- Chat area (ARIA live) -->
@@ -227,14 +269,28 @@
         <button class="send" id="send" aria-label="Send">➤</button>
       </div>
       <div class="status" id="status">⚠️ I can make mistakes — please double-check important info!</div>
+      <div class="status">Admin: press <span class="k">Ctrl</span>+<span class="k">Alt</span>+<span class="k">A</span> (PIN required)</div>
     </footer>
   </main>
+
+  <!-- Admin PIN Modal -->
+  <div class="modal" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+    <div class="card">
+      <h4 id="pinTitle">Enter admin PIN</h4>
+      <p style="font-size:12px;color:var(--muted)">Shortcut: <span class="k">Ctrl</span>+<span class="k">Alt</span>+<span class="k">A</span></p>
+      <div class="row">
+        <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" aria-label="Admin PIN"/>
+      </div>
+      <button class="btn primary" id="pinSubmit">Unlock</button>
+      <button class="btn" id="pinCancel">Cancel</button>
+    </div>
+  </div>
 
   <!-- Admin Panel -->
   <div class="admin-panel" id="adminPanel" aria-hidden="true" aria-label="Admin Panel">
     <h3>Admin • TASK Assistant</h3>
     <p class="note" style="font-size:12px;color:var(--muted);margin-bottom:6px">
-      Open/close with <span class="k">Ctrl</span>+<span class="k">Shift</span>+<span class="k">S</span>. Export logs, see missed intents, or copy a usage summary.
+      Export logs, see missed intents, or copy a usage summary. Close with Esc.
     </p>
     <div class="row">
       <button class="btn" id="exportCsv">Export CSV</button>
@@ -250,7 +306,7 @@
 
   <script>
     /* ===========================
-       SETUP & STATE
+       CONSTANTS / STATE
     ============================*/
     const app  = document.getElementById('app');
     const chat = document.getElementById('chat');
@@ -259,7 +315,11 @@
     const statusEl = document.getElementById('status');
     const themeToggle = document.getElementById('themeToggle');
     const langHint = document.getElementById('langHint');
-    const adminBtn = document.getElementById('adminBtn');
+    const langbar = document.getElementById('langbar');
+    const pinModal = document.getElementById('pinModal');
+    const pinInput = document.getElementById('pinInput');
+    const pinSubmit = document.getElementById('pinSubmit');
+    const pinCancel = document.getElementById('pinCancel');
     const adminPanel = document.getElementById('adminPanel');
     const exportCsvBtn = document.getElementById('exportCsv');
     const copySummaryBtn = document.getElementById('copySummary');
@@ -267,17 +327,23 @@
     const missedBox = document.getElementById('missedBox');
     const micBtn = document.getElementById('micBtn');
 
+    const chipAddress = document.getElementById('chip-address');
+    const chipJobs = document.getElementById('chip-jobs');
+    const chipAlerts = document.getElementById('chip-alerts');
+    const chipTraining = document.getElementById('chip-training');
+    const chipResume = document.getElementById('chip-resume');
+    const chipTips = document.getElementById('chip-tips');
+    const chipResources = document.getElementById('chip-resources');
+
     const PHONE_HTML = '<a href="tel:609-337-1624">(609) 337-1624</a>';
+    const ADMIN_PIN = '1234';
     const THEME_KEY = 'task_theme';
     const LANG_KEY = 'task_lang';
 
     let currentLang = localStorage.getItem(LANG_KEY) || 'en';
-    let lastIntent = null;  // conversation memory
-    let lastTopic = null;
-
-    // Simple analytics log
-    const logs = []; // {ts, lang, text, intent, resolved}
-    const missed = []; // store default/unmatched queries
+    let lastIntent = null;
+    const logs = [];
+    const missed = [];
 
     /* ===========================
        THEME
@@ -321,7 +387,10 @@
         train: 'Training', jobs: 'Jobs', addr: 'Address',
         notFound: 'I might not have that yet. For more help, visit:',
         site_home: 'TASK website', site_services: 'What we do',
-        say: 'You can also say: menu, help, language.'
+        say: 'You can also say: menu, help, language.',
+        rail_address:'Address', rail_jobs:'Jobs', rail_alerts:'Alerts',
+        rail_training:'Training', rail_resume:'Resume',
+        rail_tips:'Interview Tips', rail_resources:'Resources'
       },
       es: {
         welcome: '👋 ¡Bienvenido! Usa palabras como <em>entrenamiento</em>, <em>empleos</em>, <em>horas</em>, <em>dirección</em> o <em>autobús</em>.',
@@ -348,7 +417,10 @@
         train: 'Entrenamiento', jobs: 'Empleos', addr: 'Dirección',
         notFound: 'Puede que aún no tenga eso. Para más ayuda, visita:',
         site_home: 'Sitio de TASK', site_services: 'Qué hacemos',
-        say: 'También puedes decir: menú, ayuda, idioma.'
+        say: 'También puedes decir: menú, ayuda, idioma.',
+        rail_address:'Dirección', rail_jobs:'Empleos', rail_alerts:'Alertas',
+        rail_training:'Entrenamiento', rail_resume:'Currículum',
+        rail_tips:'Consejos de entrevista', rail_resources:'Recursos'
       },
       ht: {
         welcome: '👋 Byenvini! Itilize mo tankou <em>fòmasyon</em>, <em>travay</em>, <em>lè</em>, <em>adrès</em>, oswa <em>otobis</em>.',
@@ -362,7 +434,7 @@
         alerts: 'Abònman ak alèt',
         resume: 'Ede ak CV & modèl',
         tips: 'Gade konsèy rapid yo',
-        mealHours: 'Manje: Manje midi Lendi–Vandredi 10:30–1:00 • Manje aswè Lendi–Jedi 3:30–5:00',
+        mealHours: 'Manje: Madi–Vandredi 10:30–1:00 • Aswè Lendi–Jedi 3:30–5:00',
         address: '72½ Escher St, Trenton, NJ 08609',
         maps: 'Louvri Google Maps',
         bus: 'Planifikatè vwayaj NJ Transit',
@@ -375,7 +447,10 @@
         train: 'Fòmasyon', jobs: 'Travay', addr: 'Adrès',
         notFound: 'M pa gen enfòmasyon sa a kounye a. Pou plis èd, vizite:',
         site_home: 'Sit wèb TASK', site_services: 'Sa n ap fè',
-        say: 'Ou ka di tou: meni, èd, lang.'
+        say: 'Ou ka di tou: meni, èd, lang.',
+        rail_address:'Adrès', rail_jobs:'Travay', rail_alerts:'Alèt',
+        rail_training:'Fòmasyon', rail_resume:'CV',
+        rail_tips:'Konsèy entèvyou', rail_resources:'Resous'
       }
     };
     function t(key){ return L10N[currentLang][key]; }
@@ -386,11 +461,27 @@
         currentLang==='es' ? 'Hablo inglés, español y Kreyòl' :
         currentLang==='ht' ? 'M pale Angle, Panyòl & Kreyòl' :
         'I speak English, Español & Kreyòl';
+      // Update chip labels
+      chipAddress.textContent = '📍 ' + t('rail_address');
+      chipJobs.textContent = '💼 ' + t('rail_jobs');
+      chipAlerts.textContent = '🔔 ' + t('rail_alerts');
+      chipTraining.textContent = '🎓 ' + t('rail_training');
+      chipResume.textContent = '📄 ' + t('rail_resume');
+      chipTips.textContent = '🎥 ' + t('rail_tips');
+      chipResources.textContent = '🧰 ' + t('rail_resources');
+      // Update voice language if active later
+      if(rec) rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
     }
     setLang(currentLang);
 
+    langbar.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.lang-chip'); if(!btn) return;
+      setLang(btn.dataset.lang);
+      addBot(`🌐 Language set to <strong>${btn.dataset.lang.toUpperCase()}</strong>.`);
+    });
+
     /* ===========================
-       UTILS
+       CHAT HELPERS
     ============================*/
     function addUser(text){
       const el = document.createElement('div');
@@ -423,7 +514,6 @@
     function logEvent(text, intent, resolved=true){
       const row={ts:new Date().toISOString(), lang:currentLang, text, intent, resolved};
       logs.push(row);
-      // record misses for admin view
       if(!resolved || intent==='default'){
         missed.push(`${row.ts} • [${row.lang}] ${row.text}`);
         missedBox.value = missed.join('\n');
@@ -441,15 +531,14 @@
     ============================*/
     function detectLang(text){
       const t = text.toLowerCase();
-      const es = /(hola|necesito|trabaj|emple|d[oó]nde|horari|cita|servici|comida|entrenam|tel[eé]fono|direcci[oó]n)/.test(t);
-      const ht = /(bonjou|bonswa|mwen|bezwen|travay|kote|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis|f[òo]masyon)/.test(t);
+      const es = /(hola|necesito|trabaj|emple|d[oó]nde|horari|cita|servici|comida|entrenam|tel[eé]fono|direcci[oó]n|curso|cursos|seguridad|licencia)/.test(t);
+      const ht = /(bonjou|bonswa|mwen|bezwen|travay|kote|manje|krey[oò]l|telef[oò]n|adr[eè]s|randevou|s[eè]vis|f[òo]masyon|lisans)/.test(t);
       return es ? 'es' : (ht ? 'ht' : 'en');
     }
 
     /* ===========================
        INTENT: KEYWORDS + FUZZY
     ============================*/
-    // Very small Levenshtein distance for fuzzy
     function lev(a,b){
       a=a.toLowerCase(); b=b.toLowerCase();
       const m=a.length,n=b.length; const dp=Array.from({length:m+1},(_,i)=>Array(n+1).fill(0));
@@ -464,74 +553,120 @@
       return dp[m][n];
     }
     function fuzzyMatch(word, candidates){
-      let best = {k:null,d:99};
-      for(const k of candidates){
-        const d = lev(word,k);
-        if(d < best.d) best = {k,d};
-        if(d===0) break;
-      }
-      return best.d <= 2; // allow small typos
+      let best = 99;
+      for(const k of candidates){ best = Math.min(best, lev(word,k)); if(best===0) break; }
+      return best <= 2;
     }
 
-    // Synonyms per intent (includes ES/HT)
+    // Expanded synonyms (EN/ES/HT + common misspellings/variants)
     const SYN = {
-      trainings: ['training','trainings','program','programs','class','classes','course','courses','certification','culinary','sora','forklift','academy','entrenamiento','entrenamientos','curso','cursos','fòmasyon'],
-      jobs: ['job','jobs','work','employment','hiring','hire','opening','openings','apply','application','position','positions','empleo','empleos','trabajo','travay'],
-      alerts: ['alert','alerts','notify','notification','subscribe','updates','alertas'],
-      resume: ['resume','cv','curriculum','currículum','cover','carta','templ','modèl'],
-      interview: ['interview','tips','mock','practice','entrevista','konse'],
-      appointments: ['appointment','schedule','book','meeting','register','sign','rsvp','cita','programar','randevou'],
-      hours: ['hour','hours','time','when','open','close','lunch','dinner','meal','eat','hora','horario','almuerzo','cena','manje'],
-      location: ['where','address','location','directions','map','parking','donde','dirección','ubicación','kote','adrès'],
-      transit: ['bus','nj','transit','route','fare','ticket','train','transport','planner'],
-      computer_lab: ['computer','internet','wifi','lab','email','application','online'],
-      resources: ['resource','resources','assistance','support','services','legal','benefits','housing','ayuda','resursos','servicios','sèvis','resous'],
-      greeting: ['hi','hello','hey','hola','bonjou','bonswa'],
-      thanks: ['thanks','thank','gracias','mesi'],
+      trainings: [
+        'training','trainings','program','programs','class','classes','course','courses',
+        'certificate','certification','license','licence','licensee','sora','security license','security guard',
+        'culinary','academy','forklift','food handler','servsafe',
+        // ES
+        'entrenamiento','entrenamientos','curso','cursos','certificado','certificación','licencia','licencia de seguridad','sora',
+        // HT
+        'fòmasyon','fomasyon','lisans','sekirite','sora','lekòl kwizin','forklift'
+      ],
+      jobs: [
+        'job','jobs','work','employment','hiring','hire','opening','openings','apply','application','position','positions','career',
+        // ES
+        'empleo','empleos','trabajo','trabajar','aplicar','postular','vacante','vacantes',
+        // HT
+        'travay','anbochaj','pozisyon','aplika'
+      ],
+      alerts: ['alert','alerts','notify','notification','subscribe','updates','signup',
+        'alertas','suscribirme','notificación','notificaciones',
+        'alèt','abònman','notifikasyon'
+      ],
+      resume: [
+        'resume','cv','curriculum','currículum','cover','cover letter','template','templates','format',
+        'curriculo','hoja de vida','plantilla','modelo',
+        'cv modèl','modèl','modèl cv'
+      ],
+      interview: [
+        'interview','interviews','tips','mock','practice','practice interview',
+        'entrevista','entrevistas','consejos','práctica',
+        'entèvyou','konsèy','pratik'
+      ],
+      appointments: [
+        'appointment','appointments','schedule','book','meeting','register','sign','rsvp','call me','call back',
+        'cita','citas','programar','agendar','registrar','inscribirme','llamada',
+        'randevou','randevou a','pwograme','enskri','rele'
+      ],
+      hours: [
+        'hour','hours','time','when','open','close','opening','closing','lunch','dinner','meal','food',
+        'hora','horario','abren','cierran','almuerzo','cena','comida',
+        'lè','lè yo louvri','lè yo fèmen','manje','manje midi','manje aswè'
+      ],
+      meals: [ // alias to hours
+        'meal','meals','food','kitchen','soup','eat','dining',
+        'comida','comidas','cocina','comedor',
+        'manje','kwizin'
+      ],
+      location: [
+        'where','address','location','directions','map','parking','drive','gps',
+        'donde','dirección','ubicación','mapa','estacionamiento','parqueo','ruta',
+        'kote','adrès','kat','pakin','direksyon'
+      ],
+      transit: [
+        'bus','nj','transit','route','routes','fare','ticket','train','transport','planner','schedule',
+        'autobús','bus','rutas','billete','tarifa','tren','transporte','horario',
+        'otobis','otobys','bous','chemen','tikè','pri','tren','orè'
+      ],
+      computer_lab: [
+        'computer','internet','wifi','lab','email','application','online','printer','print','scan',
+        'computadora','internet','laboratorio','correo','imprimir','escanear',
+        'odinatè','entènèt','lab','enprime','eskane'
+      ],
+      resources: [
+        'resource','resources','assistance','support','services','benefits','snap','tanf','welfare','housing','shelter','rent','utilities','legal','expungement','id','birth certificate','clothes','mental health','wellness','therapy','counseling',
+        'recursos','asistencia','apoyo','beneficios','vivienda','albergue','renta','utilidades','legal','expurgación','expungement','identificación','certificado de nacimiento','ropa','salud mental','terapia','orientación',
+        'resous','asistans','sipò','benefis','lojman','abri','lwaye','dlo','kouran','legal','efasman','idantite','sètifika nesans','rad','sante mantal','terapi','konsèy'
+      ],
+      greeting: ['hi','hello','hey','hola','bonjou','bonswa','salut'],
+      thanks: ['thanks','thank','gracias','mesi','thank you','ty','thx'],
       profanity: ['fuck','shit','bitch','asshole','bastard','dick','pussy','cunt','motherfucker','bullshit','wtf','coño','mierda']
     };
 
-    function classify(text){
-      const raw = text;
-      const t = text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').trim();
+    function classify(input){
+      const raw = input;
+      const t = input.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').trim();
       if(!t) return 'default';
 
       // Manual commands
       if(/^\/lang\s+(en|es|ht)\b/.test(t)){ setLang(t.match(/^\/lang\s+(en|es|ht)\b/)[1]); return 'greeting'; }
       if(/^(menu|help|ayuda|ede|aide)\b/.test(t)) return 'greeting';
 
-      // Language auto-switch if user typed in ES/HT
+      // Language auto-switch
       const guess = detectLang(t);
       if(guess !== currentLang && !/\/lang/.test(t)) setLang(guess);
 
-      // Fast includes
+      // quick includes
       for(const key of Object.keys(SYN)){
         for(const kw of SYN[key]){
           if(t.includes(kw)) return key;
         }
       }
-      // Fuzzy tokens
-      const tokens = t.split(/\s+/).slice(0,6);
+      // fuzzy tokens
+      const tokens = t.split(/\s+/).slice(0,8);
       for(const key of Object.keys(SYN)){
         if(tokens.some(tok=>fuzzyMatch(tok, SYN[key]))) return key;
       }
 
-      // Follow-up context (conversation memory)
-      if(/(when|what\s*time|hour|hours|dinner|lunch|open|close|horas|hora|horario|lè)/.test(t)){
-        return 'hours';
-      }
-      if(/(where|address|map|kote|adr[eè]s|direcci[oó]n)/.test(t)){
-        return 'location';
-      }
+      // fallback context
+      if(/(when|what\s*time|hour|hours|dinner|lunch|open|close|horas|hora|horario|lè|manje)/.test(t)) return 'hours';
+      if(/(where|address|map|kote|adr[eè]s|direcci[oó]n|parking|parqueo)/.test(t)) return 'location';
 
-      // Otherwise
       return 'default';
     }
 
     /* ===========================
-       REPLIES
+       RESPONSES
     ============================*/
     function respond(intentKey){
+      const showHours = () => `<strong>🕒 ${t('asked')} hours.</strong><br><br>${t('mealHours')}`;
       const M = {
         trainings: () => `<strong>🎓 ${t('asked')} training.</strong><br><br>
           • Emilio Culinary Academy (10-week)<br>
@@ -552,7 +687,8 @@
           <a href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">${t('tips')}</a>`,
         appointments: () => `<strong>📅 ${t('asked')} an appointment.</strong><br><br>
           ${t('call')} ${PHONE_HTML}. ${t('during')}.`,
-        hours: () => `<strong>🕒 ${t('asked')} hours.</strong><br><br>${t('mealHours')}`,
+        hours: showHours,
+        meals: showHours,
         location: () => `<strong>📍 ${t('asked')} our location.</strong><br><br>
           ${t('address')}<br>
           <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${t('maps')}</a>`,
@@ -560,16 +696,11 @@
           <a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">${t('bus')}</a> • 1-973-275-5555<br>
           Destination: 72½ Escher St, Trenton.`,
         computer_lab: () => `<strong>💻 ${t('asked')} the computer lab.</strong><br><br>
-          Open during meal hours. Free internet & job applications.`,
+          Open during meal hours. Free internet, printing & job applications.`,
         resources: () => `<strong>🧰 ${t('asked')} resources.</strong><br><br>
           <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">${t('more')}</a><br>
           <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">${t('allsvc')}</a>`,
         profanity: () => `<strong>🙏 ${t('sorry')}</strong><br><br>
-          ${t('talk')}: ${PHONE_HTML}<br><br>
-          ${t('choices')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('train')}</a> ·
-          <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('jobs')}</a> ·
-          <a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${t('addr')}</a>`,
-        frustrated: () => `<strong>🙏 ${t('sorry')}</strong><br><br>
           ${t('talk')}: ${PHONE_HTML}<br><br>
           ${t('choices')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('train')}</a> ·
           <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('jobs')}</a> ·
@@ -593,29 +724,22 @@
       statusEl.textContent = '🤖 Thinking…';
       typing(true);
 
-      // Detect language hint
       const maybe = detectLang(text);
       if(maybe !== currentLang) setLang(maybe);
 
-      // Classify
       let key = classify(text);
-      // Extra sentiment classification
-      if(/(useless|stupid|idiot|annoy|angry|mad|frustrat)/i.test(text)) key = 'frustrated';
+      if(/(useless|stupid|idiot|annoy|angry|mad|frustrat)/i.test(text)) key = 'profanity';
       if(/thank/i.test(text)) key = 'thanks';
 
-      // Conversation memory
-      if(key !== 'default'){ lastIntent = key; lastTopic = key; }
+      if(key !== 'default'){ lastIntent = key; }
 
       setTimeout(()=>{
         typing(false);
-        const html = respond(key);
-        addBot(html);
+        addBot(respond(key));
         statusEl.textContent = '✅ Answered!';
         setTimeout(()=> statusEl.textContent = '⚠️ I can make mistakes — please double-check important info!', 1200);
-
-        // Log it
         logEvent(text, key, key!=='default');
-      }, 280);
+      }, 260);
     }
 
     function send(){
@@ -627,29 +751,51 @@
 
     // Initial welcome
     addBot(`🟡 <strong>${t('welcome')}</strong><br><br>
-            ${t('quick')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> •
-            <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> •
-            <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
+            ${t('quick')} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${t('rail_training')}</a> •
+            <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${t('rail_jobs')}</a> •
+            <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">${t('rail_alerts')}</a>`);
 
     // Events
     sendBtn.addEventListener('click', send);
     box.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
-    document.getElementById('top-rail').addEventListener('click', e=>{
-      const a = e.target.closest('a'); if(!a) return;
-    });
 
     /* ===========================
-       ADMIN PANEL (Ctrl+Shift+S)
+       ADMIN: Ctrl + Alt + A + PIN
     ============================*/
-    function toggleAdmin(show){
-      adminPanel.style.display = show ? 'block' : 'none';
-      adminPanel.setAttribute('aria-hidden', show ? 'false' : 'true');
+    function openPinModal(){
+      pinModal.style.display='flex';
+      pinInput.value='';
+      pinInput.focus();
     }
-    adminBtn.addEventListener('click', ()=> toggleAdmin(adminPanel.style.display!=='block'));
-    document.addEventListener('keydown', e=>{
-      if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='s'){ e.preventDefault(); toggleAdmin(adminPanel.style.display!=='block'); }
+    function closePinModal(){ pinModal.style.display='none'; }
+    function openAdmin(){
+      adminPanel.style.display='block';
+      adminPanel.setAttribute('aria-hidden','false');
+    }
+    function closeAdmin(){
+      adminPanel.style.display='none';
+      adminPanel.setAttribute('aria-hidden','true');
+    }
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.ctrlKey && e.altKey && e.key.toLowerCase()==='a'){
+        e.preventDefault(); openPinModal();
+      }
+      if(e.key==='Escape'){
+        if(pinModal.style.display==='flex') closePinModal();
+        else if(adminPanel.style.display==='block') closeAdmin();
+      }
     });
-    document.getElementById('closeAdmin').addEventListener('click', ()=> toggleAdmin(false));
+    pinSubmit.addEventListener('click', ()=>{
+      if(pinInput.value.trim()===ADMIN_PIN){
+        closePinModal(); openAdmin();
+      }else{
+        pinInput.value=''; pinInput.focus(); alert('Incorrect PIN');
+      }
+    });
+    pinCancel.addEventListener('click', closePinModal);
+
+    document.getElementById('closeAdmin').addEventListener('click', closeAdmin);
 
     exportCsvBtn.addEventListener('click', ()=>{
       const csv = toCSV(logs);
@@ -657,27 +803,22 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `task-assistant-logs-${Date.now()}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      a.click(); URL.revokeObjectURL(url);
     });
 
     copySummaryBtn.addEventListener('click', ()=>{
       const counts = logs.reduce((acc,r)=>{ acc[r.intent]=(acc[r.intent]||0)+1; return acc; },{});
-      const top = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6)
-        .map(([k,v])=>`• ${k}: ${v}`).join('\n');
+      const lines = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`• ${k}: ${v}`).join('\n');
       const summary =
 `TASK Assistant Summary
-Range: local session
 Total messages: ${logs.length}
 Top intents:
-${top||'(no data)'}
+${lines||'(no data)'}
 Missed: ${missed.length}
 
 Missed examples:
-${missed.slice(0,10).map(x=>'– '+x).join('\n')}`;
-      navigator.clipboard.writeText(summary).then(()=>{
-        alert('Summary copied to clipboard.');
-      }).catch(()=>{ alert('Could not copy summary.'); });
+${missed.slice(0,15).map(x=>'– '+x).join('\n')}`;
+      navigator.clipboard.writeText(summary).then(()=>alert('Summary copied to clipboard.'));
     });
 
     clearLogsBtn.addEventListener('click', ()=>{
@@ -693,19 +834,11 @@ ${missed.slice(0,10).map(x=>'– '+x).join('\n')}`;
     let rec = null;
     (function setupVoice(){
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if(!SR){
-        micBtn.style.display='none'; return;
-      }
+      if(!SR){ micBtn.style.display='none'; return; }
       rec = new SR();
       rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
-      rec.interimResults = false;
-      rec.maxAlternatives = 1;
-
-      rec.onresult = (e)=>{
-        const transcript = e.results[0][0].transcript;
-        box.value = transcript;
-        handle(transcript);
-      };
+      rec.interimResults = false; rec.maxAlternatives = 1;
+      rec.onresult = (e)=>{ const transcript = e.results[0][0].transcript; box.value = transcript; handle(transcript); };
       rec.onend = ()=>{ recognizing=false; micBtn.textContent='🎙'; };
       rec.onerror = ()=>{ recognizing=false; micBtn.textContent='🎙'; };
     })();
@@ -714,7 +847,6 @@ ${missed.slice(0,10).map(x=>'– '+x).join('\n')}`;
       if(!rec) return;
       if(recognizing){ rec.stop(); recognizing=false; micBtn.textContent='🎙'; return; }
       try{
-        // set language on the fly
         rec.lang = currentLang === 'es' ? 'es-ES' : (currentLang==='ht' ? 'ht-HT' : 'en-US');
         rec.start(); recognizing=true; micBtn.textContent='⏺';
       }catch(e){ recognizing=false; micBtn.textContent='🎙'; }
