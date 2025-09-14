@@ -165,7 +165,7 @@ const UI = {
       q_call:'📞 Call now', q_text:'💬 Text me', q_next_forklift:'🛠️ Next forklift class?', q_need_appt:'📅 Do I need an appointment?',
       q_call_jobs:'📞 Call jobs/training', q_see_jobs:'🔎 Jobs site', q_see_training:'🎓 Training site',
       ask_next_forklift:'When is the next forklift class?', ask_need_appt:'Do I need an appointment?',
-      frustrated:'🙏 We know this can be frustrating. Let’s get you real help now — call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976214">(609) 697-6214</a>. For appointments call <a href="tel:6093371624">(609) 337-1624</a>.'
+      frustrated:'🙏 We know this can be frustrating. Let’s get you real help now — call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>. For appointments call <a href="tel:6093371624">(609) 337-1624</a>.'
   },
   es:{welcome:'👋 ¡Hola! Puedo ayudarte con entrenamientos, empleos, citas, horarios, dirección, autobuses y más. Pregúntame lo que sea.',
       quick:'Enlaces rápidos:', mealHours:'Comidas: Almuerzo Lun–Vie 10:30–1:00 • Cena Lun–Jue 3:30–5:00',
@@ -177,7 +177,7 @@ const UI = {
       q_call:'📞 Llamar ahora', q_text:'💬 Enviarme un mensaje', q_next_forklift:'🛠️ ¿Próxima clase de montacargas?', q_need_appt:'📅 ¿Necesito cita?',
       q_call_jobs:'📞 Llamar empleo/entrenamiento', q_see_jobs:'🔎 Empleos', q_see_training:'🎓 Entrenamientos',
       ask_next_forklift:'¿Cuándo es la próxima clase de montacargas?', ask_need_appt:'¿Necesito una cita?',
-      frustrated:'🙏 Sabemos que esto puede ser frustrante. Consigue ayuda ya: llámame al <a href="tel:6096976215">(609) 697-6215</a> o mándame un mensaje al <a href="sms:16096976214">(609) 697-6214</a>. Para citas llama al <a href="tel:6093371624">(609) 337-1624</a>.'
+      frustrated:'🙏 Sabemos que esto puede ser frustrante. Consigue ayuda ya: llámame al <a href="tel:6096976215">(609) 697-6215</a> o mándame un mensaje al <a href="sms:16096976215">(609) 697-6215</a>. Para citas llama al <a href="tel:6093371624">(609) 337-1624</a>.'
   },
   ht:{welcome:'👋 Bonjou! Mwen ka ede ak fòmasyon, travay, randevou, lè yo, adrès, otobis, ak plis ankò. Mande m sa ou bezwen.',
       quick:'Lyen rapid:', mealHours:'Manje: Manje Maten Lun–Vandredi 10:30–1:00 • Aswè Lun–Jedi 3:30–5:00',
@@ -189,7 +189,7 @@ const UI = {
       q_call:'📞 Rele kounye a', q_text:'💬 Voye tèks ban mwen', q_next_forklift:'🛠️ Ki lè pwochen klas forklift la?', q_need_appt:'📅 Èske mwen bezwen randevou?',
       q_call_jobs:'📞 Rele travay/fòmasyon', q_see_jobs:'🔎 Travay', q_see_training:'🎓 Fòmasyon',
       ask_next_forklift:'Kilè pwochen klas forklift la?', ask_need_appt:'Èske mwen bezwen randevou?',
-      frustrated:'🙏 Nou konprann sa ka fistran. Ann jwenn èd reyèl touswit — rele mwen nan <a href="tel:6096976215">(609) 697-6215</a> oswa voye tèks nan <a href="sms:16096976214">(609) 697-6214</a>. Pou randevou rele <a href="tel:6093371624">(609) 337-1624</a>.'
+      frustrated:'🙏 Nou konprann sa ka fistran. Ann jwenn èd reyèl touswit — rele mwen nan <a href="tel:6096976215">(609) 697-6215</a> oswa voye tèks nan <a href="sms:16096976215">(609) 697-6215</a>. Pou randevou rele <a href="tel:6093371624">(609) 337-1624</a>.'
   }
 };
 
@@ -221,7 +221,7 @@ function addUser(t){ const el=document.createElement('div'); el.className='bubbl
 function addBot(html){ const el=document.createElement('div'); el.className='bubble bot'; el.innerHTML=html; chat.appendChild(el); el.scrollIntoView({block:'end',behavior:'smooth'}); }
 function typing(on=true){ const id='typing'; if(on){ const el=document.createElement('div'); el.id=id; el.className='bubble bot'; el.innerHTML=`<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`; chat.appendChild(el);}else{document.getElementById(id)?.remove();} chat.scrollTop=chat.scrollHeight; }
 
-/* ---------- buttons: EVENT DELEGATION ---------- */
+/* ---------- event delegation for dynamic buttons ---------- */
 chat.addEventListener('click', (e)=>{
   const btn = e.target.closest('button[data-action]');
   if(!btn) return;
@@ -233,9 +233,13 @@ chat.addEventListener('click', (e)=>{
 });
 
 /* ---------- phones/links ---------- */
-const TEL_APPT='tel:6093371624', TEL_JOBS_A='tel:6096976166', TEL_JOBS_B='tel:6096976215', SMS_ME='sms:16096976214?body=Hi%20this%20is%20%5Bname%5D%20from%20TASK', TEL_ME='tel:6096976215';
+const TEL_APPT='tel:6093371624',
+      TEL_JOBS_A='tel:6096976166',
+      TEL_JOBS_B='tel:6096976215',
+      TEL_ME='tel:6096976215',
+      SMS_ME='sms:16096976215?body=Hi%20this%20is%20%5Bname%5D%20from%20TASK';
 
-/* ---------- quick replies HTML ---------- */
+/* ---------- quick replies ---------- */
 function qrSet(o){
   const parts=[];
   if(o.callAppt)     parts.push(`<a class="qr-link" href="${TEL_APPT}">${UI[currentLang].q_call}</a>`);
@@ -249,17 +253,23 @@ function qrSet(o){
   return `<div class="qrs">${parts.join('')}</div>`;
 }
 
-/* ---------- keyword bank ---------- */
+/* ---------- keyword bank (expanded frustration set) ---------- */
 const BANK_RAW={
   greeting:['hi','hello','hey','hola','bonjou','bonswa','bonjour','salut'],
   thanks:['thanks','thank you','gracias','merci','mesi','meci','thx','ty'],
   goodbye:['bye','goodbye','adios','adiós','ciao','nos vemos','na we','n a wè','later','see ya'],
-  // frustration/profanity/insults (no slurs; general profanity + “not working” phrases)
+  // frustration/profanity/insults (no slurs)
   frustrated:[
-    'wtf','wth','sucks','useless','annoying','mad','angry','pissed','this is stupid','this is dumb','not working','doesn\'t work','dont work','no sirve','esto apesta','de mierda','basura','odio esto','molesto','enojado','p***',
-    'mierda','carajo','chingad','pendej','gilipoll','estupido','estúpido','idiota',
-    'fuck','shit','damn','bitch','asshole','bastard','douche','crap','tf?','bullshit',
-    'fustrat','frustrat','fache','fache\'','fache yo','sa pa mache','sa pa ede','sa pa itil','mwen fache','fou','malerezman'
+    // English profanity/soft-insults
+    'wtf','wth','this sucks','sucks','useless','annoying','so annoying','i hate this','hate this','mad','angry','pissed',
+    'this is stupid','stupid','dumb','moron','idiot','you idiot','you are dumb','you are stupid','you are no help','no help','you\'re useless','piece of crap','garbage','trash',
+    'shut up','stfu','screw this','not working','doesn\'t work','dont work','keeps crashing','buggy','broken','broke','so frustrating','very frustrating','im frustrated','i am frustrated','frustrating','fustrating',
+    'damn','crap','shit','bullshit','fuck','f*ck','bitch','asshole','bastard','douche',
+    // Spanish
+    'no sirve','esto apesta','basura','odio esto','molesto','enojado','muy frustrante','esto es frustrante','no funciona','está roto','esta roto','siempre falla',
+    'cállate','callate','cayate','idiota','tonto','estupido','estúpido','imbecil','imbécil','pendejo','mierda','carajo','chingada','chingado','chinga tu','maldita sea',
+    // Haitian Kreyòl
+    'sa pa mache','sa pa ede','sa pa itil','sa kase','li kase','li kraze','mwen fache','m fache','m fustrasyon','sa fache m','sa fatigan','rayi sa','sa se tenten','ou sòt','sòt','estipid','idis','fèmen bouch ou','ferme bouch ou','kaka','mèd'
   ],
   jobs:['job','jobs','employment','hiring','apply','application','position','work','career','empleo','trabajo','puestos','trabajos','contratando','trabajar','travay'],
   training:['training','trainings','program','programs','class','classes','course','courses','certification','certifications','academy','entrenamiento','entrenamientos','programa','programas','clase','clases','curso','cursos','certificacion','certificaciones','fòmasyon','kour','kou','sertifikasyon'],
@@ -324,7 +334,7 @@ function replyFor(intents, rawText){
   if(intents.includes('appointment')||intents.includes('case_mgmt')||intents.includes('idhelp')){
     let msg = `Best way: call <a href="tel:6093371624">(609) 337-1624</a>.<br>${UI[currentLang].no_walkins}<div class="note">${UI[currentLang].bi_note}</div>`;
     if(wantsSameDay) msg += `<br>Same-day may be possible — please call first: <a href="tel:6093371624">(609) 337-1624</a>.`;
-    msg += `<br>If you can’t get through, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976214">(609) 697-6214</a>.`;
+    msg += `<br>If you can’t get through, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`;
     blocks.push(section('📅 Make / Check an Appointment', msg)); addApptQR=true;
   }
   if(intents.includes('jobs')){
@@ -340,7 +350,7 @@ function replyFor(intents, rawText){
     addJobsQR=true;
   }
   if(intents.includes('housing')){
-    blocks.push(section('🏠 Housing / Shelter', `For Code Blue and shelter info, start here:<br><a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resources</a><br>If you’re stuck, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976214">(609) 697-6214</a>.`));
+    blocks.push(section('🏠 Housing / Shelter', `For Code Blue and shelter info, start here:<br><a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resources</a><br>If you’re stuck, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`));
   }
   if(intents.includes('resume')){
     blocks.push(section('📄 Resume help', `Templates & guidance: <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a><br>For 1-on-1 help, call <a href="tel:6093371624">(609) 337-1624</a>.`));
