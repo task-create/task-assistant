@@ -253,7 +253,7 @@ function qrSet(o){
   return `<div class="qrs">${parts.join('')}</div>`;
 }
 
-/* ---------- keyword bank (expanded frustration set) ---------- */
+/* ---------- keyword bank (expanded) ---------- */
 const BANK_RAW={
   greeting:['hi','hello','hey','hola','bonjou','bonswa','bonjour','salut'],
   thanks:['thanks','thank you','gracias','merci','mesi','meci','thx','ty'],
@@ -262,14 +262,15 @@ const BANK_RAW={
   frustrated:[
     // English profanity/soft-insults
     'wtf','wth','this sucks','sucks','useless','annoying','so annoying','i hate this','hate this','mad','angry','pissed',
-    'this is stupid','stupid','dumb','moron','idiot','you idiot','you are dumb','you are stupid','you are no help','no help','you\'re useless','piece of crap','garbage','trash',
+    'this is stupid','stupid','dumb','moron','idiot','you idiot','you are dumb','you are stupid','you are no help','no help','you\'re useless','piece of crap','garbage','trash','worthless','you suck',
     'shut up','stfu','screw this','not working','doesn\'t work','dont work','keeps crashing','buggy','broken','broke','so frustrating','very frustrating','im frustrated','i am frustrated','frustrating','fustrating',
-    'damn','crap','shit','bullshit','fuck','f*ck','bitch','asshole','bastard','douche',
+    'damn','crap','shit','bullshit','fuck','f*ck','bitch','asshole','bastard','douche','dumbass',
     // Spanish
-    'no sirve','esto apesta','basura','odio esto','molesto','enojado','muy frustrante','esto es frustrante','no funciona','está roto','esta roto','siempre falla',
-    'cállate','callate','cayate','idiota','tonto','estupido','estúpido','imbecil','imbécil','pendejo','mierda','carajo','chingada','chingado','chinga tu','maldita sea',
+    'no sirve','esto apesta','basura','odio esto','molesto','enojado','muy frustrante','esto es frustrante','no funciona','está roto','esta roto','siempre falla','no ayudas','no me ayudas','no sirves','inutil','inútil',
+    'cállate','callate','cayate','idiota','tonto','baboso','torpe','estupido','estúpido','imbecil','imbécil','pendejo','mierda','carajo','chingada','chingado','maldita sea','que basura',
     // Haitian Kreyòl
-    'sa pa mache','sa pa ede','sa pa itil','sa kase','li kase','li kraze','mwen fache','m fache','m fustrasyon','sa fache m','sa fatigan','rayi sa','sa se tenten','ou sòt','sòt','estipid','idis','fèmen bouch ou','ferme bouch ou','kaka','mèd'
+    'sa pa mache','sa pa ede','sa pa itil','sa kase','li kase','li kraze','mwen fache','m fache','m fustrasyon','sa fache m','sa fatigan','rayi sa','sa se tenten','ou sòt','sòt','estipid','idis','bet','bèt','betize','bètize',
+    'fèmen bouch ou','ferme bouch ou','kaka','mèd','ou pa ede','ou initil','pa itil','move aplikasyon'
   ],
   jobs:['job','jobs','employment','hiring','apply','application','position','work','career','empleo','trabajo','puestos','trabajos','contratando','trabajar','travay'],
   training:['training','trainings','program','programs','class','classes','course','courses','certification','certifications','academy','entrenamiento','entrenamientos','programa','programas','clase','clases','curso','cursos','certificacion','certificaciones','fòmasyon','kour','kou','sertifikasyon'],
@@ -289,7 +290,10 @@ const BANK_RAW={
   hours:['hours','time','open','close','lunch','dinner','meal','horario','horas','le','lè','schedule'],
   location:['address','location','map','where','direccion','dirección','ubicacion','ubicación','donde','donde esta','donde queda','como llegar','kote','ki kote','adrès','adres','mapa'],
   transit:['bus','nj transit','route','ticket','fare','train','planner','autobus','autobús','tren','otobis','bus pass'],
-  resources:['benefits','snap','ebt','wic','tanf','ssi','ssdi','utilities','pseg','rent','legal','expungement','rehab','recovery','counseling','mental health','beneficios','servicios','asistencia','benefis','ede','phones','cell phone']
+  resources:[
+    'resource','resources','community resources','help list','services list','assistance list','support services',
+    'benefits','snap','ebt','wic','tanf','ssi','ssdi','utilities','pseg','rent','legal','expungement','rehab','recovery','counseling','mental health','beneficios','servicios','asistencia','benefis','ede','phones','cell phone'
+  ]
 };
 const BANK=Object.fromEntries(Object.entries(BANK_RAW).map(([k,a])=>[k,a.map(w=>norm(w))]));
 
@@ -350,7 +354,7 @@ function replyFor(intents, rawText){
     addJobsQR=true;
   }
   if(intents.includes('housing')){
-    blocks.push(section('🏠 Housing / Shelter', `For Code Blue and shelter info, start here:<br><a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resources</a><br>If you’re stuck, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`));
+    blocks.push(section('🏠 Housing / Shelter', `For Code Blue and shelter info, start here:<br><a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Community resources</a><br>If you’re stuck, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`));
   }
   if(intents.includes('resume')){
     blocks.push(section('📄 Resume help', `Templates & guidance: <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a><br>For 1-on-1 help, call <a href="tel:6093371624">(609) 337-1624</a>.`));
@@ -364,7 +368,9 @@ function replyFor(intents, rawText){
   if(intents.includes('hours'))    blocks.push(section('🕒 Hours', UI[currentLang].mealHours));
   if(intents.includes('location')) blocks.push(section('📍 Address', `${UI[currentLang].address}<br><a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${UI[currentLang].maps}</a>`));
   if(intents.includes('transit'))  blocks.push(section('🚌 Transit', `<a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>Destination: 72½ Escher St, Trenton.`));
-  if(intents.includes('resources')) blocks.push(section('🧰 Resources', `IDs, benefits, housing, legal, phones, and more:<br><a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a>`));
+  if(intents.includes('resources')) blocks.push(section('🧰 Resources', `
+      Community resources: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a><br>
+      TASK services: <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
 
   if(blocks.length===0){ blocks.push(section('👋', UI[currentLang].hello)); }
 
