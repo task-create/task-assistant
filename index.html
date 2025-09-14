@@ -253,7 +253,7 @@ function qrSet(o){
   return `<div class="qrs">${parts.join('')}</div>`;
 }
 
-/* ---------- keyword bank (expanded) ---------- */
+/* ---------- keyword bank (expanded; + patron-services synonyms) ---------- */
 const BANK_RAW={
   greeting:['hi','hello','hey','hola','bonjou','bonswa','bonjour','salut'],
   thanks:['thanks','thank you','gracias','merci','mesi','meci','thx','ty'],
@@ -292,7 +292,14 @@ const BANK_RAW={
   transit:['bus','nj transit','route','ticket','fare','train','planner','autobus','autobús','tren','otobis','bus pass'],
   resources:[
     'resource','resources','community resources','help list','services list','assistance list','support services',
-    'benefits','snap','ebt','wic','tanf','ssi','ssdi','utilities','pseg','rent','legal','expungement','rehab','recovery','counseling','mental health','beneficios','servicios','asistencia','benefis','ede','phones','cell phone'
+    'benefits','snap','ebt','wic','tanf','ssi','ssdi','utilities','pseg','rent','legal','expungement','rehab','recovery','counseling','mental health',
+    'phones','cell phone','task services','what we do','what do you do','what do you offer','what services','all services','services',
+    // “patron services” synonyms
+    'patron services','client services','guest services',
+    // Spanish
+    'recursos','recursos de la comunidad','servicios','lista de servicios','servicios de task','qué hacen','que hacen','qué ofrecen','que ofrecen','todos los servicios','servicios para clientes',
+    // Kreyòl
+    'resous','resous kominotè','sèvis','sèvis task','kisa nou fè','ki sèvis','tout sèvis','sèvis kliyan'
   ]
 };
 const BANK=Object.fromEntries(Object.entries(BANK_RAW).map(([k,a])=>[k,a.map(w=>norm(w))]));
@@ -372,13 +379,18 @@ function replyFor(intents, rawText){
       Community resources: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a><br>
       TASK services: <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
 
-  if(blocks.length===0){ blocks.push(section('👋', UI[currentLang].hello)); }
+  /* Fallback: if we don't know → route to Resources + TASK services */
+  if(blocks.length===0){
+    blocks.push(section('🧰 Resources', `
+      Community resources: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a><br>
+      TASK services: <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
+  }
 
   // Quick replies at tail
   const strips=[];
-  if(addHelpQR)  strips.push(qrSet({callMe:true,textMe:true}));
-  if(addApptQR)  strips.push(qrSet({callAppt:true,textMe:true,nextFork:true,needAppt:true}));
-  if(addJobsQR)  strips.push(qrSet({callJobs:true,jobsSite:true,trainingSite:true,textMe:true}));
+  if(intents.includes('frustrated')) strips.push(qrSet({callMe:true,textMe:true}));
+  if(intents.includes('appointment')||intents.includes('case_mgmt')||intents.includes('idhelp')) strips.push(qrSet({callAppt:true,textMe:true,nextFork:true,needAppt:true}));
+  if(intents.includes('jobs')||intents.includes('training')||intents.includes('employment_services')) strips.push(qrSet({callJobs:true,jobsSite:true,trainingSite:true,textMe:true}));
 
   return blocks.join('<hr style="border:none;height:8px;background:transparent">') + strips.join('');
 }
