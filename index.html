@@ -16,26 +16,12 @@
   --bubble-bot:#fff;--bubble-border:#d9e2ec;--bubble-user-bg:linear-gradient(135deg,#1f7aff,#71b3ff);
   --bubble-user-text:#fff;--bubble-user-border:transparent;--typing:#7e8aa3
 }
-/* DARK: boosted contrast + clearer chips */
+/* DARK MODE — higher contrast for chips and links */
 [data-theme="dark"]{
-  --bg:#0a0f1a;             /* darker page */
-  --surface:#0f1726;        /* main cards */
-  --surface-2:#0c1422;      /* header/footer */
-  --text:#e8f0ff;           /* brighter text */
-  --muted:#9fb2cc;
-  --brand:#8bd0ff;
-  --accent:#5aa0ff;
-  --accent-2:#9fd0ff;
-  --border:#2d3f5a;
-  --link:#8dc6ff;           /* brighter links */
-  --bubble-bot:#0f1624;     /* bot bubble */
-  --bubble-border:#314967;
-  --bubble-user-bg:#1f86ff;
-  --bubble-user-text:#fff;
-  --bubble-user-border:#0f5fc3;
-  --typing:#aac7ff;
-  --shadow:0 20px 44px rgba(0,0,0,.55);
-  --shadow-soft:0 12px 28px rgba(0,0,0,.45)
+  --bg:#0a0f1a; --surface:#0f1726; --surface-2:#0c1422; --text:#eaf2ff; --muted:#a7bad5;
+  --brand:#8bd0ff; --accent:#62a8ff; --accent-2:#a8d4ff; --border:#344b6b; --link:#93caff;
+  --bubble-bot:#10192c; --bubble-border:#3a567a; --bubble-user-bg:#1f86ff; --bubble-user-text:#fff; --bubble-user-border:#0f5fc3;
+  --typing:#b8d2ff; --shadow:0 22px 46px rgba(0,0,0,.6); --shadow-soft:0 12px 28px rgba(0,0,0,.45)
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -49,54 +35,50 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   width:100%;max-width:560px;background:var(--surface);border:2px solid var(--border);border-radius:18px;
   overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;height:100vh;position:relative
 }
-.header{
-  background:var(--surface-2);border-bottom:1px solid var(--border);padding:10px 130px 10px 56px;
-  position:relative;text-align:center
-}
-.badge{display:inline-block;background:var(--brand);color:#0a2238;padding:8px 16px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;cursor:pointer}
+.header{background:var(--surface-2);border-bottom:1px solid var(--border);padding:10px 130px 10px 56px;position:relative;text-align:center}
+.badge{display:inline-block;background:var(--brand);color:#0b1a2d;padding:8px 16px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;cursor:pointer}
 [data-theme="dark"] .badge{background:#89c9ff;color:#0b1626}
-/* header buttons */
 .theme,.mic,.reset,.lang{
   position:absolute;top:8px;width:44px;height:44px;border:none;border-radius:999px;background:var(--surface);
   color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow-soft);cursor:pointer;transition:transform .08s ease
 }
 .theme:active,.mic:active,.reset:active,.lang:active{transform:scale(.96)}
-.reset{left:8px}
-.mic{right:100px}.lang{right:56px}.theme{right:8px}
-.langmenu{
-  position:absolute;top:56px;right:48px;background:var(--surface);border:1px solid var(--border);border-radius:12px;
-  box-shadow:var(--shadow-soft);display:none;min-width:180px;z-index:200
-}
+.reset{left:8px}.mic{right:100px}.lang{right:56px}.theme{right:8px}
+.langmenu{position:absolute;top:56px;right:48px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-soft);display:none;min-width:180px;z-index:200}
 .langmenu[aria-hidden="false"]{display:block}
 .langmenu button{display:block;width:100%;text-align:left;padding:10px 12px;background:transparent;border:none;cursor:pointer}
 .langmenu button:hover{background:var(--surface-2)}
-/* chat area */
 .chat{
-  flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;padding-bottom:120px;overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;
-  background:
-    radial-gradient(70% 100% at -10% -20%,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 65%),
-    radial-gradient(60% 90% at 110% 120%,rgba(255,255,255,.04) 0%,rgba(255,255,255,0) 60%),
-    linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%)
+  flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;padding-bottom:120px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  background:radial-gradient(70% 100% at -10% -20%,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 65%),
+             radial-gradient(60% 90% at 110% 120%,rgba(255,255,255,.04) 0%,rgba(255,255,255,0) 60%),
+             linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%)
 }
-.bubble{
-  margin:12px 0;padding:14px 16px;border-radius:16px;line-height:1.48;border:1px solid var(--bubble-border);
-  background:var(--bubble-bot);box-shadow:var(--shadow-soft);max-width:92%;
-  transition:box-shadow .15s ease,transform .08s ease
-}
+.bubble{margin:12px 0;padding:14px 16px;border-radius:16px;line-height:1.48;border:1px solid var(--bubble-border);background:var(--bubble-bot);box-shadow:var(--shadow-soft);max-width:92%;transition:box-shadow .15s ease,transform .08s ease}
 .bubble.bot{margin-right:18%}
-.bubble.user{margin-left:18%;text-align:right;color:var(--bubble-user-text);background:var(--bubble-user-bg);
-  border:1px solid var(--bubble-user-border);border-radius:16px 16px 4px 16px}
+.bubble.user{margin-left:18%;text-align:right;color:var(--bubble-user-text);background:var(--bubble-user-bg);border:1px solid var(--bubble-user-border);border-radius:16px 16px 4px 16px}
 .bubble:hover{box-shadow:0 10px 22px rgba(20,80,120,.14)}
 .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .ctrl{
   border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 14px;
-  font-weight:700;cursor:pointer;transition:transform .08s ease
+  font-weight:700;cursor:pointer;transition:transform .08s ease, background .12s ease, border-color .12s ease;
+  color:var(--text);
 }
-[data-theme="dark"] .ctrl{background:#101b2e;border-color:#355075}
 .ctrl:active{transform:scale(.98)}
-.ctrl:focus-visible{outline:2px dashed var(--accent)}
+.ctrl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .copy{border:1px dashed var(--border);background:transparent}
+/* Dark-mode chip polish */
+[data-theme="dark"] .ctrl{
+  background:#14223a;
+  border-color:#4c6a92;
+  color:#eaf2ff;
+  box-shadow:inset 0 0 0 1px rgba(141,198,255,.12);
+}
+[data-theme="dark"] .ctrl:hover{
+  background:#1a2c4b;
+  border-color:#6e95c3;
+  box-shadow:inset 0 0 0 1px rgba(141,198,255,.22);
+}
 .typing{display:inline-flex;gap:6px;align-items:flex-end}
 .typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);animation:bounce 1s infinite ease-in-out}
 .typing .dot:nth-child(2){animation-delay:.12s}.typing .dot:nth-child(3){animation-delay:.24s}
@@ -106,10 +88,7 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 .row{display:flex;gap:10px;align-items:center}
 input[type="text"]{flex:1;padding:14px 16px;border:2px solid var(--border);border-radius:25px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent)}
 input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);outline:none}
-.send{
-  width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;
-  background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft);transition:transform .08s ease
-}
+.send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft);transition:transform .08s ease}
 .send:active{transform:scale(.96)}
 .status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
 .note{font-size:11px;color:var(--muted);margin-top:6px}
@@ -155,9 +134,6 @@ input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);out
 <script>
 'use strict';
 
-/* ---- DEMO SWITCH: set to true to purposely show a second suggestion tray under the welcome for screenshots ---- */
-const DEMO_DUPLICATE = true;
-
 /* ================= UI STRINGS ================= */
 const UI = {
   en:{welcome:'👋 Hey there! I can help with training, jobs, appointments, hours, address, buses and more. Ask me anything.',
@@ -188,19 +164,19 @@ let staffHit=null;
 let lastSuggestionKey='';
 
 const STAFF={
-  sean:{display:'Sean',dept:'Employment Services',note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
-  diani:{display:'Diani',dept:'Employment Services',note:'Ask reception for Diani from Employment. Appointments preferred.'},
-  dion:{display:'Dion',dept:'Employment Services',note:'Ask reception for Dion from Employment.'},
-  diane:{display:'Diane',dept:'Employment Services',note:'You can ask reception for Diane from Employment.'},
-  tiffany:{display:'Tiffany',dept:'Employment Services',note:'Ask reception for Tiffany from Employment.'},
-  adam:{display:'Adam',dept:'Employment Services',note:'Ask reception for Adam from Employment.'},
-  paul:{display:'Paul',dept:'Employment Services',note:'Ask reception for Paul from Employment.'},
-  mia:{display:'Mia',dept:'Employment Services',note:'Ask reception for Mia from Employment.'}
+  sean   : {display:'Sean',    dept:'Employment Services', note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
+  diani  : {display:'Diani',   dept:'Employment Services', note:'Ask reception for Diani from Employment. Appointments preferred.'},
+  dion   : {display:'Dion',    dept:'Employment Services', note:'Ask reception for Dion from Employment.'},
+  diane  : {display:'Diane',   dept:'Employment Services', note:'You can ask reception for Diane from Employment.'},
+  tiffany: {display:'Tiffany', dept:'Employment Services', note:'Ask reception for Tiffany from Employment.'},
+  adam   : {display:'Adam',    dept:'Employment Services', note:'Ask reception for Adam from Employment.'},
+  paul   : {display:'Paul',    dept:'Employment Services', note:'Ask reception for Paul from Employment.'},
+  mia    : {display:'Mia',     dept:'Employment Services', note:'Ask reception for Mia from Employment.'}
 };
 
 const ce=id=>document.getElementById(id);
-const chat=ce('chat'), box=ce('box');
-const theme=ce('themeToggle'), micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
+const chat=ce('chat'), box=ce('box'), theme=ce('themeToggle');
+const micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
 const langBtn=ce('langBtn'), langMenu=ce('langMenu');
 const ctaBar=ce('ctaBar');
 
@@ -459,11 +435,6 @@ function greet(fromReset=false){
         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
   lastSuggestionKey='';
   addSuggestions(['jobs','train','hours','loc','res','employment_info']);
-
-  // DEMO: intentionally add a second tray for your dark-mode screenshot
-  if (DEMO_DUPLICATE) {
-    addSuggestions(['jobs','train','hours','loc','res','employment_info']);
-  }
 }
 (function initLang(){ let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){} setLang(saved || (navigator.language||'en').slice(0,2)); })();
 greet();
