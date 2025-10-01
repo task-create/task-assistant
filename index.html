@@ -50,10 +50,18 @@
   .rail{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px;background:var(--surface-2);border-bottom:1px solid var(--border)}
   .chip{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:12px;color:var(--brand);border:1px solid rgba(255,145,31,.35);background:#fff;border-radius:999px;padding:9px 12px;min-height:40px;box-shadow:var(--shadow-soft)}
   [data-theme="dark"] .chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
-  .chat{flex:1; overflow:auto; padding:14px; padding-bottom: calc(14px + var(--footer-h) + var(--keyboard-h)); scroll-behavior:smooth; background:
-    radial-gradient(70% 100% at -10% -20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 65%),
-    radial-gradient(60% 90% at 110% 120%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 60%),
-    linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+  .chat{
+    flex:1; 
+    overflow:auto; 
+    padding:14px; 
+    padding-bottom: calc(14px + var(--footer-h) + var(--keyboard-h)); 
+    scroll-behavior:smooth; 
+    overflow-anchor: none;
+    -webkit-overflow-scrolling: touch;
+    background:
+      radial-gradient(70% 100% at -10% -20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 65%),
+      radial-gradient(60% 90% at 110% 120%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
   }
   .bubble{margin:12px 0;padding:12px 16px;border-radius:16px;line-height:1.45;border:1px solid var(--bubble-border);background:var(--bubble-bot);box-shadow:var(--shadow-soft);max-width:90%}
   .bubble.bot{margin-right:20%}
@@ -161,11 +169,11 @@ const UI = {
       notFound:'I might not have that yet. For more help, visit:', site_home:'TASK website', site_services:'What we do',
       no_walkins:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.',
       bi_note:'No caminatas / Pa san randevou',
-      hello:'Hi! 👋 How can I help today?', thanks:'You’re welcome! 😊 Anything else I can do?', bye:'Take care! If you need to schedule, call (609) 337-1624.',
+      hello:'Hi! 👋 How can I help today?', thanks:'You're welcome! 😊 Anything else I can do?', bye:'Take care! If you need to schedule, call (609) 337-1624.',
       q_call:'📞 Call now', q_text:'💬 Text me', q_next_forklift:'🛠️ Next forklift class?', q_need_appt:'📅 Do I need an appointment?',
       q_call_jobs:'📞 Call jobs/training', q_see_jobs:'🔎 Jobs site', q_see_training:'🎓 Training site',
       ask_next_forklift:'When is the next forklift class?', ask_need_appt:'Do I need an appointment?',
-      frustrated:'🙏 We know this can be frustrating. Let’s get you real help now — call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>. For appointments call <a href="tel:6093371624">(609) 337-1624</a>.'
+      frustrated:'🙏 We know this can be frustrating. Let's get you real help now — call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>. For appointments call <a href="tel:6093371624">(609) 337-1624</a>.'
   },
   es:{welcome:'👋 ¡Hola! Puedo ayudarte con entrenamientos, empleos, citas, horarios, dirección, autobuses y más. Pregúntame lo que sea.',
       quick:'Enlaces rápidos:', mealHours:'Comidas: Almuerzo Lun–Vie 10:30–1:00 • Cena Lun–Jue 3:30–5:00',
@@ -217,9 +225,10 @@ setTheme(localStorage.getItem(THEME_KEY)||'light'); themeToggle.addEventListener
 /* ---------- DOM ---------- */
 const chat=document.getElementById('chat'), box=document.getElementById('box'), sendBtn=document.getElementById('send'), statusEl=document.getElementById('status'), footer=document.getElementById('footer'), badge=document.getElementById('scrollTopBtn'), micBtn=document.getElementById('micBtn');
 badge.addEventListener('click',()=> chat.scrollTo({top:0,behavior:'smooth'}));
-function addUser(t){ const el=document.createElement('div'); el.className='bubble user'; el.textContent=t; chat.appendChild(el); el.scrollIntoView({block:'end',behavior:'smooth'}); }
-function addBot(html){ const el=document.createElement('div'); el.className='bubble bot'; el.innerHTML=html; chat.appendChild(el); el.scrollIntoView({block:'end',behavior:'smooth'}); }
-function typing(on=true){ const id='typing'; if(on){ const el=document.createElement('div'); el.id=id; el.className='bubble bot'; el.innerHTML=`<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`; chat.appendChild(el);}else{document.getElementById(id)?.remove();} chat.scrollTop=chat.scrollHeight; }
+function addUser(t){ const el=document.createElement('div'); el.className='bubble user'; el.textContent=t; chat.appendChild(el); scrollToBottom(); }
+function addBot(html){ const el=document.createElement('div'); el.className='bubble bot'; el.innerHTML=html; chat.appendChild(el); scrollToBottom(); }
+function typing(on=true){ const id='typing'; if(on){ const el=document.createElement('div'); el.id=id; el.className='bubble bot'; el.innerHTML=`<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`; chat.appendChild(el);}else{document.getElementById(id)?.remove();} scrollToBottom(); }
+function scrollToBottom(){ setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 50); }
 
 /* ---------- event delegation for dynamic buttons ---------- */
 chat.addEventListener('click', (e)=>{
@@ -253,206 +262,20 @@ function qrSet(o){
   return `<div class="qrs">${parts.join('')}</div>`;
 }
 
-/* ---------- keyword bank (expanded; + patron-services synonyms) ---------- */
+/* ---------- keyword bank ---------- */
 const BANK_RAW={
   greeting:['hi','hello','hey','hola','bonjou','bonswa','bonjour','salut'],
   thanks:['thanks','thank you','gracias','merci','mesi','meci','thx','ty'],
   goodbye:['bye','goodbye','adios','adiós','ciao','nos vemos','na we','n a wè','later','see ya'],
-  // frustration/profanity/insults (no slurs)
   frustrated:[
-    // English profanity/soft-insults
     'wtf','wth','this sucks','sucks','useless','annoying','so annoying','i hate this','hate this','mad','angry','pissed',
     'this is stupid','stupid','dumb','moron','idiot','you idiot','you are dumb','you are stupid','you are no help','no help','you\'re useless','piece of crap','garbage','trash','worthless','you suck',
     'shut up','stfu','screw this','not working','doesn\'t work','dont work','keeps crashing','buggy','broken','broke','so frustrating','very frustrating','im frustrated','i am frustrated','frustrating','fustrating',
     'damn','crap','shit','bullshit','fuck','f*ck','bitch','asshole','bastard','douche','dumbass',
-    // Spanish
     'no sirve','esto apesta','basura','odio esto','molesto','enojado','muy frustrante','esto es frustrante','no funciona','está roto','esta roto','siempre falla','no ayudas','no me ayudas','no sirves','inutil','inútil',
     'cállate','callate','cayate','idiota','tonto','baboso','torpe','estupido','estúpido','imbecil','imbécil','pendejo','mierda','carajo','chingada','chingado','maldita sea','que basura',
-    // Haitian Kreyòl
     'sa pa mache','sa pa ede','sa pa itil','sa kase','li kase','li kraze','mwen fache','m fache','m fustrasyon','sa fache m','sa fatigan','rayi sa','sa se tenten','ou sòt','sòt','estipid','idis','bet','bèt','betize','bètize',
     'fèmen bouch ou','ferme bouch ou','kaka','mèd','ou pa ede','ou initil','pa itil','move aplikasyon'
   ],
   jobs:['job','jobs','employment','hiring','apply','application','position','work','career','empleo','trabajo','puestos','trabajos','contratando','trabajar','travay'],
-  training:['training','trainings','program','programs','class','classes','course','courses','certification','certifications','academy','entrenamiento','entrenamientos','programa','programas','clase','clases','curso','cursos','certificacion','certificaciones','fòmasyon','kour','kou','sertifikasyon'],
-  employment_services:['employment services','job services','workforce','career services','career center','servicios de empleo','servicios laborales','centro de empleo','sèvis travay','sèvis anplwa','career help','task employment'],
-  housing:['homeless','shelter','housing','code blue','warming center','sin hogar','albergue','refugio','kote pou dòmi','abri'],
-  resume:['resume','cv','cover letter','template','write my resume','help resume','build resume','curriculum','curriculum vitae','hoja de vida','currículum'],
-  culinary:['culinary','kitchen training','emilio','academy','cooking program','culinaria','academia emilio','kou kwizin','chef'],
-  forklift:['forklift','warehouse license','osha','certification','montacargas','forklift training','sertifikasyon'],
-  case_mgmt:['case management','case manager','caseworker','case worker','social worker','manejo de casos','gestion de casos','trabajador social','jesyon ka','travayè sosyal'],
-  idhelp:['id help','state id','identification','photo id','non-driver id','non driver id','identificacion','identificación','tarjeta de id','kat idantite','idantite','kat id'],
-  appointment:[
-    'appointment','appt','apointment','appoint','make an appointment','set an appointment','book','booking','schedule','scheduling','rsvp','register','sign up','enroll','enrollment','pre-register','intake','orientation','meeting','consultation','consult','callback','call back','availability','available time','time slot','next opening','next available',
-    'walk in','walk-in','walkins','drop in','drop-in','come in','come by','same day','same-day','today','tomorrow','this week','asap','soon','right now','need an appointment','do i need an appointment','check in',
-    'cita','sin cita','sin cita previa','agendar','programar','reservar','reserva','registrarme','inscribirme','inscripcion','orientacion','ingreso','entrevista','horario disponible','proxima cita','mismo dia','hoy','manana','puedo pasar hoy','donde saco cita',
-    'randevou','pran randevou','fe randevou','rezève','ore','le ki disponib','pwochen plas','san randevou','menm jou','jodi a','demen','kounye a','mwen bezwen randevou'
-  ],
-  hours:['hours','time','open','close','lunch','dinner','meal','horario','horas','le','lè','schedule'],
-  location:['address','location','map','where','direccion','dirección','ubicacion','ubicación','donde','donde esta','donde queda','como llegar','kote','ki kote','adrès','adres','mapa'],
-  transit:['bus','nj transit','route','ticket','fare','train','planner','autobus','autobús','tren','otobis','bus pass'],
-  resources:[
-    'resource','resources','community resources','help list','services list','assistance list','support services',
-    'benefits','snap','ebt','wic','tanf','ssi','ssdi','utilities','pseg','rent','legal','expungement','rehab','recovery','counseling','mental health',
-    'phones','cell phone','task services','what we do','what do you do','what do you offer','what services','all services','services',
-    // “patron services” synonyms
-    'patron services','client services','guest services',
-    // Spanish
-    'recursos','recursos de la comunidad','servicios','lista de servicios','servicios de task','qué hacen','que hacen','qué ofrecen','que ofrecen','todos los servicios','servicios para clientes',
-    // Kreyòl
-    'resous','resous kominotè','sèvis','sèvis task','kisa nou fè','ki sèvis','tout sèvis','sèvis kliyan'
-  ]
-};
-const BANK=Object.fromEntries(Object.entries(BANK_RAW).map(([k,a])=>[k,a.map(w=>norm(w))]));
-
-/* ---------- intent detection ---------- */
-function findIntents(text){
-  const t=norm(text); const hits=new Set();
-  // conversational first
-  if(/\b(hi|hello|hey|hola|bonjou|bonswa|bonjour|salut)\b/.test(stripDiacritics(text).toLowerCase())) hits.add('greeting');
-  if(/\b(thanks|thank you|gracias|merci|mesi|meci|thx|ty)\b/.test(stripDiacritics(text).toLowerCase())) hits.add('thanks');
-  if(/\b(bye|goodbye|adios|adiós|ciao|nos vemos|na we|n a we|later|see ya)\b/.test(stripDiacritics(text).toLowerCase())) hits.add('goodbye');
-
-  // frustration check (broad)
-  for(const w of BANK.frustrated){ if(t.indexOf(w)>=0){ hits.add('frustrated'); break; } }
-  if(/!\?$|\?!!|wtf|no sirve|esto no|esto apesta|sa pa mache|sa pa ede|sa pa itil/i.test(text)) hits.add('frustrated');
-
-  // bank match
-  for(const [intent, words] of Object.entries(BANK)){
-    if(['greeting','thanks','goodbye','frustrated'].includes(intent)) continue;
-    for(const w of words){ if(t.indexOf(w)>=0){ hits.add(intent); break; } }
-  }
-  if(hits.has('case_mgmt')||hits.has('idhelp')) hits.add('appointment');
-  return [...hits];
-}
-
-/* ---------- response builder ---------- */
-function section(title,body){ return `<div style="margin-bottom:10px"><strong>${title}</strong><br>${body}</div>`; }
-function replyFor(intents, rawText){
-  const order=['frustrated','greeting','thanks','goodbye','appointment','case_mgmt','idhelp','jobs','training','employment_services','housing','resume','culinary','forklift','hours','location','transit','resources'];
-  intents.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
-
-  const blocks=[]; let addApptQR=false, addJobsQR=false, addHelpQR=false;
-  const wantsSameDay=/(same[\s-]?day|today|right now|asap|hoy|jodi a)/i.test(rawText);
-
-  if(intents.includes('frustrated')){
-    blocks.push(section('🙏', UI[currentLang].frustrated));
-    addHelpQR=true;
-  }
-  if(intents.includes('greeting')) blocks.push(section('👋', UI[currentLang].hello));
-  if(intents.includes('thanks'))   blocks.push(section('😊', UI[currentLang].thanks));
-  if(intents.includes('goodbye'))  blocks.push(section('👋', UI[currentLang].bye));
-
-  if(intents.includes('appointment')||intents.includes('case_mgmt')||intents.includes('idhelp')){
-    let msg = `Best way: call <a href="tel:6093371624">(609) 337-1624</a>.<br>${UI[currentLang].no_walkins}<div class="note">${UI[currentLang].bi_note}</div>`;
-    if(wantsSameDay) msg += `<br>Same-day may be possible — please call first: <a href="tel:6093371624">(609) 337-1624</a>.`;
-    msg += `<br>If you can’t get through, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`;
-    blocks.push(section('📅 Make / Check an Appointment', msg)); addApptQR=true;
-  }
-  if(intents.includes('jobs')){
-    blocks.push(section('💼 Jobs', `<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions (Mercer County)</a><br>Sign up for alerts: <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Job Alerts</a><br>Need help with jobs or training? Call <a href="tel:6096976166">(609) 697-6166</a> or <a href="tel:6096976215">(609) 697-6215</a>.`));
-    addJobsQR=true;
-  }
-  if(intents.includes('training')){
-    blocks.push(section('🎓 Training', `Browse training & apply: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Questions? Call <a href="tel:6096976166">(609) 697-6166</a> or <a href="tel:6096976215">(609) 697-6215</a>.`));
-    addJobsQR=true;
-  }
-  if(intents.includes('employment_services')){
-    blocks.push(section('🧰 Employment Services', `We can help with job search, applications, resume, and certifications.<br>Start here: <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Talk to a person: <a href="tel:6096976166">(609) 697-6166</a> or <a href="tel:6096976215">(609) 697-6215</a>.`));
-    addJobsQR=true;
-  }
-  if(intents.includes('housing')){
-    blocks.push(section('🏠 Housing / Shelter', `For Code Blue and shelter info, start here:<br><a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Community resources</a><br>If you’re stuck, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`));
-  }
-  if(intents.includes('resume')){
-    blocks.push(section('📄 Resume help', `Templates & guidance: <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a><br>For 1-on-1 help, call <a href="tel:6093371624">(609) 337-1624</a>.`));
-  }
-  if(intents.includes('culinary')){
-    blocks.push(section('👨‍🍳 Emilio Culinary Academy', `10-week culinary training. Apply/details: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Ask about start dates/interviews: <a href="tel:6093371624">(609) 337-1624</a>.`));
-  }
-  if(intents.includes('forklift')){
-    blocks.push(section('🛠️ Forklift Certification', `Check upcoming classes: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>To confirm next class & if you need an appointment, call <a href="tel:6093371624">(609) 337-1624</a>.`));
-  }
-  if(intents.includes('hours'))    blocks.push(section('🕒 Hours', UI[currentLang].mealHours));
-  if(intents.includes('location')) blocks.push(section('📍 Address', `${UI[currentLang].address}<br><a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${UI[currentLang].maps}</a>`));
-  if(intents.includes('transit'))  blocks.push(section('🚌 Transit', `<a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>Destination: 72½ Escher St, Trenton.`));
-  if(intents.includes('resources')) blocks.push(section('🧰 Resources', `
-      Community resources: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a><br>
-      TASK services: <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
-
-  /* Fallback: if we don't know → route to Resources + TASK services */
-  if(blocks.length===0){
-    blocks.push(section('🧰 Resources', `
-      Community resources: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a><br>
-      TASK services: <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
-  }
-
-  // Quick replies at tail
-  const strips=[];
-  if(intents.includes('frustrated')) strips.push(qrSet({callMe:true,textMe:true}));
-  if(intents.includes('appointment')||intents.includes('case_mgmt')||intents.includes('idhelp')) strips.push(qrSet({callAppt:true,textMe:true,nextFork:true,needAppt:true}));
-  if(intents.includes('jobs')||intents.includes('training')||intents.includes('employment_services')) strips.push(qrSet({callJobs:true,jobsSite:true,trainingSite:true,textMe:true}));
-
-  return blocks.join('<hr style="border:none;height:8px;background:transparent">') + strips.join('');
-}
-
-/* ---------- logging / admin ---------- */
-const logs=[], missed=[];
-function logEvent(text,intents){ const row={ts:new Date().toISOString(),text,intents:intents.join('|')||'default',lang:currentLang}; logs.push(row); if(!intents.length){ missed.push(row.ts+' • '+text); document.getElementById('missedBox').value=missed.join('\n'); } }
-function toCSV(rows){ if(!rows.length) return ''; const headers=Object.keys(rows[0]); const esc=v=>`"${String(v).replace(/"/g,'""')}"`; return [headers.map(esc).join(','),...rows.map(r=>headers.map(h=>esc(r[h]??'')).join(',')).join('\n')].join('\n'); }
-
-/* ---------- controller ---------- */
-function handle(text){
-  if(!text) return;
-  setLang(detectLang(text));
-  addUser(text); statusEl.textContent='🤖 Thinking…'; typing(true);
-  const intents=findIntents(text);
-  setTimeout(()=>{ typing(false); addBot(replyFor(intents,text)); statusEl.textContent='✅ Answered!'; setTimeout(()=>statusEl.textContent='⚠️ I can make mistakes — please double-check important info!',1200); logEvent(text,intents); }, 220);
-}
-function send(){ const t=(box.value||'').trim(); if(!t) return; box.value=''; box.blur(); handle(t); setTimeout(()=>box.focus(),100); }
-
-/* ---------- boot ---------- */
-addBot(`🟡 <strong>${UI[currentLang].welcome}</strong><br><br>${UI[currentLang].quick} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
-document.getElementById('send').addEventListener('click',send);
-document.getElementById('box').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
-
-/* ---------- mobile keyboard padding ---------- */
-const vv=window.visualViewport;
-function measureFooter(){ document.documentElement.style.setProperty('--footer-h', `${Math.round(document.getElementById('footer').getBoundingClientRect().height)}px`); }
-measureFooter(); addEventListener('resize',measureFooter);
-if(vv){
-  const adjust=()=>{ const layoutH=document.documentElement.clientHeight; const overlap=Math.max(0,layoutH-(vv.height+vv.offsetTop)); footer.style.transform=`translateY(${-overlap}px)`; document.documentElement.style.setProperty('--keyboard-h', `${Math.max(0,Math.round(overlap))}px`); chat.lastElementChild?.scrollIntoView({block:'end'}); };
-  vv.addEventListener('resize',adjust); vv.addEventListener('scroll',adjust);
-  box.addEventListener('focus',()=>requestAnimationFrame(adjust));
-  box.addEventListener('blur',()=>{ footer.style.transform='translateY(0)'; document.documentElement.style.setProperty('--keyboard-h','0px'); });
-}
-
-/* ---------- admin (Ctrl+Alt+A, PIN 1234) ---------- */
-const ADMIN_PIN='1234', pinModal=document.getElementById('pinModal'), pinInput=document.getElementById('pinInput'), adminPanel=document.getElementById('adminPanel');
-document.addEventListener('keydown',e=>{ if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==='a'){ e.preventDefault(); pinModal.style.display='flex'; pinInput.value=''; pinInput.focus(); }});
-document.getElementById('pinSubmit').addEventListener('click',()=>{ if(pinInput.value.trim()===ADMIN_PIN){ pinModal.style.display='none'; adminPanel.style.display='block'; } else alert('Incorrect PIN'); });
-document.getElementById('pinCancel').addEventListener('click',()=> pinModal.style.display='none');
-document.getElementById('closeAdmin').addEventListener('click',()=> adminPanel.style.display='none');
-document.getElementById('exportCsv').addEventListener('click',()=>{ const csv=toCSV(logs); const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='task-assistant-logs.csv'; a.click(); URL.revokeObjectURL(url); });
-document.getElementById('copySummary').addEventListener('click',()=>{ const counts=logs.reduce((a,r)=>(a[r.intents]=(a[r.intents]||0)+1,a),{}); const lines=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`• ${k}: ${v}`).join('\n'); const summary=`TASK Assistant Summary\nTotal messages: ${logs.length}\nIntents:\n${lines||'(no data)'}`; navigator.clipboard.writeText(summary).then(()=>alert('Summary copied.')); });
-document.getElementById('clearLogs').addEventListener('click',()=>{ if(confirm('Clear all?')){ logs.length=0; missed.length=0; document.getElementById('missedBox').value=''; }});
-
-/* ---------- voice (https/localhost/file) ---------- */
-(function setupVoice(){
-  let SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const isLocalhost=['localhost','127.0.0.1'].includes(location.hostname);
-  const secure=(location.protocol==='https:'||isLocalhost||location.protocol==='file:');
-  let rec=null,recognizing=false;
-  if(SR&&secure){
-    rec=new SR(); rec.interimResults=false; rec.maxAlternatives=1; rec.continuous=false;
-    const map={en:'en-US',es:'es-US',ht:'en-US'};
-    rec.onresult=e=>{ const tx=e.results[0][0].transcript; handle(tx); };
-    rec.onend=()=>{ recognizing=false; micBtn.textContent='🎙'; };
-    rec.onerror=ev=>{ recognizing=false; micBtn.textContent='🎙'; showToast('Mic error: '+(ev.error||'unknown')); };
-    micBtn.addEventListener('click',()=>{ if(recognizing){ rec.stop(); recognizing=false; micBtn.textContent='🎙'; return;} try{ rec.lang=map[currentLang]||'en-US'; rec.start(); recognizing=true; micBtn.textContent='⏺'; }catch(e){ showToast('Could not start mic. Check microphone permissions.'); }});
-  }else{
-    micBtn.addEventListener('click',()=>{ const proto=location.protocol; if(proto!=='https:'&&proto!=='file:'&&!['localhost','127.0.0.1'].includes(location.hostname)){ showToast('Voice input needs HTTPS (or open the file directly).'); } else { showToast('This browser does not support speech recognition. Use the keyboard mic or call (609) 337-1624.'); } });
-  }
-})();
-</script>
-</body>
-</html>
+  training:['training','trainings','program','programs','class','classes','course','courses','certification','certifications','
