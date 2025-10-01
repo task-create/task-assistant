@@ -1,109 +1,4 @@
-idhelp:['id help','state id','identification','photo id','non-driver id','non driver id','identificacion','identificación','tarjeta de id','kat idantite','idantite','kat id'],
-  appointment:['appointment','appt','apointment','appoint','make an appointment','set an appointment','book','booking','schedule','scheduling','rsvp','register','sign up','enroll','enrollment','pre-register','intake','orientation','meeting','consultation','consult','callback','call back','availability','available time','time slot','next opening','next available','walk in','walk-in','walkins','drop in','drop-in','come in','come by','same day','same-day','today','tomorrow','this week','asap','soon','right now','need an appointment','do i need an appointment','check in','cita','sin cita','sin cita previa','agendar','programar','reservar','reserva','registrarme','inscribirme','inscripcion','orientacion','ingreso','entrevista','horario disponible','proxima cita','mismo dia','hoy','manana','puedo pasar hoy','donde saco cita','randevou','pran randevou','fe randevou','rezève','ore','le ki disponib','pwochen plas','san randevou','menm jou','jodi a','demen','kounye a','mwen bezwen randevou'],
-  hours:['hours','time','open','close','lunch','dinner','meal','horario','horas','le','lè','schedule'],
-  location:['address','location','map','where','direccion','dirección','ubicacion','ubicación','donde','donde esta','donde queda','como llegar','kote','ki kote','adrès','adres','mapa'],
-  transit:['bus','nj transit','route','ticket','fare','train','planner','autobus','autobús','tren','otobis','bus pass'],
-  resources:['resource','resources','community resources','help list','services list','assistance list','support services','benefits','snap','ebt','wic','tanf','ssi','ssdi','utilities','pseg','rent','legal','expungement','rehab','recovery','counseling','mental health','phones','cell phone','task services','what we do','what do you do','what do you offer','what services','all services','services','patron services','client services','guest services','recursos','recursos de la comunidad','servicios','lista de servicios','servicios de task','qué hacen','que hacen','qué ofrecen','que ofrecen','todos los servicios','servicios para clientes','resous','resous kominotè','sèvis','sèvis task','kisa nou fè','ki sèvis','tout sèvis','sèvis kliyan']
-};
-const BANK=Object.fromEntries(Object.entries(BANK_RAW).map(([k,a])=>[k,a.map(w=>norm(w))]));
-
-function findIntents(text){
-  const t=norm(text); const hits=new Set();
-  if(/\b(hi|hello|hey|hola|bonjou|bonswa|bonjour|salut)\b/.test(stripDiacritics(text).toLowerCase())) hits.add('greeting');
-  if(/\b(thanks|thank you|gracias|merci|mesi|meci|thx|ty)\b/.test(stripDiacritics(text).toLowerCase())) hits.add('thanks');
-  if(/\b(bye|goodbye|adios|adiós|ciao|nos vemos|na we|n a we|later|see ya)\b/.test(stripDiacritics(text).toLowerCase())) hits.add('goodbye');
-  for(const w of BANK.frustrated){ if(t.indexOf(w)>=0){ hits.add('frustrated'); break; } }
-  if(/!\?$|\?!!|wtf|no sirve|esto no|esto apesta|sa pa mache|sa pa ede|sa pa itil/i.test(text)) hits.add('frustrated');
-  for(const [intent, words] of Object.entries(BANK)){
-    if(['greeting','thanks','goodbye','frustrated'].includes(intent)) continue;
-    for(const w of words){ if(t.indexOf(w)>=0){ hits.add(intent); break; } }
-  }
-  if(hits.has('case_mgmt')||hits.has('idhelp')) hits.add('appointment');
-  return [...hits];
-}
-
-function section(title,body){ return `<div style="margin-bottom:10px"><strong>${title}</strong><br>${body}</div>`; }
-function replyFor(intents, rawText){
-  const order=['frustrated','greeting','thanks','goodbye','appointment','case_mgmt','idhelp','jobs','training','employment_services','housing','resume','culinary','forklift','hours','location','transit','resources'];
-  intents.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
-  const blocks=[]; const wantsSameDay=/(same[\s-]?day|today|right now|asap|hoy|jodi a)/i.test(rawText);
-  if(intents.includes('frustrated')){ blocks.push(section('🙏', UI[currentLang].frustrated)); }
-  if(intents.includes('greeting')) blocks.push(section('👋', UI[currentLang].hello));
-  if(intents.includes('thanks'))   blocks.push(section('😊', UI[currentLang].thanks));
-  if(intents.includes('goodbye'))  blocks.push(section('👋', UI[currentLang].bye));
-  if(intents.includes('appointment')||intents.includes('case_mgmt')||intents.includes('idhelp')){
-    let msg = `Best way: call <a href="tel:6093371624">(609) 337-1624</a>.<br>${UI[currentLang].no_walkins}<div class="note">${UI[currentLang].bi_note}</div>`;
-    if(wantsSameDay) msg += `<br>Same-day may be possible — please call first: <a href="tel:6093371624">(609) 337-1624</a>.`;
-    msg += `<br>If you can't get through, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`;
-    blocks.push(section('📅 Make / Check an Appointment', msg));
-  }
-  if(intents.includes('jobs')){ blocks.push(section('💼 Jobs', `<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions (Mercer County)</a><br>Sign up for alerts: <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Job Alerts</a><br>Need help? Call <a href="tel:6096976166">(609) 697-6166</a> or <a href="tel:6096976215">(609) 697-6215</a>.`)); }
-  if(intents.includes('training')){ blocks.push(section('🎓 Training', `Browse training: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Questions? Call <a href="tel:6096976166">(609) 697-6166</a> or <a href="tel:6096976215">(609) 697-6215</a>.`)); }
-  if(intents.includes('employment_services')){ blocks.push(section('🧰 Employment Services', `We can help with job search, applications, resume, and certifications.<br>Start here: <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Talk to a person: <a href="tel:6096976166">(609) 697-6166</a> or <a href="tel:6096976215">(609) 697-6215</a>.`)); }
-  if(intents.includes('housing')){ blocks.push(section('🏠 Housing / Shelter', `For Code Blue and shelter info: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Community resources</a><br>If you're stuck, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`)); }
-  if(intents.includes('resume')){ blocks.push(section('📄 Resume help', `Templates & guidance: <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Resume</a><br>For 1-on-1 help, call <a href="tel:6093371624">(609) 337-1624</a>.`)); }
-  if(intents.includes('culinary')){ blocks.push(section('👨‍🍳 Emilio Culinary Academy', `10-week culinary training. Apply: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Ask about start dates: <a href="tel:6093371624">(609) 337-1624</a>.`)); }
-  if(intents.includes('forklift')){ blocks.push(section('🛠️ Forklift Certification', `Check upcoming classes: <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>To confirm next class, call <a href="tel:6093371624">(609) 337-1624</a>.`)); }
-  if(intents.includes('hours'))    blocks.push(section('🕒 Hours', UI[currentLang].mealHours));
-  if(intents.includes('location')) blocks.push(section('📍 Address', `${UI[currentLang].address}<br><a href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">${UI[currentLang].maps}</a>`));
-  if(intents.includes('transit'))  blocks.push(section('🚌 Transit', `<a href="https://www.njtransit.com/trip-planner-to" target="_blank" rel="noopener">NJ Transit Trip Planner</a> • 1-973-275-5555<br>Destination: 72½ Escher St, Trenton.`));
-  if(intents.includes('resources')) blocks.push(section('🧰 Resources', `Community resources: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a><br>TASK services: <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
-  if(blocks.length===0){ blocks.push(section('🧰 Resources', `Community resources: <a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Resource list</a><br>TASK services: <a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`)); }
-  const strips=[];
-  if(intents.includes('frustrated')) strips.push(qrSet({callMe:true,textMe:true}));
-  if(intents.includes('appointment')||intents.includes('case_mgmt')||intents.includes('idhelp')) strips.push(qrSet({callAppt:true,textMe:true,nextFork:true,needAppt:true}));
-  if(intents.includes('jobs')||intents.includes('training')||intents.includes('employment_services')) strips.push(qrSet({callJobs:true,jobsSite:true,trainingSite:true,textMe:true}));
-  return blocks.join('<hr style="border:none;height:8px;background:transparent">') + strips.join('');
-}
-
-const logs=[], missed=[];
-function logEvent(text,intents){ const row={ts:new Date().toISOString(),text,intents:intents.join('|')||'default',lang:currentLang}; logs.push(row); if(!intents.length){ missed.push(row.ts+' • '+text); document.getElementById('missedBox').value=missed.join('\n'); } }
-function toCSV(rows){ if(!rows.length) return ''; const headers=Object.keys(rows[0]); const esc=v=>`"${String(v).replace(/"/g,'""')}"`; return [headers.map(esc).join(','),...rows.map(r=>headers.map(h=>esc(r[h]??'')).join(','))].join('\n'); }
-
-function handle(text){
-  if(!text) return;
-  setLang(detectLang(text));
-  addUser(text); statusEl.textContent='🤖 Thinking…'; typing(true);
-  const intents=findIntents(text);
-  setTimeout(()=>{ typing(false); addBot(replyFor(intents,text)); statusEl.textContent='✅ Answered!'; setTimeout(()=>statusEl.textContent='⚠️ I can make mistakes — please double-check important info!',1200); logEvent(text,intents); }, 220);
-}
-function send(){ const t=(box.value||'').trim(); if(!t) return; box.value=''; box.blur(); handle(t); setTimeout(()=>box.focus(),100); }
-
-addBot(`🟡 <strong>${UI[currentLang].welcome}</strong><br><br>${UI[currentLang].quick} <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
-document.getElementById('send').addEventListener('click',send);
-document.getElementById('box').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
-
-// Simple, reliable approach - no complex viewport handling
-box.addEventListener('focus', () => {
-  setTimeout(scrollToBottom, 300);
-});
-
-const ADMIN_PIN='1234', pinModal=document.getElementById('pinModal'), pinInput=document.getElementById('pinInput'), adminPanel=document.getElementById('adminPanel');
-document.addEventListener('keydown',e=>{ if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==='a'){ e.preventDefault(); pinModal.style.display='flex'; pinInput.value=''; pinInput.focus(); }});
-document.getElementById('pinSubmit').addEventListener('click',()=>{ if(pinInput.value.trim()===ADMIN_PIN){ pinModal.style.display='none'; adminPanel.style.display='block'; } else alert('Incorrect PIN'); });
-document.getElementById('pinCancel').addEventListener('click',()=> pinModal.style.display='none');
-document.getElementById('closeAdmin').addEventListener('click',()=> adminPanel.style.display='none');
-document.getElementById('exportCsv').addEventListener('click',()=>{ const csv=toCSV(logs); const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='task-assistant-logs.csv'; a.click(); URL.revokeObjectURL(url); });
-document.getElementById('copySummary').addEventListener('click',()=>{ const counts=logs.reduce((a,r)=>(a[r.intents]=(a[r.intents]||0)+1,a),{}); const lines=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`• ${k}: ${v}`).join('\n'); const summary=`TASK Assistant Summary\nTotal messages: ${logs.length}\nIntents:\n${lines||'(no data)'}`; navigator.clipboard.writeText(summary).then(()=>alert('Summary copied.')); });
-document.getElementById('clearLogs').addEventListener('click',()=>{ if(confirm('Clear all?')){ logs.length=0; missed.length=0; document.getElementById('missedBox').value=''; }});
-
-(function setupVoice(){
-  let SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const isLocalhost=['localhost','127.0.0.1'].includes(location.hostname);
-  const secure=(location.protocol==='https:'||isLocalhost||location.protocol==='file:');
-  let rec=null,recognizing=false;
-  if(SR&&secure){
-    rec=new SR(); rec.interimResults=false; rec.maxAlternatives=1; rec.continuous=false;
-    const map={en:'en-US',es:'es-US',ht:'en-US'};
-    rec.onresult=e=>{ const tx=e.results[0][0].transcript; handle(tx); };
-    rec.onend=()=>{ recognizing=false; micBtn.textContent='🎙'; };
-    rec.onerror=ev=>{ recognizing=false; micBtn.textContent='🎙'; };
-    micBtn.addEventListener('click',()=>{ if(recognizing){ rec.stop(); recognizing=false; micBtn.textContent='🎙'; return;} try{ rec.lang=map[currentLang]||'en-US'; rec.start(); recognizing=true; micBtn.textContent='⏺'; }catch(e){ }});
-  }
-})();
-</script>
-</body>
-</html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -114,311 +9,235 @@ document.getElementById('clearLogs').addEventListener('click',()=>{ if(confirm('
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
 <meta name="theme-color" content="#ffffff">
 <style>
-  :root{
-    --radius:18px;
-    --bg:#eef3f8; --surface:#fff; --surface-2:#f7fbff; --text:#0e1726; --muted:#5f6c80;
-    --brand:#145078; --accent:#ff911f; --accent-2:#ffc91f; --border:#d9e2ec; --link:#0b63c6;
-    --shadow:0 18px 36px rgba(20,80,120,.18); --shadow-soft:0 8px 20px rgba(19,33,58,.12);
-    --bubble-bot:#fff; --bubble-border:#d9e2ec;
-    --bubble-user-bg:linear-gradient(135deg,#ff911f,#ffc91f); --bubble-user-text:#fff; --bubble-user-border:transparent;
-    --typing:#7e8aa3;
-    --footer-h:76px; --keyboard-h:0px;
-  }
-  [data-theme="dark"]{
-    --bg:#0b1220; --surface:#0f1726; --surface-2:#0d1522; --text:#e6edf7; --muted:#a7b6c9;
-    --brand:#8bd0ff; --accent:#ffb357; --accent-2:#ffd36a; --border:#223247; --link:#87c4ff;
-    --bubble-bot:#121e33; --bubble-border:#2a3b55;
-    --bubble-user-bg:#1f86ff; --bubble-user-text:#fff; --bubble-user-border:#0f5fc3;
-    --typing:#a9c7ff; --shadow:0 20px 44px rgba(0,0,0,.45); --shadow-soft:0 10px 28px rgba(0,0,0,.35);
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{
-    font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    background:var(--bg); 
-    color:var(--text); 
-    margin: 0;
-    padding: 0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size: clamp(14px, 1.6vw, 16px);
-    min-height: 100vh;
-  }
-  a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
-  .app{
-    width:100%; 
-    max-width:560px; 
-    background:var(--surface); 
-    border:3px solid var(--accent); 
-    border-radius:18px; 
-    overflow:hidden; 
-    box-shadow:var(--shadow); 
-    display:flex; 
-    flex-direction:column; 
-    height:100vh;
-    position: relative;
-  }
-  .header{background:var(--surface-2); border-bottom:1px solid var(--border); padding:10px 96px 10px 56px; position:relative; text-align:center;}
-  .badge{display:inline-block;background:var(--brand);color:#fff; padding:8px 14px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;cursor:pointer}
-  .theme,.mic{position:absolute; top:8px; width:44px;height:44px;border:none;border-radius:999px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:var(--shadow-soft);cursor:pointer}
-  .mic{right:56px} .theme{right:8px}
-  .langbar{display:flex;gap:8px;justify-content:center;align-items:center;padding:8px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .lang-label{font:700 12px/1 "Nunito",sans-serif;color:#5f6c80}
-  .lang-chip{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:999px;min-width:44px;min-height:36px;border:1px solid rgba(0,0,0,.08);background:#fff;font-weight:700;font-size:12px;pointer-events:none;opacity:.85}
-  [data-theme="dark"] .lang-chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
-  .rail{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px;background:var(--surface-2);border-bottom:1px solid var(--border)}
-  .chip{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:12px;color:var(--brand);border:1px solid rgba(255,145,31,.35);background:#fff;border-radius:999px;padding:9px 12px;min-height:40px;box-shadow:var(--shadow-soft)}
-  [data-theme="dark"] .chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
-  .chat{
-    flex:1; 
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding:14px; 
-    padding-bottom: 100px;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    background:
-      radial-gradient(70% 100% at -10% -20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 65%),
-      radial-gradient(60% 90% at 110% 120%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 60%),
-      linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
-  }
-  .bubble{margin:12px 0;padding:12px 16px;border-radius:16px;line-height:1.45;border:1px solid var(--bubble-border);background:var(--bubble-bot);box-shadow:var(--shadow-soft);max-width:90%}
-  .bubble.bot{margin-right:20%}
-  .bubble.user{margin-left:20%;text-align:right;color:#fff;background:var(--bubble-user-bg);border:1px solid var(--bubble-user-border);border-radius:16px 16px 4px 16px}
-  .typing{display:inline-flex;gap:6px;align-items:flex-end}
-  .typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);animation:bounce 1s infinite ease-in-out}
-  .typing .dot:nth-child(2){animation-delay:.12s}.typing .dot:nth-child(3){animation-delay:.24s}
-  @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.6}40%{transform:translateY(-6px);opacity:1}}
-  .footer{
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 12px;
-    background: var(--surface-2);
-    border-top: 1px solid var(--border);
-    z-index: 100;
-  }
-  .row{display:flex;gap:10px;align-items:center}
-  input[type="text"]{flex:1;padding:14px 16px;border:2px solid var(--border);border-radius:25px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent)}
-  input::placeholder{color:var(--muted)} input:focus{border-color:var(--accent)}
-  .send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft)}
-  .status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
-  .qrs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .qr,.qr-link{background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:8px 10px;font-size:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-  .qr-link{text-decoration:none;color:inherit}
-  .note{font-size:11px;color:var(--muted);margin-top:6px}
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9998}
-  .modal .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:280px;max-width:90%;box-shadow:var(--shadow)}
-  .modal h4{font:700 14px "Nunito",sans-serif;margin-bottom:8px}
-  .modal .row{margin-top:10px}.modal input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2)}
-  .modal .btn{margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);cursor:pointer;background:var(--surface-2)}
-  .modal .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#222;border:none}
-  .admin-panel{position:fixed;inset:auto 12px 12px 12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;max-width:720px;display:none;z-index:9999}
-  .btn{border:1px solid var(--border);background:var(--surface-2);padding:8px 12px;border-radius:10px;cursor:pointer}
-  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#222;border:none}
-  .admin-panel textarea{width:100%;min-height:140px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);padding:8px}
+:root{--radius:18px;--bg:#eef3f8;--surface:#fff;--surface-2:#f7fbff;--text:#0e1726;--muted:#5f6c80;--brand:#145078;--accent:#ff911f;--accent-2:#ffc91f;--border:#d9e2ec;--link:#0b63c6;--shadow:0 18px 36px rgba(20,80,120,.18);--shadow-soft:0 8px 20px rgba(19,33,58,.12);--bubble-bot:#fff;--bubble-border:#d9e2ec;--bubble-user-bg:linear-gradient(135deg,#ff911f,#ffc91f);--bubble-user-text:#fff;--bubble-user-border:transparent;--typing:#7e8aa3}
+[data-theme="dark"]{--bg:#0b1220;--surface:#0f1726;--surface-2:#0d1522;--text:#e6edf7;--muted:#a7b6c9;--brand:#8bd0ff;--accent:#ffb357;--accent-2:#ffd36a;--border:#223247;--link:#87c4ff;--bubble-bot:#121e33;--bubble-border:#2a3b55;--bubble-user-bg:#1f86ff;--bubble-user-text:#fff;--bubble-user-border:#0f5fc3;--typing:#a9c7ff;--shadow:0 20px 44px rgba(0,0,0,.45);--shadow-soft:0 10px 28px rgba(0,0,0,.35)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;display:flex;align-items:center;justify-content:center;font-size:clamp(14px,1.6vw,16px);min-height:100vh}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+.app{width:100%;max-width:560px;background:var(--surface);border:3px solid var(--accent);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;height:100vh;position:relative}
+.header{background:var(--surface-2);border-bottom:1px solid var(--border);padding:10px 96px 10px 56px;position:relative;text-align:center}
+.badge{display:inline-block;background:var(--brand);color:#fff;padding:8px 14px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;cursor:pointer}
+.theme,.mic{position:absolute;top:8px;width:44px;height:44px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft);cursor:pointer}
+.mic{right:56px}.theme{right:8px}
+.langbar{display:flex;gap:8px;justify-content:center;align-items:center;padding:8px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.lang-label{font:700 12px/1 "Nunito",sans-serif;color:#5f6c80}
+.lang-chip{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:999px;min-width:44px;min-height:36px;border:1px solid rgba(0,0,0,.08);background:#fff;font-weight:700;font-size:12px;pointer-events:none;opacity:.85}
+[data-theme="dark"] .lang-chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
+.rail{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:12px;color:var(--brand);border:1px solid rgba(255,145,31,.35);background:#fff;border-radius:999px;padding:9px 12px;min-height:40px;box-shadow:var(--shadow-soft)}
+[data-theme="dark"] .chip{background:#0f1926;border-color:#2b3a4e;color:#a7d7ff}
+.chat{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;padding-bottom:100px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:radial-gradient(70% 100% at -10% -20%,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 65%),radial-gradient(60% 90% at 110% 120%,rgba(255,255,255,.04) 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%)}
+.bubble{margin:12px 0;padding:12px 16px;border-radius:16px;line-height:1.45;border:1px solid var(--bubble-border);background:var(--bubble-bot);box-shadow:var(--shadow-soft);max-width:90%}
+.bubble.bot{margin-right:20%}
+.bubble.user{margin-left:20%;text-align:right;color:#fff;background:var(--bubble-user-bg);border:1px solid var(--bubble-user-border);border-radius:16px 16px 4px 16px}
+.typing{display:inline-flex;gap:6px;align-items:flex-end}
+.typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);animation:bounce 1s infinite ease-in-out}
+.typing .dot:nth-child(2){animation-delay:.12s}.typing .dot:nth-child(3){animation-delay:.24s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.6}40%{transform:translateY(-6px);opacity:1}}
+.footer{position:absolute;bottom:0;left:0;right:0;padding:12px;background:var(--surface-2);border-top:1px solid var(--border);z-index:100}
+.row{display:flex;gap:10px;align-items:center}
+input[type="text"]{flex:1;padding:14px 16px;border:2px solid var(--border);border-radius:25px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent)}
+input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);outline:none}
+.send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft)}
+.status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.qrs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.qr,.qr-link{background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:8px 10px;font-size:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.qr-link{text-decoration:none;color:inherit}
+.note{font-size:11px;color:var(--muted);margin-top:6px}
 </style>
 </head>
 <body>
-  <main class="app" id="app">
-    <header class="header">
-      <div class="badge" id="scrollTopBtn" title="Scroll to top">TASK Assistant</div>
-      <button class="mic" id="micBtn" title="Voice input">🎙</button>
-      <button class="theme" id="themeToggle" title="Toggle theme">☼</button>
-    </header>
-
-    <div class="langbar" role="group" aria-label="Language">
-      <span class="lang-label">Language / Idioma / Lang:</span>
-      <span class="lang-chip" id="chipEN">EN</span>
-      <span class="lang-chip" id="chipES">ES</span>
-      <span class="lang-chip" id="chipHT">HT</span>
-    </div>
-
-    <nav class="rail" id="top-rail">
-      <a class="chip" href="https://www.google.com/maps?q=72+1/2+Escher+St,+Trenton,+NJ+08609" target="_blank" rel="noopener">📍 Address</a>
-      <a class="chip" href="https://bycell.co/ddmtq" target="_blank" rel="noopener">💼 Jobs</a>
-      <a class="chip" href="https://bycell.co/ddmtr" target="_blank" rel="noopener">🔔 Alerts</a>
-      <a class="chip" href="https://bycell.co/ddmtn" target="_blank" rel="noopener">🎓 Training</a>
-      <a class="chip" href="https://bycell.co/ddmui" target="_blank" rel="noopener">📄 Resume</a>
-      <a class="chip" href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank" rel="noopener">🎥 Interview Tips</a>
-      <a class="chip" href="https://bycell.co/ddmua" target="_blank" rel="noopener">🧰 Resources</a>
-    </nav>
-
-    <section class="chat" id="chat" role="log" aria-live="polite"></section>
-
-    <footer class="footer" id="footer">
-      <div class="row">
-        <input id="box" type="text" placeholder="Type: training, jobs, hours, address, bus…" autocomplete="off" enterkeyhint="send"/>
-        <button class="send" id="send">➤</button>
-      </div>
-      <div class="status" id="status">⚠️ I can make mistakes — please double-check important info!</div>
-    </footer>
-  </main>
-
-  <div class="modal" id="pinModal" style="display:none">
-    <div class="card">
-      <h4>Enter admin PIN</h4>
-      <div class="row"><input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN"/></div>
-      <button class="btn primary" id="pinSubmit">Unlock</button>
-      <button class="btn" id="pinCancel">Cancel</button>
-    </div>
-  </div>
-
-  <div class="admin-panel" id="adminPanel" style="display:none">
-    <h3>Admin • TASK Assistant</h3>
-    <div class="row">
-      <button class="btn" id="exportCsv">Export CSV</button>
-      <button class="btn" id="copySummary">Copy Summary</button>
-      <button class="btn" id="clearLogs">Clear Logs</button>
-      <button class="btn" id="loadLex">Load Keywords JSON</button>
-      <button class="btn" id="closeAdmin" style="margin-left:auto">Close</button>
-    </div>
-    <div style="margin-top:10px">
-      <strong style="font:700 13px Nunito, sans-serif">Missed / default queries</strong>
-      <textarea id="missedBox" readonly></textarea>
-    </div>
-  </div>
-
+<main class="app">
+<header class="header">
+<div class="badge" id="scrollTopBtn">TASK Assistant</div>
+<button class="mic" id="micBtn" aria-label="Microphone">🎙</button>
+<button class="theme" id="themeToggle" aria-label="Toggle theme">☼</button>
+</header>
+<div class="langbar">
+<span class="lang-label">Language / Idioma / Lang:</span>
+<span class="lang-chip" id="chipEN">EN</span>
+<span class="lang-chip" id="chipES">ES</span>
+<span class="lang-chip" id="chipHT">HT</span>
+</div>
+<nav class="rail">
+<a class="chip" href="https://www.google.com/maps?q=72%201%2F2%20Escher%20St,%20Trenton,%20NJ%2008609" target="_blank">📍 Address</a>
+<a class="chip" href="https://bycell.co/ddmtq" target="_blank">💼 Jobs</a>
+<a class="chip" href="https://bycell.co/ddmtr" target="_blank">🔔 Alerts</a>
+<a class="chip" href="https://bycell.co/ddmtn" target="_blank">🎓 Training</a>
+<a class="chip" href="https://bycell.co/ddmui" target="_blank">📄 Resume</a>
+<a class="chip" href="https://www.youtube.com/watch?v=ZU9x1vFx5lI" target="_blank">🎥 Tips</a>
+<a class="chip" href="https://bycell.co/ddmua" target="_blank">🧰 Resources</a>
+</nav>
+<section class="chat" id="chat"></section>
+<footer class="footer">
+<div class="row">
+<input id="box" type="text" placeholder="Type: training, jobs, hours, address, bus…" autocomplete="off"/>
+<button class="send" id="send" aria-label="Send">➤</button>
+</div>
+<div class="status">⚠️ I can make mistakes — please double-check important info!</div>
+</footer>
+</main>
 <script>
-function stripDiacritics(s){ try{ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }catch(e){ return s; } }
-function norm(s){ return (' ' + stripDiacritics(String(s||'')).toLowerCase() + ' '); }
-
+'use strict';
 const UI = {
-  en:{welcome:'👋 Hey there! I can help with training, jobs, appointments, hours, address, buses and more. Ask me anything.',
-      quick:'Quick links:', mealHours:'Meals: Lunch Mon–Fri 10:30a–1:00p • Dinner Mon–Thu 3:30–5:00p',
-      address:'72½ Escher St, Trenton, NJ 08609', maps:'Open Google Maps',
-      no_walkins:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.',
-      bi_note:'No caminatas / Pa san randevou',
-      hello:'Hi! 👋 How can I help today?', thanks:'You're welcome! 😊 Anything else I can do?', bye:'Take care! If you need to schedule, call (609) 337-1624.',
-      q_call:'📞 Call now', q_text:'💬 Text me', q_next_forklift:'🛠️ Next forklift class?', q_need_appt:'📅 Do I need an appointment?',
-      q_call_jobs:'📞 Call jobs/training', q_see_jobs:'🔎 Jobs site', q_see_training:'🎓 Training site',
-      ask_next_forklift:'When is the next forklift class?', ask_need_appt:'Do I need an appointment?',
-      frustrated:'🙏 We know this can be frustrating. Let's get you real help now — call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>. For appointments call <a href="tel:6093371624">(609) 337-1624</a>.'
+  en: {
+    welcome: '👋 Hey there! I can help with training, jobs, appointments, hours, address, buses and more. Ask me anything.',
+    q: 'Quick links:',
+    hello: 'Hi! 👋 How can I help today?',
+    thanks: "You're welcome! 😊 Anything else?",
+    bye: 'Take care! If you need to schedule, call (609) 337-1624.',
+    noWalk: 'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.',
+    biNote: 'No caminatas / Pa san randevou',
+    frust: '🙏 We know this can be frustrating. Let\'s get you real help now — call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>. For appointments call <a href="tel:6093371624">(609) 337-1624</a>.'
   },
-  es:{welcome:'👋 ¡Hola! Puedo ayudarte con entrenamientos, empleos, citas, horarios, dirección, autobuses y más. Pregúntame lo que sea.',
-      quick:'Enlaces rápidos:', mealHours:'Comidas: Almuerzo Lun–Vie 10:30–1:00 • Cena Lun–Jue 3:30–5:00',
-      address:'72½ Escher St, Trenton, NJ 08609', maps:'Abrir Google Maps',
-      no_walkins:'No atendemos <strong>sin cita</strong>. Por favor llama para programar. A veces hay mismo día si llamas primero.',
-      bi_note:'No caminatas / Pa san randevou',
-      hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?', thanks:'¡Con gusto! 😊 ¿Algo más?', bye:'¡Cuídate! Si necesitas una cita, llama al (609) 337-1624.',
-      q_call:'📞 Llamar ahora', q_text:'💬 Enviarme un mensaje', q_next_forklift:'🛠️ ¿Próxima clase de montacargas?', q_need_appt:'📅 ¿Necesito cita?',
-      q_call_jobs:'📞 Llamar empleo/entrenamiento', q_see_jobs:'🔎 Empleos', q_see_training:'🎓 Entrenamientos',
-      ask_next_forklift:'¿Cuándo es la próxima clase de montacargas?', ask_need_appt:'¿Necesito una cita?',
-      frustrated:'🙏 Sabemos que esto puede ser frustrante. Consigue ayuda ya: llámame al <a href="tel:6096976215">(609) 697-6215</a> o mándame un mensaje al <a href="sms:16096976215">(609) 697-6215</a>. Para citas llama al <a href="tel:6093371624">(609) 337-1624</a>.'
+  es: {
+    welcome: '👋 ¡Hola! Puedo ayudarte con entrenamientos, empleos, citas, horarios, dirección, autobuses y más.',
+    q: 'Enlaces rápidos:',
+    hello: '¡Hola! 👋 ¿En qué te puedo ayudar hoy?',
+    thanks: '¡Con gusto! 😊 ¿Algo más?',
+    bye: '¡Cuídate! Si necesitas una cita, llama al (609) 337-1624.',
+    noWalk: 'No atendemos <strong>sin cita</strong>. Por favor llama para programar.',
+    biNote: 'No caminatas / Pa san randevou',
+    frust: '🙏 Sabemos que esto puede ser frustrante. Consigue ayuda ya: llámame al <a href="tel:6096976215">(609) 697-6215</a> o mándame un mensaje al <a href="sms:16096976215">(609) 697-6215</a>. Para citas llama al <a href="tel:6093371624">(609) 337-1624</a>.'
   },
-  ht:{welcome:'👋 Bonjou! Mwen ka ede ak fòmasyon, travay, randevou, lè yo, adrès, otobis, ak plis ankò. Mande m sa ou bezwen.',
-      quick:'Lyen rapid:', mealHours:'Manje: Manje Maten Lun–Vandredi 10:30–1:00 • Aswè Lun–Jedi 3:30–5:00',
-      address:'72½ Escher St, Trenton, NJ 08609', maps:'Louvri Google Maps',
-      no_walkins:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou. Menm jou pafwa posib si w rele anvan.',
-      bi_note:'No caminatas / Pa san randevou',
-      hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?', thanks:'Avèk plezi! 😊 Gen lòt bagay?', bye:'Si ou bezwen randevou, rele (609) 337-1624.',
-      q_call:'📞 Rele kounye a', q_text:'💬 Voye tèks ban mwen', q_next_forklift:'🛠️ Ki lè pwochen klas forklift la?', q_need_appt:'📅 Èske mwen bezwen randevou?',
-      q_call_jobs:'📞 Rele travay/fòmasyon', q_see_jobs:'🔎 Travay', q_see_training:'🎓 Fòmasyon',
-      ask_next_forklift:'Kilè pwochen klas forklift la?', ask_need_appt:'Èske mwen bezwen randevou?',
-      frustrated:'🙏 Nou konprann sa ka fistran. Ann jwenn èd reyèl touswit — rele mwen nan <a href="tel:6096976215">(609) 697-6215</a> oswa voye tèks nan <a href="sms:16096976215">(609) 697-6215</a>. Pou randevou rele <a href="tel:6093371624">(609) 337-1624</a>.'
+  ht: {
+    welcome: '👋 Bonjou! Mwen ka ede ak fòmasyon, travay, randevou, lè yo, adrès, otobis.',
+    q: 'Lyen rapid:',
+    hello: 'Bonjou! 👋 Kijan mwen ka ede w jodi a?',
+    thanks: 'Avèk plezi! 😊 Gen lòt bagay?',
+    bye: 'Si ou bezwen randevou, rele (609) 337-1624.',
+    noWalk: 'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.',
+    biNote: 'No caminatas / Pa san randevou',
+    frust: '🙏 Nou konprann sa ka fistran. Ann jwenn èd reyèl touswit — rele mwen nan <a href="tel:6096976215">(609) 697-6215</a> oswa voye tèks nan <a href="sms:16096976215">(609) 697-6215</a>. Pou randevou rele <a href="tel:6093371624">(609) 337-1624</a>.'
   }
 };
 
-let currentLang='en';
-const chipEN=document.getElementById('chipEN'), chipES=document.getElementById('chipES'), chipHT=document.getElementById('chipHT');
-function setLang(lang){ currentLang=(lang==='es'||lang==='ht')?lang:'en';
-  chipEN.style.opacity=currentLang==='en'?'1':'.5';
-  chipES.style.opacity=currentLang==='es'?'1':'.5';
-  chipHT.style.opacity=currentLang==='ht'?'1':'.5';
+let lang = 'en';
+const ce = id => document.getElementById(id);
+const chat = ce('chat'), box = ce('box');
+const en = ce('chipEN'), es = ce('chipES'), ht = ce('chipHT');
+const theme = ce('themeToggle');
+
+function setL(l) {
+  lang = (l === 'es' || l === 'ht') ? l : 'en';
+  en.style.opacity = lang === 'en' ? '1' : '.5';
+  es.style.opacity = lang === 'es' ? '1' : '.5';
+  ht.style.opacity = lang === 'ht' ? '1' : '.5';
 }
-function detectLang(text){
-  const s=norm(text);
-  if(/ hola | gracias | cita | trabajo | empleo | donde | donde esta | ubicacion | direccion | autobus | por favor | agendar | programar /.test(s)) return 'es';
-  if(/ bonjou | bonswa | mesi | randevou | travay | kote | adres | otobis | kijan | san randevou /.test(s)) return 'ht';
+
+// Safer detection using boundary-style groups (no fragile leading/trailing spaces)
+function detectL(t) {
+  const s = ` ${t.toLowerCase()} `;
+  if (/(?:^|\s)(hola|gracias|cita|trabajo|empleo)(?:\s|$)/.test(s)) return 'es';
+  if (/(?:^|\s)(bonjou|mesi|randevou|travay)(?:\s|$)/.test(s)) return 'ht';
   return 'en';
 }
 
-const themeToggle=document.getElementById('themeToggle');
-const THEME_KEY='task_theme';
-function setTheme(mode){ document.documentElement.setAttribute('data-theme', mode); localStorage.setItem(THEME_KEY,mode); themeToggle.textContent=mode==='dark'?'☾':'☼'; document.querySelector('meta[name="theme-color"]')?.setAttribute('content',mode==='dark'?'#0f1726':'#ffffff'); }
-setTheme(localStorage.getItem(THEME_KEY)||'light'); themeToggle.addEventListener('click',()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'));
-
-const chat=document.getElementById('chat'), box=document.getElementById('box'), sendBtn=document.getElementById('send'), statusEl=document.getElementById('status'), footer=document.getElementById('footer'), badge=document.getElementById('scrollTopBtn'), micBtn=document.getElementById('micBtn');
-badge.addEventListener('click',()=> chat.scrollTo({top:0,behavior:'smooth'}));
-
-function scrollToBottom(){ 
-  requestAnimationFrame(() => {
-    chat.scrollTop = chat.scrollHeight;
-  });
+function addU(t){
+  const e = document.createElement('div');
+  e.className = 'bubble user';
+  e.textContent = t;
+  chat.appendChild(e);
+  scroll();
 }
-
-function addUser(t){ 
-  const el=document.createElement('div'); 
-  el.className='bubble user'; 
-  el.textContent=t; 
-  chat.appendChild(el); 
-  scrollToBottom();
+function addB(h){
+  const e = document.createElement('div');
+  e.className = 'bubble bot';
+  e.innerHTML = h;
+  chat.appendChild(e);
+  scroll();
 }
-
-function addBot(html){ 
-  const el=document.createElement('div'); 
-  el.className='bubble bot'; 
-  el.innerHTML=html; 
-  chat.appendChild(el); 
-  scrollToBottom();
-}
-
-function typing(on=true){ 
-  const id='typing'; 
-  if(on){ 
-    const el=document.createElement('div'); 
-    el.id=id; 
-    el.className='bubble bot'; 
-    el.innerHTML=`<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`; 
-    chat.appendChild(el);
-  }else{
-    document.getElementById(id)?.remove();
-  } 
-  scrollToBottom();
-}
-
-chat.addEventListener('click', (e)=>{
-  const btn = e.target.closest('button[data-action]');
-  if(!btn) return;
-  const action = btn.getAttribute('data-action');
-  switch(action){
-    case 'ask_next_forklift': handle(UI[currentLang].ask_next_forklift); break;
-    case 'ask_need_appt':     handle(UI[currentLang].ask_need_appt);     break;
+function typ(on){
+  const id = 'typing';
+  if(on){
+    const e = document.createElement('div');
+    e.id = id; e.className = 'bubble bot';
+    e.innerHTML = '<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+    chat.appendChild(e);
+  } else {
+    ce(id)?.remove();
   }
-});
+  scroll();
+}
+function scroll(){ requestAnimationFrame(()=>{ chat.scrollTop = chat.scrollHeight; }); }
+function sec(t,b){ return `<div style="margin-bottom:10px"><strong>${t}</strong><br>${b}</div>`; }
 
-const TEL_APPT='tel:6093371624',
-      TEL_JOBS_A='tel:6096976166',
-      TEL_JOBS_B='tel:6096976215',
-      TEL_ME='tel:6096976215',
-      SMS_ME='sms:16096976215?body=Hi%20this%20is%20%5Bname%5D%20from%20TASK';
-
-function qrSet(o){
-  const parts=[];
-  if(o.callAppt)     parts.push(`<a class="qr-link" href="${TEL_APPT}">${UI[currentLang].q_call}</a>`);
-  if(o.textMe)       parts.push(`<a class="qr-link" href="${SMS_ME}">${UI[currentLang].q_text}</a>`);
-  if(o.callMe)       parts.push(`<a class="qr-link" href="${TEL_ME}">📞 Call me</a>`);
-  if(o.nextFork)     parts.push(`<button class="qr" type="button" data-action="ask_next_forklift">${UI[currentLang].q_next_forklift}</button>`);
-  if(o.needAppt)     parts.push(`<button class="qr" type="button" data-action="ask_need_appt">${UI[currentLang].q_need_appt}</button>`);
-  if(o.callJobs)     parts.push(`<a class="qr-link" href="${TEL_JOBS_A}">${UI[currentLang].q_call_jobs}</a>`);
-  if(o.jobsSite)     parts.push(`<a class="qr-link" href="https://bycell.co/ddmtq" target="_blank" rel="noopener">${UI[currentLang].q_see_jobs}</a>`);
-  if(o.trainingSite) parts.push(`<a class="qr-link" href="https://bycell.co/ddmtn" target="_blank" rel="noopener">${UI[currentLang].q_see_training}</a>`);
-  return `<div class="qrs">${parts.join('')}</div>`;
+function reply(intents, raw){
+  const blocks = [];
+  if (intents.includes('frust')) blocks.push(sec('🙏', UI[lang].frust));
+  if (intents.includes('greeting')) blocks.push(sec('👋', UI[lang].hello));
+  if (intents.includes('thanks')) blocks.push(sec('😊', UI[lang].thanks));
+  if (intents.includes('bye')) blocks.push(sec('👋', UI[lang].bye));
+  if (intents.includes('appt')) {
+    let m = `Best way: call <a href="tel:6093371624">(609) 337-1624</a>.<br>${UI[lang].noWalk}<div class="note">${UI[lang].biNote}</div>`;
+    m += `<br>If you can't get through, call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>.`;
+    blocks.push(sec('📅 Appointment', m));
+  }
+  if (intents.includes('jobs')) blocks.push(sec('💼 Jobs', `<a href="https://bycell.co/ddmtq" target="_blank">Open positions</a><br><a href="https://bycell.co/ddmtr" target="_blank">Alerts</a><br>Call <a href="tel:6096976166">(609) 697-6166</a> or <a href="tel:6096976215">(609) 697-6215</a>.`));
+  if (intents.includes('train')) blocks.push(sec('🎓 Training', `<a href="https://bycell.co/ddmtn" target="_blank">Training</a><br>Call <a href="tel:6096976166">(609) 697-6166</a>.`));
+  if (intents.includes('hours')) blocks.push(sec('🕒 Hours', 'Meals: Lunch Mon–Fri 10:30–1:00 • Dinner Mon–Thu 3:30–5:00'));
+  if (intents.includes('loc')) {
+    const map = 'https://www.google.com/maps?q=72%201%2F2%20Escher%20St,%20Trenton,%20NJ%2008609';
+    blocks.push(sec('📍 Address', `72½ Escher St, Trenton, NJ 08609<br><a href="${map}" target="_blank">Open Map</a>`));
+  }
+  if (intents.includes('res')) blocks.push(sec('📄 Resume', `<a href="https://bycell.co/ddmui" target="_blank">Templates</a><br>For help, call <a href="tel:6093371624">(609) 337-1624</a>.`));
+  if (intents.includes('resource')) blocks.push(sec('🧰 Resources', `<a href="https://bycell.co/ddmua" target="_blank">Community resources</a><br><a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank">What we do</a>`));
+  if (blocks.length === 0) blocks.push(sec('🧰 Resources', `<a href="https://bycell.co/ddmua" target="_blank">Community resources</a><br><a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank">What we do</a>`));
+  return blocks.join('<hr style="border:none;height:8px;background:transparent">');
 }
 
-const BANK_RAW={
-  greeting:['hi','hello','hey','hola','bonjou','bonswa','bonjour','salut'],
-  thanks:['thanks','thank you','gracias','merci','mesi','meci','thx','ty'],
-  goodbye:['bye','goodbye','adios','adiós','ciao','nos vemos','na we','n a wè','later','see ya'],
-  frustrated:['wtf','wth','this sucks','sucks','useless','annoying','so annoying','i hate this','hate this','mad','angry','pissed','this is stupid','stupid','dumb','moron','idiot','you idiot','you are dumb','you are stupid','you are no help','no help','you\'re useless','piece of crap','garbage','trash','worthless','you suck','shut up','stfu','screw this','not working','doesn\'t work','dont work','keeps crashing','buggy','broken','broke','so frustrating','very frustrating','im frustrated','i am frustrated','frustrating','fustrating','damn','crap','shit','bullshit','fuck','f*ck','bitch','asshole','bastard','douche','dumbass','no sirve','esto apesta','basura','odio esto','molesto','enojado','muy frustrante','esto es frustrante','no funciona','está roto','esta roto','siempre falla','no ayudas','no me ayudas','no sirves','inutil','inútil','cállate','callate','cayate','idiota','tonto','baboso','torpe','estupido','estúpido','imbecil','imbécil','pendejo','mierda','carajo','chingada','chingado','maldita sea','que basura','sa pa mache','sa pa ede','sa pa itil','sa kase','li kase','li kraze','mwen fache','m fache','m fustrasyon','sa fache m','sa fatigan','rayi sa','sa se tenten','ou sòt','sòt','estipid','idis','bet','bèt','betize','bètize','fèmen bouch ou','ferme bouch ou','kaka','mèd','ou pa ede','ou initil','pa itil','move aplikasyon'],
-  jobs:['job','jobs','employment','hiring','apply','application','position','work','career','empleo','trabajo','puestos','trabajos','contratando','trabajar','travay'],
-  training:['training','trainings','program','programs','class','classes','course','courses','certification','certifications','academy','entrenamiento','entrenamientos','programa','programas','clase','clases','curso','cursos','certificacion','certificaciones','fòmasyon','kour','kou','sertifikasyon'],
-  employment_services:['employment services','job services','workforce','career services','career center','servicios de empleo','servicios laborales','centro de empleo','sèvis travay','sèvis anplwa','career help','task employment'],
-  housing:['homeless','shelter','housing','code blue','warming center','sin hogar','albergue','refugio','kote pou dòmi','abri'],
-  resume:['resume','cv','cover letter','template','write my resume','help resume','build resume','curriculum','curriculum vitae','hoja de vida','currículum'],
-  culinary:['culinary','kitchen training','emilio','academy','cooking program','culinaria','academia emilio','kou kwizin','chef'],
-  forklift:['forklift','warehouse license','osha','certification','montacargas','forklift training','sertifikasyon'],
-  case_mgmt:['case management','case manager','caseworker','case worker','social worker','manejo de casos','gestion de casos','trabajador social','jesyon ka','travayè sosyal'],
-  idhelp:['id help','state id','identification','photo id','non-driver
+function find(t){
+  const hits = new Set();
+  if (/\b(hi|hello|hey|hola|bonjou)\b/i.test(t)) hits.add('greeting');
+  if (/\b(thanks|thank you|gracias|merci|mesi)\b/i.test(t)) hits.add('thanks');
+  if (/\b(bye|goodbye|adios|ciao)\b/i.test(t)) hits.add('bye');
+  if (/(wtf|sucks|useless|annoying|hate this|mad|angry|pissed|stupid|dumb|frustrated|no sirve|esto apesta|sa pa mache)/i.test(t)) hits.add('frust');
+  if (/\b(appointment|appt|make|schedule|cita|randevou|walk[\s-]?in)\b/i.test(t)) hits.add('appt');
+  if (/\b(job|jobs|employment|hiring|empleo|trabajo|travay)\b/i.test(t)) hits.add('jobs');
+  if (/\b(training|program|class|certification|entrenamiento|fòmasyon)\b/i.test(t)) hits.add('train');
+  if (/\b(hours|time|open|close|horario|lè)\b/i.test(t)) hits.add('hours');
+  if (/\b(address|location|where|direccion|kote|adrès)\b/i.test(t)) hits.add('loc');
+  if (/\b(resume|cv|curriculum)\b/i.test(t)) hits.add('res');
+  if (/\b(resource|services|benefits|snap|recursos|resous)\b/i.test(t)) hits.add('resource');
+  return [...hits];
+}
+
+function handle(t){
+  if(!t) return;
+  setL(detectL(t));
+  addU(t);
+  typ(true);
+  const i = find(t);
+  setTimeout(()=>{ typ(false); addB(reply(i,t)); }, 220);
+}
+
+function send(){
+  const t = (box.value||'').trim();
+  if(!t) return;
+  box.value = '';
+  box.blur();
+  handle(t);
+  setTimeout(()=>box.focus(),100);
+}
+
+addB(`🟡 <strong>${UI[lang].welcome}</strong><br><br>${UI[lang].q} <a href="https://bycell.co/ddmtn" target="_blank">Training</a> • <a href="https://bycell.co/ddmtq" target="_blank">Jobs</a> • <a href="https://bycell.co/ddmtr" target="_blank">Alerts</a>`);
+ce('send').addEventListener('click',send);
+box.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+box.addEventListener('focus',()=>setTimeout(scroll,300));
+ce('scrollTopBtn').addEventListener('click',()=>chat.scrollTo({top:0,behavior:'smooth'}));
+
+theme.addEventListener('click',()=>{
+  const d = document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme', d ? 'light' : 'dark');
+  theme.textContent = d ? '☼' : '☾';
+  localStorage.setItem('task_theme', d ? 'light' : 'dark');
+});
+const saved = localStorage.getItem('task_theme');
+if(saved){
+  document.documentElement.setAttribute('data-theme', saved);
+  theme.textContent = saved==='dark' ? '☾' : '☼';
+}
+</script>
+</body>
+</html>
