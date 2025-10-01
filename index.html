@@ -137,7 +137,7 @@ input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);out
 <script>
 'use strict';
 
-// UI strings
+// ---------- UI strings ----------
 const UI = {
   en:{welcome:'👋 Hey there! I can help with training, jobs, appointments, hours, address, buses and more. Ask me anything.',
       q:'Quick links:',hello:'Hi! 👋 How can I help today?',
@@ -160,66 +160,52 @@ const UI = {
       frust:'🙏 Nou konprann sa ka fistran. Ann jwenn èd reyèl touswit — rele mwen nan <a href="tel:6096976215">(609) 697-6215</a> oswa voye tèks nan <a href="sms:16096976215">(609) 697-6215</a>. Pou randevou rele <a href="tel:6093371624">(609) 337-1624</a>.'}
 };
 
-// ----- State -----
-let lang = 'en';
-let frustCount = 0;       // escalate after repeated frustration
-let staffHit = null;      // detected staff name
+// ---------- State ----------
+let lang='en';
+let frustCount=0;
+let staffHit=null;
+let lastSuggestionKey='';
 
-// staff directory (expand anytime)
-const STAFF = {
-  sean : { display:'Sean',  dept:'Employment Services', note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.' },
-  diani: { display:'Diani', dept:'Employment Services', note:'Ask reception for Diani from Employment. Appointments preferred.' },
-  dion : { display:'Dion',  dept:'Employment Services', note:'Ask reception for Dion from Employment.' },
-  diane: { display:'Diane', dept:'Employment Services', note:'You can ask reception for Diane from Employment.' }
+// staff directory (extend anytime)
+const STAFF={
+  sean :{display:'Sean',  dept:'Employment Services', note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
+  diani:{display:'Diani', dept:'Employment Services', note:'Ask reception for Diani from Employment. Appointments preferred.'},
+  dion :{display:'Dion',  dept:'Employment Services', note:'Ask reception for Dion from Employment.'},
+  diane:{display:'Diane', dept:'Employment Services', note:'You can ask reception for Diane from Employment.'}
 };
 
-const ce   = id => document.getElementById(id);
-const chat = ce('chat'), box = ce('box');
-const theme = ce('themeToggle'), micBtn = ce('micBtn'), resetBtn = ce('resetBtn');
-const langBtn = ce('langBtn'), langMenu = ce('langMenu');
-const ctaBar = ce('ctaBar');
+const ce=id=>document.getElementById(id);
+const chat=ce('chat'), box=ce('box');
+const theme=ce('themeToggle'), micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
+const langBtn=ce('langBtn'), langMenu=ce('langMenu');
+const ctaBar=ce('ctaBar');
 
-// ----- Helpers -----
-function stripDiacritics(str){ return str.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-const norm = s => stripDiacritics(s).toLowerCase();
-const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
-function safeScroll(){ if(isNearBottom()) requestAnimationFrame(()=> chat.scrollTop = chat.scrollHeight ); }
+// ---------- Helpers ----------
+function stripDiacritics(str){return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+const norm=s=>stripDiacritics(s).toLowerCase();
+const isNearBottom=()=> (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
+function safeScroll(){ if(isNearBottom()) requestAnimationFrame(()=> chat.scrollTop=chat.scrollHeight ); }
 function sec(t,b){ return `<div style="margin-bottom:10px"><strong>${t}</strong><br>${b}</div>`; }
+function setLang(l,persist=true){ lang=(['en','es','ht'].includes(l)?l:'en'); if(persist){try{localStorage.setItem('task_lang',lang);}catch(e){}} }
+function detectL(t){ const s=` ${norm(t)} `; if(/ (hola|gracias|cita|trabajo|empleo) /.test(s)) return 'es'; if(/ (bonjou|mesi|randevou|travay) /.test(s)) return 'ht'; return 'en'; }
 
-function setLang(l, persist=true){ lang = ['en','es','ht'].includes(l) ? l : 'en';
-  if(persist){ try{ localStorage.setItem('task_lang', lang); }catch(e){} } }
-function detectL(t){ const s = ` ${norm(t)} `; if(/ (hola|gracias|cita|trabajo|empleo) /.test(s)) return 'es'; if(/ (bonjou|mesi|randevou|travay) /.test(s)) return 'ht'; return 'en'; }
+// language menu
+langBtn.addEventListener('click',()=>{const open=langMenu.getAttribute('aria-hidden')==='false';langMenu.setAttribute('aria-hidden',open?'true':'false');langBtn.setAttribute('aria-expanded',open?'false':'true')});
+langMenu.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{setLang(b.dataset.lang);langMenu.setAttribute('aria-hidden','true');langBtn.setAttribute('aria-expanded','false');greet(true)}));
 
-// ----- Language menu -----
-langBtn.addEventListener('click',()=>{
-  const open = langMenu.getAttribute('aria-hidden')==='false';
-  langMenu.setAttribute('aria-hidden', open?'true':'false');
-  langBtn.setAttribute('aria-expanded', open?'false':'true');
-});
-langMenu.querySelectorAll('button').forEach(b=>{
-  b.addEventListener('click',()=>{
-    setLang(b.dataset.lang);
-    langMenu.setAttribute('aria-hidden','true');
-    langBtn.setAttribute('aria-expanded','false');
-    greet(true);
-  });
-});
+// rendering
+function addU(t){ const e=document.createElement('div'); e.className='bubble user'; e.textContent=t; chat.appendChild(e); safeScroll(); }
+function addB(html){ const e=document.createElement('div'); e.className='bubble bot'; e.innerHTML=html; chat.appendChild(e); safeScroll(); }
+function typing(on){ const id='typing'; if(on){ const e=document.createElement('div'); e.id=id; e.className='bubble bot'; e.innerHTML='<div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>'; chat.appendChild(e);} else { ce(id)?.remove(); } safeScroll(); }
 
-// ----- Render -----
-function addU(t){ const e = document.createElement('div'); e.className = 'bubble user'; e.textContent = t; chat.appendChild(e); safeScroll(); }
-function addB(html){ const e = document.createElement('div'); e.className = 'bubble bot'; e.innerHTML = html; chat.appendChild(e); safeScroll(); }
-function typing(on){ const id='typing'; if(on){ const e = document.createElement('div'); e.id=id; e.className='bubble bot'; e.innerHTML = '<div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>'; chat.appendChild(e); } else { ce(id)?.remove(); } safeScroll(); }
-
-// ----- Intent detection -----
+// intents
 function find(t){
   const s=' '+norm(t)+' ';
-  staffHit = null;
-
-  // staff names
-  const nameMatch = s.match(/\b(sean|diani|dion|diane)\b/);
+  staffHit=null;
+  const nameMatch = s.match(/\b(?:see|speak to|talk to|ask for)?\s*(sean|diani|dion|diane)\b/);
   if(nameMatch){ staffHit = nameMatch[1]; }
 
-  const hits = new Set();
+  const hits=new Set();
   if(/\b(hi|hello|hey|hola|bonjou)\b/.test(s)) hits.add('greeting');
   if(/\b(thanks|thank you|gracias|merci|mesi)\b/.test(s)) hits.add('thanks');
   if(/\b(bye|goodbye|adios|ciao)\b/.test(s)) hits.add('bye');
@@ -235,7 +221,6 @@ function find(t){
   if(/\b(bus|route|njt|transit|schedule|transport)\b/.test(s)) hits.add('bus');
   if(/\b(alerts?|notifica(?:tion|ciones)?)\b/.test(s)) hits.add('alerts');
 
-  // more helpful intents
   if(/\b(employment services|employment program|what is employment|employment help)\b/.test(s)) hits.add('employment_info');
   if(/\b(interview|prep|practice|mock interview)\b/.test(s)) hits.add('interview');
   if(/\b(id|documents|paperwork|bring|what do i need)\b/.test(s)) hits.add('documents');
@@ -244,20 +229,31 @@ function find(t){
   return [...hits];
 }
 
-// ----- Suggestions -----
+// suggestions
 function addSuggestions(keys){
   if(!keys || !keys.length) return;
-  const bubble = document.createElement('div'); bubble.className='bubble bot';
-  const wrap = document.createElement('div'); wrap.className='controls';
-  const labels = {jobs:'Jobs',train:'Training',hours:'Hours',loc:'Address',appt:'Appointment',res:'Resume',alerts:'Alerts',resource:'Resources',bus:'Buses',employment_info:'Employment Services',interview:'Interview prep',documents:'What to bring',staff:'Ask for staff'};
+  const sig = JSON.stringify(keys);
+  if(sig === lastSuggestionKey) return; // de-dupe
+  lastSuggestionKey = sig;
+
+  const bubble=document.createElement('div'); bubble.className='bubble bot';
+  const wrap=document.createElement('div'); wrap.className='controls';
+  const labels={jobs:'Jobs',train:'Training',hours:'Hours',loc:'Address',appt:'Appointment',res:'Resume',alerts:'Alerts',resource:'Resources',bus:'Buses',employment_info:'Employment Services',interview:'Interview prep',documents:'What to bring',staff:'Ask for staff'};
   keys.forEach(k=>{
     const btn=document.createElement('button');
     btn.type='button'; btn.className='ctrl'; btn.setAttribute('aria-label',`Ask about ${labels[k]||k}`);
     btn.textContent=labels[k]||k;
-    btn.addEventListener('click',()=>{ addU(btn.textContent); const html=reply([k]); addB(html); nextSuggestions([k]); });
+    btn.addEventListener('click',()=>{
+      addU(btn.textContent);
+      const html=reply([k]); addB(html);
+      lastSuggestionKey=''; // allow new unique tray after a response
+      nextSuggestions([k]);
+    });
     wrap.appendChild(btn);
   });
-  bubble.appendChild(wrap); chat.appendChild(bubble); safeScroll();
+  bubble.appendChild(wrap);
+  chat.appendChild(bubble);
+  safeScroll();
 }
 function nextSuggestions(intents){
   let keys=[];
@@ -271,7 +267,7 @@ function nextSuggestions(intents){
   addSuggestions(keys);
 }
 
-// ----- Replies -----
+// replies
 function reply(intents){
   const blocks=[];
   const phoneMain='(609) 337-1624';
@@ -284,8 +280,8 @@ function reply(intents){
     blocks.push(sec('🙏', UI[lang].frust + extra));
   }
   if(intents.includes('greeting')) blocks.push(sec('👋', UI[lang].hello));
-  if(intents.includes('thanks')) blocks.push(sec('😊', UI[lang].thanks));
-  if(intents.includes('bye'))     blocks.push(sec('👋', UI[lang].bye));
+  if(intents.includes('thanks'))   blocks.push(sec('😊', UI[lang].thanks));
+  if(intents.includes('bye'))      blocks.push(sec('👋', UI[lang].bye));
 
   if(intents.includes('employment_info')){
     const m=`TASK Employment Services helps with: resume building, job search, interview prep, certifications/training referrals, and text alerts for opportunities. Start by calling <a href="tel:6096976166">${phoneJobs}</a> or visit during meal hours to ask reception.`;
@@ -350,7 +346,6 @@ function reply(intents){
   if(intents.includes('alerts'))
     blocks.push(sec('🔔 Alerts', `<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Sign up for alerts</a>`));
 
-  // Single fallback (no duplicate suggestions anymore)
   if(!intents.length){
     blocks.push(
       sec('🤝 I can help with:', 'Jobs • Training • Appointments • Hours • Address • Resume • Resources • Buses') +
@@ -366,7 +361,7 @@ function reply(intents){
   return blocks.join('<hr style="border:none;height:8px;background:transparent">');
 }
 
-// ----- Flow -----
+// flow helpers
 function showCTA(on){ ctaBar.style.display = on ? 'flex' : 'none'; ctaBar.setAttribute('aria-hidden', on? 'false':'true'); }
 function handle(t){
   if(!t) return;
@@ -376,13 +371,15 @@ function handle(t){
   setTimeout(()=>{
     typing(false);
     addB(reply(intents));
-    if(intents.length>0) nextSuggestions(intents); // avoid duplicate suggestions on fallback
+    const conversational = new Set(['greeting','thanks','bye']);
+    const meaningful = intents.some(x => !conversational.has(x));
+    if (meaningful) nextSuggestions(intents);  // gate suggestions
     if(!intents.includes('appt')) showCTA(false);
   },220);
 }
 function send(){ const t=(box.value||'').trim(); if(!t) return; box.value=''; box.blur(); handle(t); setTimeout(()=>box.focus(),100); }
 
-// Theme
+// theme
 (function initTheme(){
   let saved=null; try{saved=localStorage.getItem('task_theme');}catch(e){}
   if(!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
@@ -399,7 +396,7 @@ theme.addEventListener('click',()=>{
   try{ localStorage.setItem('task_theme', next); }catch(e){}
 });
 
-// Voice (if supported)
+// mic (if supported)
 (function initMic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ micBtn.title='Voice not supported on this browser'; return; }
@@ -408,24 +405,25 @@ theme.addEventListener('click',()=>{
   rec.onresult=e=>{ box.value=e.results[0][0].transcript; send(); };
 })();
 
-// Reset & events
-resetBtn.addEventListener('click',()=>{ chat.innerHTML=''; frustCount=0; greet(true); showCTA(false); });
+// reset + events
+resetBtn.addEventListener('click',()=>{ chat.innerHTML=''; frustCount=0; lastSuggestionKey=''; greet(true); showCTA(false); });
 ce('send').addEventListener('click',send);
 box.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
 box.addEventListener('focus',()=>setTimeout(()=>safeScroll(),300));
 ce('scrollTopBtn').addEventListener('click',()=>chat.scrollTo({top:0,behavior:'smooth'}));
 ce('scrollTopBtn').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); chat.scrollTo({top:0,behavior:'smooth'}); }});
 
-// Greeting + initial chips
+// greet
 function greet(fromReset=false){
   if(fromReset){
-    let savedLang=null; try{ savedLang=localStorage.getItem('task_lang'); }catch(e){}
-    setLang(savedLang || (navigator.language||'en').slice(0,2));
+    let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){}
+    setLang(saved || (navigator.language||'en').slice(0,2));
   }
   addB(`🟡 <strong>${UI[lang].welcome}</strong><br><br>${UI[lang].q} 
         <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • 
         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • 
         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
+  lastSuggestionKey=''; // allow tray after greeting
   addSuggestions(['jobs','train','hours','loc','res','employment_info']);
 }
 (function initLang(){ let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){} setLang(saved || (navigator.language||'en').slice(0,2)); })();
