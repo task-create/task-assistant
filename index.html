@@ -137,7 +137,7 @@ input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);out
 <script>
 'use strict';
 
-// ---------- UI strings ----------
+/* ================= UI STRINGS ================= */
 const UI = {
   en:{welcome:'👋 Hey there! I can help with training, jobs, appointments, hours, address, buses and more. Ask me anything.',
       q:'Quick links:',hello:'Hi! 👋 How can I help today?',
@@ -160,27 +160,30 @@ const UI = {
       frust:'🙏 Nou konprann sa ka fistran. Ann jwenn èd reyèl touswit — rele mwen nan <a href="tel:6096976215">(609) 697-6215</a> oswa voye tèks nan <a href="sms:16096976215">(609) 697-6215</a>. Pou randevou rele <a href="tel:6093371624">(609) 337-1624</a>.'}
 };
 
-// ---------- State ----------
+/* ================= STATE ================= */
 let lang='en';
 let frustCount=0;
 let staffHit=null;
 let lastSuggestionKey='';
 
-// staff directory (extend anytime)
 const STAFF={
-  sean :{display:'Sean',  dept:'Employment Services', note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
-  diani:{display:'Diani', dept:'Employment Services', note:'Ask reception for Diani from Employment. Appointments preferred.'},
-  dion :{display:'Dion',  dept:'Employment Services', note:'Ask reception for Dion from Employment.'},
-  diane:{display:'Diane', dept:'Employment Services', note:'You can ask reception for Diane from Employment.'}
+  sean   : {display:'Sean',    dept:'Employment Services', note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
+  diani  : {display:'Diani',   dept:'Employment Services', note:'Ask reception for Diani from Employment. Appointments preferred.'},
+  dion   : {display:'Dion',    dept:'Employment Services', note:'Ask reception for Dion from Employment.'},
+  diane  : {display:'Diane',   dept:'Employment Services', note:'You can ask reception for Diane from Employment.'},
+  tiffany: {display:'Tiffany', dept:'Employment Services', note:'Ask reception for Tiffany from Employment.'},
+  adam   : {display:'Adam',    dept:'Employment Services', note:'Ask reception for Adam from Employment.'},
+  paul   : {display:'Paul',    dept:'Employment Services', note:'Ask reception for Paul from Employment.'},
+  mia    : {display:'Mia',     dept:'Employment Services', note:'Ask reception for Mia from Employment.'}
 };
 
 const ce=id=>document.getElementById(id);
-const chat=ce('chat'), box=ce('box');
-const theme=ce('themeToggle'), micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
+const chat=ce('chat'), box=ce('box'), theme=ce('themeToggle');
+const micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
 const langBtn=ce('langBtn'), langMenu=ce('langMenu');
 const ctaBar=ce('ctaBar');
 
-// ---------- Helpers ----------
+/* ================= HELPERS ================= */
 function stripDiacritics(str){return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 const norm=s=>stripDiacritics(s).toLowerCase();
 const isNearBottom=()=> (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
@@ -189,20 +192,20 @@ function sec(t,b){ return `<div style="margin-bottom:10px"><strong>${t}</strong>
 function setLang(l,persist=true){ lang=(['en','es','ht'].includes(l)?l:'en'); if(persist){try{localStorage.setItem('task_lang',lang);}catch(e){}} }
 function detectL(t){ const s=` ${norm(t)} `; if(/ (hola|gracias|cita|trabajo|empleo) /.test(s)) return 'es'; if(/ (bonjou|mesi|randevou|travay) /.test(s)) return 'ht'; return 'en'; }
 
-// language menu
+/* ================= LANGUAGE MENU ================= */
 langBtn.addEventListener('click',()=>{const open=langMenu.getAttribute('aria-hidden')==='false';langMenu.setAttribute('aria-hidden',open?'true':'false');langBtn.setAttribute('aria-expanded',open?'false':'true')});
 langMenu.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{setLang(b.dataset.lang);langMenu.setAttribute('aria-hidden','true');langBtn.setAttribute('aria-expanded','false');greet(true)}));
 
-// rendering
+/* ================= RENDER ================= */
 function addU(t){ const e=document.createElement('div'); e.className='bubble user'; e.textContent=t; chat.appendChild(e); safeScroll(); }
 function addB(html){ const e=document.createElement('div'); e.className='bubble bot'; e.innerHTML=html; chat.appendChild(e); safeScroll(); }
 function typing(on){ const id='typing'; if(on){ const e=document.createElement('div'); e.id=id; e.className='bubble bot'; e.innerHTML='<div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>'; chat.appendChild(e);} else { ce(id)?.remove(); } safeScroll(); }
 
-// intents
+/* ================= INTENT DETECTION ================= */
 function find(t){
   const s=' '+norm(t)+' ';
   staffHit=null;
-  const nameMatch = s.match(/\b(?:see|speak to|talk to|ask for)?\s*(sean|diani|dion|diane)\b/);
+  const nameMatch = s.match(/\b(?:see|speak to|talk to|ask for)?\s*(sean|diani|dion|diane|tiffany|adam|paul|mia)\b/);
   if(nameMatch){ staffHit = nameMatch[1]; }
 
   const hits=new Set();
@@ -224,12 +227,14 @@ function find(t){
   if(/\b(employment services|employment program|what is employment|employment help)\b/.test(s)) hits.add('employment_info');
   if(/\b(interview|prep|practice|mock interview)\b/.test(s)) hits.add('interview');
   if(/\b(id|documents|paperwork|bring|what do i need)\b/.test(s)) hits.add('documents');
+  if(/\b(job fair|hiring event|career fair)\b/.test(s)) hits.add('jobfair');
+  if(/\b(computer|email|digital|phone|smartphone|help set up)\b/.test(s)) hits.add('digital');
 
   if(staffHit) hits.add('staff');
   return [...hits];
 }
 
-// suggestions
+/* ================= SUGGESTIONS ================= */
 function addSuggestions(keys){
   if(!keys || !keys.length) return;
   const sig = JSON.stringify(keys);
@@ -238,7 +243,7 @@ function addSuggestions(keys){
 
   const bubble=document.createElement('div'); bubble.className='bubble bot';
   const wrap=document.createElement('div'); wrap.className='controls';
-  const labels={jobs:'Jobs',train:'Training',hours:'Hours',loc:'Address',appt:'Appointment',res:'Resume',alerts:'Alerts',resource:'Resources',bus:'Buses',employment_info:'Employment Services',interview:'Interview prep',documents:'What to bring',staff:'Ask for staff'};
+  const labels={jobs:'Jobs',train:'Training',hours:'Hours',loc:'Address',appt:'Appointment',res:'Resume',alerts:'Alerts',resource:'Resources',bus:'Buses',employment_info:'Employment Services',interview:'Interview prep',documents:'What to bring',jobfair:'Job fair prep',digital:'Digital help',staff:'Ask for staff'};
   keys.forEach(k=>{
     const btn=document.createElement('button');
     btn.type='button'; btn.className='ctrl'; btn.setAttribute('aria-label',`Ask about ${labels[k]||k}`);
@@ -246,7 +251,7 @@ function addSuggestions(keys){
     btn.addEventListener('click',()=>{
       addU(btn.textContent);
       const html=reply([k]); addB(html);
-      lastSuggestionKey=''; // allow new unique tray after a response
+      lastSuggestionKey=''; // allow a new unique tray
       nextSuggestions([k]);
     });
     wrap.appendChild(btn);
@@ -257,17 +262,18 @@ function addSuggestions(keys){
 }
 function nextSuggestions(intents){
   let keys=[];
-  if(intents.includes('jobs')) keys=['alerts','res','appt','interview'];
-  else if(intents.includes('train')) keys=['jobs','res','appt'];
-  else if(intents.includes('loc')) keys=['hours','bus','resource'];
-  else if(intents.includes('hours')) keys=['loc','resource'];
-  else if(intents.includes('appt')) keys=['jobs','train','documents'];
+  if(intents.includes('jobs'))              keys=['alerts','res','appt','interview','jobfair'];
+  else if(intents.includes('train'))        keys=['jobs','res','appt','digital'];
+  else if(intents.includes('loc'))          keys=['hours','bus','resource'];
+  else if(intents.includes('hours'))        keys=['loc','resource'];
+  else if(intents.includes('appt'))         keys=['jobs','train','documents'];
   else if(intents.includes('employment_info')) keys=['jobs','train','res'];
-  else keys=['jobs','train','hours','loc','res'];
+  else if(intents.includes('digital'))      keys=['jobs','res','alerts'];
+  else                                      keys=['jobs','train','hours','loc','res'];
   addSuggestions(keys);
 }
 
-// replies
+/* ================= REPLIES ================= */
 function reply(intents){
   const blocks=[];
   const phoneMain='(609) 337-1624';
@@ -294,6 +300,14 @@ function reply(intents){
   if(intents.includes('documents')){
     const m=`Bring what you have: photo ID, any resume, a list of past jobs/addresses, and certificates. If you’re missing ID, come anyway—we’ll guide you on replacements.`;
     blocks.push(sec('📄 What to Bring', m));
+  }
+  if(intents.includes('jobfair')){
+    const m=`For job fairs: bring several resumes, a pen, and your ID; dress neat; be ready to share your 30-second intro; and sign up for alerts so you don’t miss events. Need help printing resumes? We can help at TASK.`;
+    blocks.push(sec('🎪 Job Fair Prep', m));
+  }
+  if(intents.includes('digital')){
+    const m=`New to computers or phones? We can help you set up email, create a resume on your phone, and apply online. Ask for digital literacy help at reception or call <a href="tel:6096976166">${phoneJobs}</a>.`;
+    blocks.push(sec('💡 Digital Help', m));
   }
 
   if(intents.includes('staff') && staffHit){
@@ -357,11 +371,10 @@ function reply(intents){
       </div>`
     );
   }
-
   return blocks.join('<hr style="border:none;height:8px;background:transparent">');
 }
 
-// flow helpers
+/* ================= FLOW ================= */
 function showCTA(on){ ctaBar.style.display = on ? 'flex' : 'none'; ctaBar.setAttribute('aria-hidden', on? 'false':'true'); }
 function handle(t){
   if(!t) return;
@@ -371,15 +384,18 @@ function handle(t){
   setTimeout(()=>{
     typing(false);
     addB(reply(intents));
+
+    // Only show suggestions for meaningful intents (avoid duplicates after "Hi/Thanks/Bye")
     const conversational = new Set(['greeting','thanks','bye']);
     const meaningful = intents.some(x => !conversational.has(x));
-    if (meaningful) nextSuggestions(intents);  // gate suggestions
+    if (meaningful) nextSuggestions(intents);
+
     if(!intents.includes('appt')) showCTA(false);
   },220);
 }
 function send(){ const t=(box.value||'').trim(); if(!t) return; box.value=''; box.blur(); handle(t); setTimeout(()=>box.focus(),100); }
 
-// theme
+/* ================= THEME ================= */
 (function initTheme(){
   let saved=null; try{saved=localStorage.getItem('task_theme');}catch(e){}
   if(!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
@@ -396,7 +412,7 @@ theme.addEventListener('click',()=>{
   try{ localStorage.setItem('task_theme', next); }catch(e){}
 });
 
-// mic (if supported)
+/* ================= VOICE (if supported) ================= */
 (function initMic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ micBtn.title='Voice not supported on this browser'; return; }
@@ -405,7 +421,7 @@ theme.addEventListener('click',()=>{
   rec.onresult=e=>{ box.value=e.results[0][0].transcript; send(); };
 })();
 
-// reset + events
+/* ================= RESET & EVENTS ================= */
 resetBtn.addEventListener('click',()=>{ chat.innerHTML=''; frustCount=0; lastSuggestionKey=''; greet(true); showCTA(false); });
 ce('send').addEventListener('click',send);
 box.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
@@ -413,7 +429,7 @@ box.addEventListener('focus',()=>setTimeout(()=>safeScroll(),300));
 ce('scrollTopBtn').addEventListener('click',()=>chat.scrollTo({top:0,behavior:'smooth'}));
 ce('scrollTopBtn').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); chat.scrollTo({top:0,behavior:'smooth'}); }});
 
-// greet
+/* ================= GREETING ================= */
 function greet(fromReset=false){
   if(fromReset){
     let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){}
@@ -423,7 +439,7 @@ function greet(fromReset=false){
         <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • 
         <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • 
         <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
-  lastSuggestionKey=''; // allow tray after greeting
+  lastSuggestionKey='';
   addSuggestions(['jobs','train','hours','loc','res','employment_info']);
 }
 (function initLang(){ let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){} setLang(saved || (navigator.language||'en').slice(0,2)); })();
