@@ -16,11 +16,26 @@
   --bubble-bot:#fff;--bubble-border:#d9e2ec;--bubble-user-bg:linear-gradient(135deg,#1f7aff,#71b3ff);
   --bubble-user-text:#fff;--bubble-user-border:transparent;--typing:#7e8aa3
 }
+/* DARK: boosted contrast + clearer chips */
 [data-theme="dark"]{
-  --bg:#0b1220;--surface:#0f1726;--surface-2:#0d1522;--text:#e6edf7;--muted:#a7b6c9;
-  --brand:#8bd0ff;--accent:#5aa0ff;--accent-2:#9fd0ff;--border:#223247;--link:#87c4ff;
-  --bubble-bot:#121e33;--bubble-border:#2a3b55;--bubble-user-bg:#1f86ff;--bubble-user-text:#fff;
-  --bubble-user-border:#0f5fc3;--typing:#a9c7ff;--shadow:0 20px 44px rgba(0,0,0,.45);--shadow-soft:0 10px 28px rgba(0,0,0,.35)
+  --bg:#0a0f1a;             /* darker page */
+  --surface:#0f1726;        /* main cards */
+  --surface-2:#0c1422;      /* header/footer */
+  --text:#e8f0ff;           /* brighter text */
+  --muted:#9fb2cc;
+  --brand:#8bd0ff;
+  --accent:#5aa0ff;
+  --accent-2:#9fd0ff;
+  --border:#2d3f5a;
+  --link:#8dc6ff;           /* brighter links */
+  --bubble-bot:#0f1624;     /* bot bubble */
+  --bubble-border:#314967;
+  --bubble-user-bg:#1f86ff;
+  --bubble-user-text:#fff;
+  --bubble-user-border:#0f5fc3;
+  --typing:#aac7ff;
+  --shadow:0 20px 44px rgba(0,0,0,.55);
+  --shadow-soft:0 12px 28px rgba(0,0,0,.45)
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -38,7 +53,8 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   background:var(--surface-2);border-bottom:1px solid var(--border);padding:10px 130px 10px 56px;
   position:relative;text-align:center
 }
-.badge{display:inline-block;background:var(--brand);color:#fff;padding:8px 16px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;cursor:pointer}
+.badge{display:inline-block;background:var(--brand);color:#0a2238;padding:8px 16px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;cursor:pointer}
+[data-theme="dark"] .badge{background:#89c9ff;color:#0b1626}
 /* header buttons */
 .theme,.mic,.reset,.lang{
   position:absolute;top:8px;width:44px;height:44px;border:none;border-radius:999px;background:var(--surface);
@@ -58,9 +74,10 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 .chat{
   flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;padding-bottom:120px;overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
-  background:radial-gradient(70% 100% at -10% -20%,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 65%),
-             radial-gradient(60% 90% at 110% 120%,rgba(255,255,255,.04) 0%,rgba(255,255,255,0) 60%),
-             linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%)
+  background:
+    radial-gradient(70% 100% at -10% -20%,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 65%),
+    radial-gradient(60% 90% at 110% 120%,rgba(255,255,255,.04) 0%,rgba(255,255,255,0) 60%),
+    linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%)
 }
 .bubble{
   margin:12px 0;padding:14px 16px;border-radius:16px;line-height:1.48;border:1px solid var(--bubble-border);
@@ -68,7 +85,7 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   transition:box-shadow .15s ease,transform .08s ease
 }
 .bubble.bot{margin-right:18%}
-.bubble.user{margin-left:18%;text-align:right;color:#fff;background:var(--bubble-user-bg);
+.bubble.user{margin-left:18%;text-align:right;color:var(--bubble-user-text);background:var(--bubble-user-bg);
   border:1px solid var(--bubble-user-border);border-radius:16px 16px 4px 16px}
 .bubble:hover{box-shadow:0 10px 22px rgba(20,80,120,.14)}
 .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -76,6 +93,7 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 14px;
   font-weight:700;cursor:pointer;transition:transform .08s ease
 }
+[data-theme="dark"] .ctrl{background:#101b2e;border-color:#355075}
 .ctrl:active{transform:scale(.98)}
 .ctrl:focus-visible{outline:2px dashed var(--accent)}
 .copy{border:1px dashed var(--border);background:transparent}
@@ -137,6 +155,9 @@ input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);out
 <script>
 'use strict';
 
+/* ---- DEMO SWITCH: set to true to purposely show a second suggestion tray under the welcome for screenshots ---- */
+const DEMO_DUPLICATE = true;
+
 /* ================= UI STRINGS ================= */
 const UI = {
   en:{welcome:'👋 Hey there! I can help with training, jobs, appointments, hours, address, buses and more. Ask me anything.',
@@ -167,19 +188,19 @@ let staffHit=null;
 let lastSuggestionKey='';
 
 const STAFF={
-  sean   : {display:'Sean',    dept:'Employment Services', note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
-  diani  : {display:'Diani',   dept:'Employment Services', note:'Ask reception for Diani from Employment. Appointments preferred.'},
-  dion   : {display:'Dion',    dept:'Employment Services', note:'Ask reception for Dion from Employment.'},
-  diane  : {display:'Diane',   dept:'Employment Services', note:'You can ask reception for Diane from Employment.'},
-  tiffany: {display:'Tiffany', dept:'Employment Services', note:'Ask reception for Tiffany from Employment.'},
-  adam   : {display:'Adam',    dept:'Employment Services', note:'Ask reception for Adam from Employment.'},
-  paul   : {display:'Paul',    dept:'Employment Services', note:'Ask reception for Paul from Employment.'},
-  mia    : {display:'Mia',     dept:'Employment Services', note:'Ask reception for Mia from Employment.'}
+  sean:{display:'Sean',dept:'Employment Services',note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
+  diani:{display:'Diani',dept:'Employment Services',note:'Ask reception for Diani from Employment. Appointments preferred.'},
+  dion:{display:'Dion',dept:'Employment Services',note:'Ask reception for Dion from Employment.'},
+  diane:{display:'Diane',dept:'Employment Services',note:'You can ask reception for Diane from Employment.'},
+  tiffany:{display:'Tiffany',dept:'Employment Services',note:'Ask reception for Tiffany from Employment.'},
+  adam:{display:'Adam',dept:'Employment Services',note:'Ask reception for Adam from Employment.'},
+  paul:{display:'Paul',dept:'Employment Services',note:'Ask reception for Paul from Employment.'},
+  mia:{display:'Mia',dept:'Employment Services',note:'Ask reception for Mia from Employment.'}
 };
 
 const ce=id=>document.getElementById(id);
-const chat=ce('chat'), box=ce('box'), theme=ce('themeToggle');
-const micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
+const chat=ce('chat'), box=ce('box');
+const theme=ce('themeToggle'), micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
 const langBtn=ce('langBtn'), langMenu=ce('langMenu');
 const ctaBar=ce('ctaBar');
 
@@ -256,194 +277,3 @@ function addSuggestions(keys){
     });
     wrap.appendChild(btn);
   });
-  bubble.appendChild(wrap);
-  chat.appendChild(bubble);
-  safeScroll();
-}
-function nextSuggestions(intents){
-  let keys=[];
-  if(intents.includes('jobs'))              keys=['alerts','res','appt','interview','jobfair'];
-  else if(intents.includes('train'))        keys=['jobs','res','appt','digital'];
-  else if(intents.includes('loc'))          keys=['hours','bus','resource'];
-  else if(intents.includes('hours'))        keys=['loc','resource'];
-  else if(intents.includes('appt'))         keys=['jobs','train','documents'];
-  else if(intents.includes('employment_info')) keys=['jobs','train','res'];
-  else if(intents.includes('digital'))      keys=['jobs','res','alerts'];
-  else                                      keys=['jobs','train','hours','loc','res'];
-  addSuggestions(keys);
-}
-
-/* ================= REPLIES ================= */
-function reply(intents){
-  const blocks=[];
-  const phoneMain='(609) 337-1624';
-  const phoneJobs='(609) 697-6166';
-  const phoneHelp='(609) 697-6215';
-
-  if(intents.includes('frust')){
-    frustCount++;
-    const extra = frustCount>=2 ? `<br><div class="controls"><a class="ctrl" href="tel:6096976215">📞 Talk to a person now</a><a class="ctrl" href="sms:16096976215?&body=Need%20help">📱 Text for help</a></div>` : '';
-    blocks.push(sec('🙏', UI[lang].frust + extra));
-  }
-  if(intents.includes('greeting')) blocks.push(sec('👋', UI[lang].hello));
-  if(intents.includes('thanks'))   blocks.push(sec('😊', UI[lang].thanks));
-  if(intents.includes('bye'))      blocks.push(sec('👋', UI[lang].bye));
-
-  if(intents.includes('employment_info')){
-    const m=`TASK Employment Services helps with: resume building, job search, interview prep, certifications/training referrals, and text alerts for opportunities. Start by calling <a href="tel:6096976166">${phoneJobs}</a> or visit during meal hours to ask reception.`;
-    blocks.push(sec('🧭 About Employment Services', m));
-  }
-  if(intents.includes('interview')){
-    const m=`We can help you practice! Quick tips: arrive 10–15 min early, bring a photo ID and a simple resume, dress neat (no need for a suit), and prepare a 30-second intro. Ask to set up a mock interview: <a href="tel:6096976166">${phoneJobs}</a>.`;
-    blocks.push(sec('🗣 Interview Prep', m));
-  }
-  if(intents.includes('documents')){
-    const m=`Bring what you have: photo ID, any resume, a list of past jobs/addresses, and certificates. If you’re missing ID, come anyway—we’ll guide you on replacements.`;
-    blocks.push(sec('📄 What to Bring', m));
-  }
-  if(intents.includes('jobfair')){
-    const m=`For job fairs: bring several resumes, a pen, and your ID; dress neat; be ready to share your 30-second intro; and sign up for alerts so you don’t miss events. Need help printing resumes? We can help at TASK.`;
-    blocks.push(sec('🎪 Job Fair Prep', m));
-  }
-  if(intents.includes('digital')){
-    const m=`New to computers or phones? We can help you set up email, create a resume on your phone, and apply online. Ask for digital literacy help at reception or call <a href="tel:6096976166">${phoneJobs}</a>.`;
-    blocks.push(sec('💡 Digital Help', m));
-  }
-
-  if(intents.includes('staff') && staffHit){
-    const info = STAFF[staffHit];
-    if(info){
-      const m=`You can ask reception for <strong>${info.display}</strong> (${info.dept}). ${info.note}
-               <div class="controls"><a class="ctrl" href="tel:6096976166">📞 Employment line</a>
-               <a class="ctrl" href="tel:6093371624">📞 Main line</a></div>`;
-      blocks.push(sec('👤 Ask for staff', m));
-    }
-  }
-
-  if(intents.includes('appt')){
-    let m = `Best way: call <a href="tel:6093371624">${phoneMain}</a>.<br>${UI[lang].noWalk}<div class="note">${UI[lang].biNote}</div>`;
-    m += `<br>If you can't get through, call me at <a href="tel:6096976215">${phoneHelp}</a> or text <a href="sms:16096976215">${phoneHelp}</a>.`;
-    m += `<div class="controls"><button class="ctrl copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${phoneMain}')">📋 Copy ${phoneMain}</button></div>`;
-    blocks.push(sec('📅 Appointment', m));
-    showCTA(true);
-  }
-
-  if(intents.includes('jobs')){
-    const m = `<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions</a><br>
-               <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a><br>
-               Need resume help? See <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">templates</a>.<br>
-               Call <a href="tel:6096976166">${phoneJobs}</a> or <a href="tel:6096976215">${phoneHelp}</a>.`;
-    blocks.push(sec('💼 Jobs', m));
-  }
-
-  if(intents.includes('train'))
-    blocks.push(sec('🎓 Training', `<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Call <a href="tel:6096976166">${phoneJobs}</a>.`));
-
-  if(intents.includes('hours')){
-    const txt='Lunch Mon–Fri 10:30–1:00 • Dinner Mon–Thu 3:30–5:00';
-    blocks.push(sec('🕒 Hours', txt + `<div class="controls"><button class="ctrl copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('Lunch Mon–Fri 10:30–1:00; Dinner Mon–Thu 3:30–5:00')">📋 Copy hours</button></div>`));
-  }
-
-  if(intents.includes('loc')){
-    const addr='72½ Escher St, Trenton, NJ 08609';
-    const map='https://www.google.com/maps?q=72%201%2F2%20Escher%20St,%20Trenton,%20NJ%2008609';
-    blocks.push(sec('📍 Address', `${addr}<br><a href="${map}" target="_blank" rel="noopener">Open Map</a>` +
-      `<div class="controls"><button class="ctrl copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${addr}')">📋 Copy address</button></div>`));
-  }
-
-  if(intents.includes('bus'))
-    blocks.push(sec('🚌 Buses', 'Closest: NJ Transit lines near 72½ Escher St. Check schedules on NJT app or call 973-275-5555.'));
-  if(intents.includes('res'))
-    blocks.push(sec('📄 Resume', `<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Templates</a><br>For help, call <a href="tel:6093371624">${phoneMain}</a>.`));
-  if(intents.includes('resource'))
-    blocks.push(sec('🧰 Resources', `<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Community resources</a><br><a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
-  if(intents.includes('alerts'))
-    blocks.push(sec('🔔 Alerts', `<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Sign up for alerts</a>`));
-
-  if(!intents.length){
-    blocks.push(
-      sec('🤝 I can help with:', 'Jobs • Training • Appointments • Hours • Address • Resume • Resources • Buses') +
-      `<div class="controls">
-        <button class="ctrl">Jobs</button>
-        <button class="ctrl">Training</button>
-        <button class="ctrl">Appointment</button>
-        <button class="ctrl">Address</button>
-      </div>`
-    );
-  }
-  return blocks.join('<hr style="border:none;height:8px;background:transparent">');
-}
-
-/* ================= FLOW ================= */
-function showCTA(on){ ctaBar.style.display = on ? 'flex' : 'none'; ctaBar.setAttribute('aria-hidden', on? 'false':'true'); }
-function handle(t){
-  if(!t) return;
-  const guessed = detectL(t); if(guessed!==lang) setLang(guessed,false);
-  addU(t); typing(true);
-  const intents = find(t);
-  setTimeout(()=>{
-    typing(false);
-    addB(reply(intents));
-
-    // Only show suggestions for meaningful intents (avoid duplicates after "Hi/Thanks/Bye")
-    const conversational = new Set(['greeting','thanks','bye']);
-    const meaningful = intents.some(x => !conversational.has(x));
-    if (meaningful) nextSuggestions(intents);
-
-    if(!intents.includes('appt')) showCTA(false);
-  },220);
-}
-function send(){ const t=(box.value||'').trim(); if(!t) return; box.value=''; box.blur(); handle(t); setTimeout(()=>box.focus(),100); }
-
-/* ================= THEME ================= */
-(function initTheme(){
-  let saved=null; try{saved=localStorage.getItem('task_theme');}catch(e){}
-  if(!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
-    document.documentElement.setAttribute('data-theme','dark'); theme.textContent='☾';
-  } else if(saved){
-    document.documentElement.setAttribute('data-theme', saved); theme.textContent = saved==='dark'?'☾':'☼';
-  }
-})();
-theme.addEventListener('click',()=>{
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  const next=dark?'light':'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  theme.textContent = next==='dark'?'☾':'☼';
-  try{ localStorage.setItem('task_theme', next); }catch(e){}
-});
-
-/* ================= VOICE (if supported) ================= */
-(function initMic(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ micBtn.title='Voice not supported on this browser'; return; }
-  const rec=new SR(); const langMap={en:'en-US', es:'es-ES', ht:'ht-HT'};
-  micBtn.addEventListener('click',()=>{ rec.lang=langMap[lang]||'en-US'; rec.start(); });
-  rec.onresult=e=>{ box.value=e.results[0][0].transcript; send(); };
-})();
-
-/* ================= RESET & EVENTS ================= */
-resetBtn.addEventListener('click',()=>{ chat.innerHTML=''; frustCount=0; lastSuggestionKey=''; greet(true); showCTA(false); });
-ce('send').addEventListener('click',send);
-box.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
-box.addEventListener('focus',()=>setTimeout(()=>safeScroll(),300));
-ce('scrollTopBtn').addEventListener('click',()=>chat.scrollTo({top:0,behavior:'smooth'}));
-ce('scrollTopBtn').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); chat.scrollTo({top:0,behavior:'smooth'}); }});
-
-/* ================= GREETING ================= */
-function greet(fromReset=false){
-  if(fromReset){
-    let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){}
-    setLang(saved || (navigator.language||'en').slice(0,2));
-  }
-  addB(`🟡 <strong>${UI[lang].welcome}</strong><br><br>${UI[lang].q} 
-        <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • 
-        <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • 
-        <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
-  lastSuggestionKey='';
-  addSuggestions(['jobs','train','hours','loc','res','employment_info']);
-}
-(function initLang(){ let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){} setLang(saved || (navigator.language||'en').slice(0,2)); })();
-greet();
-</script>
-</body>
-</html>
