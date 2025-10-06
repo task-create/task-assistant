@@ -3,82 +3,114 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>TASK Assistant</title>
+<title>Employment Assistant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
-<meta name="theme-color" content="#ffffff">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+<meta name="theme-color" content="#FFFFFF">
+<script src="https://unpkg.com/tone"></script>
 <style>
 :root{
-  --radius:18px;--bg:#eef2f6;--surface:#ffffff;--surface-2:#f7fbff;--text:#0e1726;
-  --muted:#5f6c80;--brand:#145078;--accent:#1f7aff;--accent-2:#71b3ff;--border:#d9e2ec;
-  --link:#0b63c6;--shadow:0 18px 36px rgba(20,80,120,.18);--shadow-soft:0 8px 20px rgba(19,33,58,.12);
-  --bubble-bot:#fff;--bubble-border:#d9e2ec;--bubble-user-bg:linear-gradient(135deg,#1f7aff,#71b3ff);
-  --bubble-user-text:#fff;--bubble-user-border:transparent;--typing:#7e8aa3
+  --radius: 20px;
+  --bg: #f4f7fa;
+  --surface: #ffffff;
+  --surface-2: #f7fbff;
+  --text: #0a121e;
+  --muted: #5a6b82;
+  --brand: #E34A27; /* TASK Red-Orange */
+  --accent: #003B5C; /* TASK Dark Blue */
+  --border: #e2e8f0;
+  --link: var(--brand);
+  --shadow: 0 20px 40px rgba(30, 50, 80, .1);
+  --shadow-soft: 0 8px 20px rgba(30, 50, 80, .08);
+  --header-bg: rgba(255, 255, 255, 0.7);
+  --header-border: #d9e2ec;
+  --bubble-bot-bg: #e9eef3;
+  --bubble-bot-text: #111827;
+  --bubble-user-bg: var(--brand);
+  --bubble-user-text: #fff;
+  --typing: #aab4c3;
 }
-/* DARK MODE — higher contrast for chips and links */
+/* DARK MODE */
 [data-theme="dark"]{
-  --bg:#0a0f1a; --surface:#0f1726; --surface-2:#0c1422; --text:#eaf2ff; --muted:#a7bad5;
-  --brand:#8bd0ff; --accent:#62a8ff; --accent-2:#a8d4ff; --border:#344b6b; --link:#93caff;
-  --bubble-bot:#10192c; --bubble-border:#3a567a; --bubble-user-bg:#1f86ff; --bubble-user-text:#fff; --bubble-user-border:#0f5fc3;
-  --typing:#b8d2ff; --shadow:0 22px 46px rgba(0,0,0,.6); --shadow-soft:0 12px 28px rgba(0,0,0,.45)
+  --bg: #0a0f1a;
+  --surface: #111929;
+  --surface-2: #0e1625;
+  --text: #eaf2ff;
+  --muted: #a7bad5;
+  --border: #344b6b;
+  --link: #ff8a6b;
+  --header-bg: rgba(17, 25, 41, 0.7);
+  --header-border: #344b6b;
+  --bubble-bot-bg: #1e293b;
+  --bubble-bot-text: #eaf2ff;
+  --shadow: 0 22px 46px rgba(0,0,0,.6);
+  --shadow-soft: 0 12px 28px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;
-  font-size:clamp(14px,1.6vw,16px);min-height:100vh
+  font-family:"Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:var(--bg); color:var(--text); display:flex; align-items:center; justify-content:center;
+  font-size:clamp(15px, 1.6vw, 17px); min-height:100vh;
 }
-a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoration:underline}
 .app{
-  width:100%;max-width:560px;background:var(--surface);border:2px solid var(--border);border-radius:18px;
-  overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;height:100vh;position:relative
+  width:100%; max-width:560px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; height:100vh; position:relative;
 }
-.header{background:var(--surface-2);border-bottom:1px solid var(--border);padding:10px 130px 10px 56px;position:relative;text-align:center}
-.badge{display:inline-block;background:var(--brand);color:#0b1a2d;padding:8px 16px;border-radius:999px;font:700 13px/1 "Nunito",sans-serif;cursor:pointer}
-[data-theme="dark"] .badge{background:#89c9ff;color:#0b1626}
-.theme,.mic,.reset,.lang{
-  position:absolute;top:8px;width:44px;height:44px;border:none;border-radius:999px;background:var(--surface);
-  color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow-soft);cursor:pointer;transition:transform .08s ease
+.header{
+  position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--header-bg);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom:1px solid var(--header-border); 
+  padding:12px 56px; text-align:center;
 }
-.theme:active,.mic:active,.reset:active,.lang:active{transform:scale(.96)}
-.reset{left:8px}.mic{right:100px}.lang{right:56px}.theme{right:8px}
-.langmenu{position:absolute;top:56px;right:48px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-soft);display:none;min-width:180px;z-index:200}
-.langmenu[aria-hidden="false"]{display:block}
-.langmenu button{display:block;width:100%;text-align:left;padding:10px 12px;background:transparent;border:none;cursor:pointer}
-.langmenu button:hover{background:var(--surface-2)}
+.badge{
+  display:inline-block; background: var(--surface); color:var(--text); padding:8px 20px; border-radius:999px;
+  font:800 16px/1 "Nunito", sans-serif; cursor:pointer;
+  border: 1px solid var(--border); box-shadow: var(--shadow-soft);
+}
+.icon-btn {
+  position:absolute; top:10px; width:44px; height:44px; border:none; border-radius:50%; background:transparent;
+  color:var(--muted); cursor:pointer; transition:all .2s ease; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { color: var(--text); background: rgba(0,0,0,0.05); }
+.icon-btn:active { transform: scale(.95); }
+.reset{left:10px;}
+.settings-btn {right:10px;}
+
+.settings-menu{position:absolute;top:60px;right:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-soft);display:none;min-width:180px;z-index:200}
+.settings-menu[aria-hidden="false"]{display:block}
+.settings-menu button{display:flex; gap: 8px; align-items: center; width:100%;text-align:left;padding:10px 12px;background:transparent;border:none;cursor:pointer; color: var(--text);}
+.settings-menu button:hover{background:var(--surface-2)}
+.langmenu { right: 10px; }
+
 .chat{
-  flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;padding-bottom:120px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
-  background:radial-gradient(70% 100% at -10% -20%,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 65%),
-             radial-gradient(60% 90% at 110% 120%,rgba(255,255,255,.04) 0%,rgba(255,255,255,0) 60%),
-             linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%)
+  flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; padding-top: 80px; padding-bottom:120px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+  background: var(--surface-2);
 }
-.bubble{margin:12px 0;padding:14px 16px;border-radius:16px;line-height:1.48;border:1px solid var(--bubble-border);background:var(--bubble-bot);box-shadow:var(--shadow-soft);max-width:92%;transition:box-shadow .15s ease,transform .08s ease}
-.bubble.bot{margin-right:18%}
-.bubble.user{margin-left:18%;text-align:right;color:var(--bubble-user-text);background:var(--bubble-user-bg);border:1px solid var(--bubble-user-border);border-radius:16px 16px 4px 16px}
-.bubble:hover{box-shadow:0 10px 22px rgba(20,80,120,.14)}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bubble-wrapper { display: flex; align-items: flex-end; gap: 8px; margin: 20px 0; max-width: 92%; animation: pop-in .3s cubic-bezier(0.25, 1, 0.5, 1); }
+.bot-bubble-wrapper { margin-right: 18%; }
+.user-bubble-wrapper { margin-left: 18%; flex-direction: row-reverse; }
+
+.avatar { width: 36px; height: 36px; border-radius: 50%; background:var(--accent); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-family: "Nunito", sans-serif; font-weight: 700; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.bubble{padding:14px 18px;border-radius:18px;line-height:1.5;box-shadow:var(--shadow-soft); transition:box-shadow .15s ease,transform .08s ease}
+.bubble.bot{background:var(--bubble-bot-bg); color: var(--bubble-bot-text); border:1px solid var(--border); border-radius: 18px 18px 18px 4px;}
+.bubble.user{color:var(--bubble-user-text); background:var(--bubble-user-bg); border:none; border-radius:18px 18px 4px 18px; box-shadow: 0 4px 14px rgba(227, 74, 39, 0.3);}
+.bubble:hover{box-shadow:0 10px 22px rgba(20,80,120,.14); transform: translateY(-1px);}
+@keyframes pop-in { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .ctrl{
-  border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 14px;
-  font-weight:700;cursor:pointer;transition:transform .08s ease, background .12s ease, border-color .12s ease;
-  color:var(--text);
+  display: inline-flex; align-items: center; gap: 8px;
+  border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:12px 18px;
+  font-weight:600; cursor:pointer; transition:all .12s ease;
+  color:var(--text); font-size: 15px;
 }
+.ctrl:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--accent); box-shadow: var(--shadow-soft); }
 .ctrl:active{transform:scale(.98)}
 .ctrl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.copy{border:1px dashed var(--border);background:transparent}
-/* Dark-mode chip polish */
-[data-theme="dark"] .ctrl{
-  background:#14223a;
-  border-color:#4c6a92;
-  color:#eaf2ff;
-  box-shadow:inset 0 0 0 1px rgba(141,198,255,.12);
-}
-[data-theme="dark"] .ctrl:hover{
-  background:#1a2c4b;
-  border-color:#6e95c3;
-  box-shadow:inset 0 0 0 1px rgba(141,198,255,.22);
-}
 .typing{display:inline-flex;gap:6px;align-items:flex-end}
 .typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);animation:bounce 1s infinite ease-in-out}
 .typing .dot:nth-child(2){animation-delay:.12s}.typing .dot:nth-child(3){animation-delay:.24s}
@@ -86,28 +118,40 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 @media (prefers-reduced-motion: reduce){.typing .dot{animation:none}}
 .footer{position:absolute;bottom:0;left:0;right:0;padding:12px;background:var(--surface-2);border-top:1px solid var(--border);z-index:100}
 .row{display:flex;gap:10px;align-items:center}
-input[type="text"]{flex:1;padding:14px 16px;border:2px solid var(--border);border-radius:25px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent)}
-input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);outline:none}
-.send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:#222;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-soft);transition:transform .08s ease}
-.send:active{transform:scale(.96)}
+#box{flex:1;padding:14px 50px 14px 18px;border:2px solid var(--border);border-radius:999px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);}
+.magic-btn { position: absolute; right: 75px; top: 18px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); transition: transform 0.2s ease, color 0.2s ease; }
+.magic-btn:hover { transform: scale(1.2); color: var(--accent); }
+
+.send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:white;font-size:18px;background:var(--brand);box-shadow:var(--shadow-soft);transition:transform .1s ease, background .1s ease;}
+.send:hover { background: var(--accent); }
+.send:active{transform:scale(.95)}
 .status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
-.note{font-size:11px;color:var(--muted);margin-top:6px}
-.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
-.sticky-cta{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;display:none;gap:10px;z-index:300}
-.sticky-cta .cta{border:none;border-radius:999px;padding:12px 16px;font-weight:800;box-shadow:var(--shadow-soft);cursor:pointer}
-.cta-call{background:linear-gradient(135deg,#00b341,#54d98a);color:#fff}
-.cta-sms{background:#fff;border:1px solid var(--border)}
+/* --- Cards --- */
+.card-base {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; box-shadow: var(--shadow-soft); margin-bottom: 16px;
+  animation: pop-in .5s cubic-bezier(0.25, 1, 0.5, 1) backwards;
+}
+.card-base h3 { font-family: "Nunito", sans-serif; font-size: 18px; color: var(--accent); margin-bottom: 8px; }
+.card-base p { margin-bottom: 12px; line-height: 1.5; }
+.card-base .ctrl { background: var(--surface-2); }
+.job-card { margin-top: 10px; }
+.job-card strong { display: block; font-family: "Nunito", sans-serif; }
+.job-card span { color: var(--muted); font-size: 14px; }
 </style>
 </head>
 <body>
 <main class="app">
 <header class="header">
-  <button class="reset" id="resetBtn" aria-label="Clear chat">↺</button>
-  <div class="badge" id="scrollTopBtn" tabindex="0" role="button" aria-label="Scroll to top">TASK Assistant</div>
-  <button class="mic" id="micBtn" aria-label="Voice input">🎙</button>
-  <button class="lang" id="langBtn" aria-label="Language menu" aria-haspopup="menu" aria-expanded="false">🌐</button>
-  <button class="theme" id="themeToggle" aria-label="Toggle theme">☼</button>
-  <div class="langmenu" id="langMenu" role="menu" aria-hidden="true">
+  <button class="reset icon-btn" id="resetBtn" aria-label="Clear chat">↺</button>
+  <div class="badge" id="scrollTopBtn" tabindex="0" role="button" aria-label="Scroll to top">Employment Assistant</div>
+  <button class="settings-btn icon-btn" id="settingsBtn" aria-label="Settings menu" aria-haspopup="menu" aria-expanded="false">...</button>
+  <div class="settings-menu" id="settingsMenu" role="menu" aria-hidden="true">
+    <button role="menuitem" id="micBtn">🎙️ Voice Input</button>
+    <button role="menuitem" id="langBtn">🌐 Language</button>
+    <button role="menuitem" id="themeToggle">🌗 Theme</button>
+  </div>
+   <div class="langmenu" id="langMenu" role="menu" aria-hidden="true">
     <button role="menuitem" data-lang="en">English</button>
     <button role="menuitem" data-lang="es">Español</button>
     <button role="menuitem" data-lang="ht">Kreyòl Ayisyen</button>
@@ -117,18 +161,16 @@ input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);out
 <section class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat transcript"></section>
 
 <footer class="footer">
-  <div class="row">
+  <div class="row" style="position: relative;">
     <label class="visually-hidden" for="box">Type a message</label>
-    <input id="box" type="text" placeholder="Type: training, jobs, hours, address, bus, resume, benefits…" autocomplete="off"/>
-    <button class="send" id="send" aria-label="Send">➤</button>
+    <input id="box" type="text" placeholder="Ask me anything..." autocomplete="off"/>
+    <button class="magic-btn" id="magicBtn" aria-label="Show suggestions">✨</button>
+    <button class="send" id="send" aria-label="Send">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
+    </button>
   </div>
-  <div class="status">⚠️ I can make mistakes — please double-check important info. <a href="#" id="privacyLink">Privacy</a></div>
+  <div class="status">⚠️ I can make mistakes — please double-check important info.</div>
 </footer>
-
-<div class="sticky-cta" id="ctaBar" aria-hidden="true">
-  <a class="cta cta-call" id="ctaCall" href="tel:6093371624">📞 Call (609) 337-1624</a>
-  <a class="cta cta-sms" id="ctaSMS" href="sms:16096976215?&body=Hi%2C%20I%27d%20like%20to%20schedule%20an%20appointment">📱 Text us</a>
-</div>
 </main>
 
 <script>
@@ -136,308 +178,277 @@ input::placeholder{color:var(--muted)}input:focus{border-color:var(--accent);out
 
 /* ================= UI STRINGS ================= */
 const UI = {
-  en:{welcome:'👋 Hey there! I can help with training, jobs, appointments, hours, address, buses and more. Ask me anything.',
-      q:'Quick links:',hello:'Hi! 👋 How can I help today?',
-      thanks:"You're welcome! 😊 Anything else?",
+  en:{welcome:'👋 Hi there! How can I help you today?',
+      hello:'Hi! 👋 How can I help today?',
+      thanks:"You're welcome! 😊 Is there anything else?",
       bye:'Take care! If you need to schedule, call (609) 337-1624.',
       noWalk:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.',
-      biNote:'No caminatas / Pa san randevou',
-      frust:'🙏 We know this can be frustrating. Let\'s get you real help now — call me at <a href="tel:6096976215">(609) 697-6215</a> or text <a href="sms:16096976215">(609) 697-6215</a>. For appointments call <a href="tel:6093371624">(609) 337-1624</a>.'},
-  es:{welcome:'👋 ¡Hola! Puedo ayudarte con entrenamientos, empleos, citas, horarios, dirección, autobuses y más.',
-      q:'Enlaces rápidos:',hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?',
+      frust:'I understand this can be frustrating, and I\'m sorry you\'re having trouble. Let\'s try something else. Here are our main phone numbers for direct help:'},
+  es:{welcome:'👋 ¡Hola! ¿En qué te puedo ayudar hoy?',
+      hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?',
       thanks:'¡Con gusto! 😊 ¿Algo más?',bye:'¡Cuídate! Si necesitas una cita, llama al (609) 337-1624.',
       noWalk:'No atendemos <strong>sin cita</strong>. Por favor llama para programar.',
-      biNote:'No caminatas / Pa san randevou',
-      frust:'🙏 Sabemos que esto puede ser frustrante. Consigue ayuda ya: llámame al <a href="tel:6096976215">(609) 697-6215</a> o mándame un mensaje al <a href="sms:16096976215">(609) 697-6215</a>. Para citas llama al <a href="tel:6093371624">(609) 337-1624</a>.'},
-  ht:{welcome:'👋 Bonjou! Mwen ka ede ak fòmasyon, travay, randevou, lè yo, adrès, otobis.',
-      q:'Lyen rapid:',hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?',
+      frust:'Entiendo que esto puede ser frustrante y lamento que tengas problemas. Probemos otra cosa. Aquí están nuestros números de teléfono principales para obtener ayuda directa:'},
+  ht:{welcome:'👋 Bonjou! Kijan mwen ka ede w jodi a?',
+      hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?',
       thanks:'Avèk plezi! 😊 Gen lòt bagay?',bye:'Si ou bezwen randevou, rele (609) 337-1624.',
       noWalk:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.',
-      biNote:'No caminatas / Pa san randevou',
-      frust:'🙏 Nou konprann sa ka fistran. Ann jwenn èd reyèl touswit — rele mwen nan <a href="tel:6096976215">(609) 697-6215</a> oswa voye tèks nan <a href="sms:16096976215">(609) 697-6215</a>. Pou randevou rele <a href="tel:6093371624">(609) 337-1624</a>.'}
+      frust:'Mwen konprann sa ka fwistre, e mwen regrèt ou gen pwoblèm. Ann eseye yon lòt bagay. Men nimewo telefòn prensipal nou yo pou jwenn èd dirèk:'}
 };
 
-/* ================= STATE ================= */
+
+/* ================= DATA & STATE ================= */
 let lang='en';
-let frustCount=0;
-let staffHit=null;
-let lastSuggestionKey='';
-
-const STAFF={
-  sean   : {display:'Sean',    dept:'Employment Services', note:'Ask reception for Sean from Employment. If you need an appointment, call the employment line.'},
-  diani  : {display:'Diani',   dept:'Employment Services', note:'Ask reception for Diani from Employment. Appointments preferred.'},
-  dion   : {display:'Dion',    dept:'Employment Services', note:'Ask reception for Dion from Employment.'},
-  diane  : {display:'Diane',   dept:'Employment Services', note:'You can ask reception for Diane from Employment.'},
-  tiffany: {display:'Tiffany', dept:'Employment Services', note:'Ask reception for Tiffany from Employment.'},
-  adam   : {display:'Adam',    dept:'Employment Services', note:'Ask reception for Adam from Employment.'},
-  paul   : {display:'Paul',    dept:'Employment Services', note:'Ask reception for Paul from Employment.'},
-  mia    : {display:'Mia',     dept:'Employment Services', note:'Ask reception for Mia from Employment.'}
-};
-
 const ce=id=>document.getElementById(id);
 const chat=ce('chat'), box=ce('box'), theme=ce('themeToggle');
-const micBtn=ce('micBtn'), resetBtn=ce('resetBtn');
+const resetBtn=ce('resetBtn');
 const langBtn=ce('langBtn'), langMenu=ce('langMenu');
-const ctaBar=ce('ctaBar');
+const settingsBtn = ce('settingsBtn'), settingsMenu = ce('settingsMenu');
+const micBtn = ce('micBtn');
+let chatHistory = [];
 
-/* ================= HELPERS ================= */
-function stripDiacritics(str){return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
-const norm=s=>stripDiacritics(s).toLowerCase();
+/* ================= SOUND & HAPTICS ================= */
+let synth;
+try {
+  synth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "sine" },
+    envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 },
+  }).toDestination();
+} catch (e) { console.warn("Tone.js failed to initialize."); synth = null; }
+
+function playSound(type) {
+  if (synth && Tone.context.state !== 'running') { Tone.start(); }
+  if (synth) {
+    try { 
+      if (type === 'send') synth.triggerAttackRelease("C5", "16n", Tone.now());
+      if (type === 'receive') synth.triggerAttackRelease(["E5", "A5"], "16n", Tone.now());
+    } catch(e) {}
+  }
+}
+function vibrate(style = 'light') {
+  if (window.navigator?.vibrate) {
+    try { 
+      if (style === 'light') navigator.vibrate(10);
+      if (style === 'medium') navigator.vibrate([30, 50, 30]);
+    } catch(e) {}
+  }
+}
+
+/* ================= HELPERS & UI ================= */
 const isNearBottom=()=> (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
 function safeScroll(){ if(isNearBottom()) requestAnimationFrame(()=> chat.scrollTop=chat.scrollHeight ); }
-function sec(t,b){ return `<div style="margin-bottom:10px"><strong>${t}</strong><br>${b}</div>`; }
 function setLang(l,persist=true){ lang=(['en','es','ht'].includes(l)?l:'en'); if(persist){try{localStorage.setItem('task_lang',lang);}catch(e){}} }
-function detectL(t){ const s=` ${norm(t)} `; if(/ (hola|gracias|cita|trabajo|empleo) /.test(s)) return 'es'; if(/ (bonjou|mesi|randevou|travay) /.test(s)) return 'ht'; return 'en'; }
+window.textInfo = (text) => { const url = `sms:?&body=${encodeURIComponent(text)}`; window.location.href = url; vibrate('medium'); };
 
-/* ================= LANGUAGE MENU ================= */
-langBtn.addEventListener('click',()=>{const open=langMenu.getAttribute('aria-hidden')==='false';langMenu.setAttribute('aria-hidden',open?'true':'false');langBtn.setAttribute('aria-expanded',open?'false':'true')});
-langMenu.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{setLang(b.dataset.lang);langMenu.setAttribute('aria-hidden','true');langBtn.setAttribute('aria-expanded','false');greet(true)}));
+settingsBtn.addEventListener('click', () => {
+    const open = settingsMenu.getAttribute('aria-hidden') === 'false';
+    settingsMenu.setAttribute('aria-hidden', open ? 'true' : 'false');
+    settingsBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+});
+langBtn.addEventListener('click', () => {
+    const open = langMenu.getAttribute('aria-hidden') === 'false';
+    langMenu.setAttribute('aria-hidden', open ? 'true' : 'false');
+});
+langMenu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    setLang(b.dataset.lang);
+    langMenu.setAttribute('aria-hidden', 'true');
+    settingsMenu.setAttribute('aria-hidden', 'true');
+    greet(true);
+}));
+document.addEventListener('click', (e) => {
+    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target) && !langBtn.contains(e.target) && !langMenu.contains(e.target)) {
+        settingsMenu.setAttribute('aria-hidden', 'true');
+        langMenu.setAttribute('aria-hidden', 'true');
+    }
+});
 
 /* ================= RENDER ================= */
-function addU(t){ const e=document.createElement('div'); e.className='bubble user'; e.textContent=t; chat.appendChild(e); safeScroll(); }
-function addB(html){ const e=document.createElement('div'); e.className='bubble bot'; e.innerHTML=html; chat.appendChild(e); safeScroll(); }
-function typing(on){ const id='typing'; if(on){ const e=document.createElement('div'); e.id=id; e.className='bubble bot'; e.innerHTML='<div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>'; chat.appendChild(e);} else { ce(id)?.remove(); } safeScroll(); }
-
-/* ================= INTENT DETECTION ================= */
-function find(t){
-  const s=' '+norm(t)+' ';
-  staffHit=null;
-  const nameMatch = s.match(/\b(?:see|speak to|talk to|ask for)?\s*(sean|diani|dion|diane|tiffany|adam|paul|mia)\b/);
-  if(nameMatch){ staffHit = nameMatch[1]; }
-
-  const hits=new Set();
-  if(/\b(hi|hello|hey|hola|bonjou)\b/.test(s)) hits.add('greeting');
-  if(/\b(thanks|thank you|gracias|merci|mesi)\b/.test(s)) hits.add('thanks');
-  if(/\b(bye|goodbye|adios|ciao)\b/.test(s)) hits.add('bye');
-  if(/(wtf|sucks|useless|annoying|hate this|mad|angry|pissed|stupid|dumb|frustrated|no sirve|esto apesta|sa pa mache|help now|this is dumb|not working|wtf is this|broken)/.test(s)) hits.add('frust');
-
-  if(/\b(appointment|appt|make|schedule|cita|randevou|walk[\s-]?in)\b/.test(s)) hits.add('appt');
-  if(/\b(job|jobs|employment|hiring|positions|empleo|trabajo|travay|career|openings|find work)\b/.test(s)) hits.add('jobs');
-  if(/\b(training|program|class|certification|course|entrenamiento|fòmasyon|learn|skills)\b/.test(s)) hits.add('train');
-  if(/\b(hours|time|open|close|horario|le|lè)\b/.test(s)) hits.add('hours');
-  if(/\b(address|location|where|direccion|dirección|kote|adrès)\b/.test(s)) hits.add('loc');
-  if(/\b(resume|cv|curriculum vita?e?|cover letter|application)\b/.test(s)) hits.add('res');
-  if(/\b(resource|services|benefits|snap|recursos|resous|support|help with)\b/.test(s)) hits.add('resource');
-  if(/\b(bus|route|njt|transit|schedule|transport)\b/.test(s)) hits.add('bus');
-  if(/\b(alerts?|notifica(?:tion|ciones)?)\b/.test(s)) hits.add('alerts');
-
-  if(/\b(employment services|employment program|what is employment|employment help)\b/.test(s)) hits.add('employment_info');
-  if(/\b(interview|prep|practice|mock interview)\b/.test(s)) hits.add('interview');
-  if(/\b(id|documents|paperwork|bring|what do i need)\b/.test(s)) hits.add('documents');
-  if(/\b(job fair|hiring event|career fair)\b/.test(s)) hits.add('jobfair');
-  if(/\b(computer|email|digital|phone|smartphone|help set up)\b/.test(s)) hits.add('digital');
-
-  if(staffHit) hits.add('staff');
-  return [...hits];
+function addU(t){ const e=document.createElement('div'); e.className='bubble-wrapper user-bubble-wrapper'; e.innerHTML=`<div class="bubble user">${t}</div>`; chat.appendChild(e); safeScroll(); playSound('send'); vibrate('light'); }
+function addB(html){
+  const wrapper=document.createElement('div');
+  wrapper.className='bubble-wrapper bot-bubble-wrapper';
+  const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+  const bubble = `<div class="bubble bot">${html}</div>`;
+  wrapper.innerHTML = avatar + bubble;
+  chat.appendChild(wrapper);
+  safeScroll();
+  playSound('receive');
+  vibrate('light');
 }
-
-/* ================= SUGGESTIONS ================= */
-function addSuggestions(keys){
-  if(!keys || !keys.length) return;
-  const sig = JSON.stringify(keys);
-  if(sig === lastSuggestionKey) return; // de-dupe
-  lastSuggestionKey = sig;
-
-  const bubble=document.createElement('div'); bubble.className='bubble bot';
-  const wrap=document.createElement('div'); wrap.className='controls';
-  const labels={jobs:'Jobs',train:'Training',hours:'Hours',loc:'Address',appt:'Appointment',res:'Resume',alerts:'Alerts',resource:'Resources',bus:'Buses',employment_info:'Employment Services',interview:'Interview prep',documents:'What to bring',jobfair:'Job fair prep',digital:'Digital help',staff:'Ask for staff'};
-  keys.forEach(k=>{
-    const btn=document.createElement('button');
-    btn.type='button'; btn.className='ctrl'; btn.setAttribute('aria-label',`Ask about ${labels[k]||k}`);
-    btn.textContent=labels[k]||k;
-    btn.addEventListener('click',()=>{
-      addU(btn.textContent);
-      const html=reply([k]); addB(html);
-      lastSuggestionKey=''; // allow a new unique tray
-      nextSuggestions([k]);
-    });
-    wrap.appendChild(btn);
-  });
-  bubble.appendChild(wrap);
-  chat.appendChild(bubble);
+function typing(on){
+  const id='typing';
+  if(on){
+    const wrapper = document.createElement('div');
+    wrapper.id = id;
+    wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+    const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+    const bubble = `<div class="bubble bot"><div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
+    wrapper.innerHTML = avatar + bubble;
+    chat.appendChild(wrapper);
+  } else { ce(id)?.remove(); }
   safeScroll();
 }
-function nextSuggestions(intents){
-  let keys=[];
-  if(intents.includes('jobs'))              keys=['alerts','res','appt','interview','jobfair'];
-  else if(intents.includes('train'))        keys=['jobs','res','appt','digital'];
-  else if(intents.includes('loc'))          keys=['hours','bus','resource'];
-  else if(intents.includes('hours'))        keys=['loc','resource'];
-  else if(intents.includes('appt'))         keys=['jobs','train','documents'];
-  else if(intents.includes('employment_info')) keys=['jobs','train','res'];
-  else if(intents.includes('digital'))      keys=['jobs','res','alerts'];
-  else                                      keys=['jobs','train','hours','loc','res'];
-  addSuggestions(keys);
-}
 
-/* ================= REPLIES ================= */
-function reply(intents){
-  const blocks=[];
-  const phoneMain='(609) 337-1624';
-  const phoneJobs='(609) 697-6166';
-  const phoneHelp='(609) 697-6215';
+/* ================= AI CORE (GEMINI) ================= */
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
 
-  if(intents.includes('frust')){
-    frustCount++;
-    const extra = frustCount>=2 ? `<br><div class="controls"><a class="ctrl" href="tel:6096976215">📞 Talk to a person now</a><a class="ctrl" href="sms:16096976215?&body=Need%20help">📱 Text for help</a></div>` : '';
-    blocks.push(sec('🙏', UI[lang].frust + extra));
-  }
-  if(intents.includes('greeting')) blocks.push(sec('👋', UI[lang].hello));
-  if(intents.includes('thanks'))   blocks.push(sec('😊', UI[lang].thanks));
-  if(intents.includes('bye'))      blocks.push(sec('👋', UI[lang].bye));
+const systemPrompt = `
+  You are the Employment Assistant for the Trenton Area Soup Kitchen (TASK). 
+  Your persona is friendly, empathetic, and extremely helpful. Your goal is to provide clear, actionable information.
+  Keep responses concise, using Markdown for links.
+  
+  ***IMPORTANT RULES***
+  1.  **DETECT INTENT**: Analyze the user's message to determine their core need. Handle typos gracefully (e.g., "apointmetn" is "appointment", "tarinign" is "training").
+  2.  **HANDLE STAFF**: If the user mentions "Sean", provide his info for training. If they mention "Diani", provide her info for appointments.
+  3.  **HANDLE JOBS**: If the user asks for "jobs", ALWAYS ask for the job type first (warehouse, retail, food service). Once they specify a type, respond ONLY with the tag: [SEARCH_JOBS: job_type]. For specific company names (Amazon, UPS, Sodexo, Trane, Aramark, P.F. Chang's, Red Lobster, Cheesecake Factory, Cooper's Riverview, Longhorn Steakhouse), respond ONLY with the tag: [SEARCH_JOBS: company_name].
+  4.  **HANDLE TRAINING**: If the user asks for "training", provide the direct application link.
+  5.  **PROVIDE INFO**: For all other topics (hours, address, SORA, etc.), provide the information directly.
+  6.  **BE CONVERSATIONAL**: Don't just list facts. If a user says "hi", say hi back. If they are frustrated, be empathetic before providing help.
 
-  if(intents.includes('employment_info')){
-    const m=`TASK Employment Services helps with: resume building, job search, interview prep, certifications/training referrals, and text alerts for opportunities. Start by calling <a href="tel:6096976166">${phoneJobs}</a> or visit during meal hours to ask reception.`;
-    blocks.push(sec('🧭 About Employment Services', m));
-  }
-  if(intents.includes('interview')){
-    const m=`We can help you practice! Quick tips: arrive 10–15 min early, bring a photo ID and a simple resume, dress neat (no need for a suit), and prepare a 30-second intro. Ask to set up a mock interview: <a href="tel:6096976166">${phoneJobs}</a>.`;
-    blocks.push(sec('🗣 Interview Prep', m));
-  }
-  if(intents.includes('documents')){
-    const m=`Bring what you have: photo ID, any resume, a list of past jobs/addresses, and certificates. If you’re missing ID, come anyway—we’ll guide you on replacements.`;
-    blocks.push(sec('📄 What to Bring', m));
-  }
-  if(intents.includes('jobfair')){
-    const m=`For job fairs: bring several resumes, a pen, and your ID; dress neat; be ready to share your 30-second intro; and sign up for alerts so you don’t miss events. Need help printing resumes? We can help at TASK.`;
-    blocks.push(sec('🎪 Job Fair Prep', m));
-  }
-  if(intents.includes('digital')){
-    const m=`New to computers or phones? We can help you set up email, create a resume on your phone, and apply online. Ask for digital literacy help at reception or call <a href="tel:6096976166">${phoneJobs}</a>.`;
-    blocks.push(sec('💡 Digital Help', m));
-  }
+  ***YOUR KNOWLEDGE BASE***
+  - **TASK Website**: [https://www.trentonsoupkitchen.org](https://www.trentonsoupkitchen.org)
+  - **Appointments**: To make an appointment, call **609-337-1624**. We do NOT take walk-ins.
+  - **Sean (Training Contact)**: **609-697-6215**
+  - **Diani (Appointment Contact)**: **609-697-6166**
+  - **Training Application Link**: [https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659](https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659)
+  - **SORA License Info**: Official NJ site is [https://www.njsp.org/private-detective/sora.shtml](https://www.njsp.org/private-detective/sora.shtml)
+  - **Career Tips**: Based on [https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170675](https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170675)
+`;
 
-  if(intents.includes('staff') && staffHit){
-    const info = STAFF[staffHit];
-    if(info){
-      const m=`You can ask reception for <strong>${info.display}</strong> (${info.dept}). ${info.note}
-               <div class="controls"><a class="ctrl" href="tel:6096976166">📞 Employment line</a>
-               <a class="ctrl" href="tel:6093371624">📞 Main line</a></div>`;
-      blocks.push(sec('👤 Ask for staff', m));
+async function getAiResponse(prompt) {
+    typing(true);
+    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: chatHistory,
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: [{ "google_search": {} }]
+            })
+        });
+        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+        const result = await response.json();
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I'm having trouble connecting right now.";
+        
+        chatHistory.push({ role: "model", parts: [{ text: text }] });
+        return text;
+
+    } catch (error) {
+        console.error("Gemini API call failed:", error);
+        return "I'm sorry, I encountered an error. Please try again in a moment.";
+    } finally {
+        typing(false);
     }
-  }
-
-  if(intents.includes('appt')){
-    let m = `Best way: call <a href="tel:6093371624">${phoneMain}</a>.<br>${UI[lang].noWalk}<div class="note">${UI[lang].biNote}</div>`;
-    m += `<br>If you can't get through, call me at <a href="tel:6096976215">${phoneHelp}</a> or text <a href="sms:16096976215">${phoneHelp}</a>.`;
-    m += `<div class="controls"><button class="ctrl copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${phoneMain}')">📋 Copy ${phoneMain}</button></div>`;
-    blocks.push(sec('📅 Appointment', m));
-    showCTA(true);
-  }
-
-  if(intents.includes('jobs')){
-    const m = `<a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Open positions</a><br>
-               <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a><br>
-               Need resume help? See <a href="https://bycell.co/ddmui" target="_blank" rel="noopener">templates</a>.<br>
-               Call <a href="tel:6096976166">${phoneJobs}</a> or <a href="tel:6096976215">${phoneHelp}</a>.`;
-    blocks.push(sec('💼 Jobs', m));
-  }
-
-  if(intents.includes('train'))
-    blocks.push(sec('🎓 Training', `<a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a><br>Call <a href="tel:6096976166">${phoneJobs}</a>.`));
-
-  if(intents.includes('hours')){
-    const txt='Lunch Mon–Fri 10:30–1:00 • Dinner Mon–Thu 3:30–5:00';
-    blocks.push(sec('🕒 Hours', txt + `<div class="controls"><button class="ctrl copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('Lunch Mon–Fri 10:30–1:00; Dinner Mon–Thu 3:30–5:00')">📋 Copy hours</button></div>`));
-  }
-
-  if(intents.includes('loc')){
-    const addr='72½ Escher St, Trenton, NJ 08609';
-    const map='https://www.google.com/maps?q=72%201%2F2%20Escher%20St,%20Trenton,%20NJ%2008609';
-    blocks.push(sec('📍 Address', `${addr}<br><a href="${map}" target="_blank" rel="noopener">Open Map</a>` +
-      `<div class="controls"><button class="ctrl copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${addr}')">📋 Copy address</button></div>`));
-  }
-
-  if(intents.includes('bus'))
-    blocks.push(sec('🚌 Buses', 'Closest: NJ Transit lines near 72½ Escher St. Check schedules on NJT app or call 973-275-5555.'));
-  if(intents.includes('res'))
-    blocks.push(sec('📄 Resume', `<a href="https://bycell.co/ddmui" target="_blank" rel="noopener">Templates</a><br>For help, call <a href="tel:6093371624">${phoneMain}</a>.`));
-  if(intents.includes('resource'))
-    blocks.push(sec('🧰 Resources', `<a href="https://bycell.co/ddmua" target="_blank" rel="noopener">Community resources</a><br><a href="https://trentonsoupkitchen.org/what-we-do/" target="_blank" rel="noopener">What we do</a>`));
-  if(intents.includes('alerts'))
-    blocks.push(sec('🔔 Alerts', `<a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Sign up for alerts</a>`));
-
-  if(!intents.length){
-    blocks.push(
-      sec('🤝 I can help with:', 'Jobs • Training • Appointments • Hours • Address • Resume • Resources • Buses') +
-      `<div class="controls">
-        <button class="ctrl">Jobs</button>
-        <button class="ctrl">Training</button>
-        <button class="ctrl">Appointment</button>
-        <button class="ctrl">Address</button>
-      </div>`
-    );
-  }
-  return blocks.join('<hr style="border:none;height:8px;background:transparent">');
 }
+
 
 /* ================= FLOW ================= */
-function showCTA(on){ ctaBar.style.display = on ? 'flex' : 'none'; ctaBar.setAttribute('aria-hidden', on? 'false':'true'); }
-function handle(t){
+async function handle(t){
   if(!t) return;
-  const guessed = detectL(t); if(guessed!==lang) setLang(guessed,false);
-  addU(t); typing(true);
-  const intents = find(t);
-  setTimeout(()=>{
-    typing(false);
-    addB(reply(intents));
-    const conversational = new Set(['greeting','thanks','bye']);
-    const meaningful = intents.some(x => !conversational.has(x));
-    if (meaningful) nextSuggestions(intents);
-    if(!intents.includes('appt')) showCTA(false);
-  },220);
+  addU(t);
+  
+  const aiResponse = await getAiResponse(t);
+
+  if (aiResponse.startsWith('[SEARCH_JOBS:')) {
+    const jobQuery = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/)[1];
+    await getJobs(jobQuery);
+  } else {
+    const formattedResponse = aiResponse.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    addB(formattedResponse);
+  }
 }
-function send(){ const t=(box.value||'').trim(); if(!t) return; box.value=''; box.blur(); handle(t); setTimeout(()=>box.focus(),100); }
+
+async function getJobs(query) {
+    addB(`Searching for the latest ${query} jobs in Mercer County...`);
+    const jobQuery = `entry level ${query} jobs in Mercer County NJ`;
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(jobQuery)}&ibp=htl;jobs`;
+    
+    let jobsHtml = `Here are some recent ${query} openings. Click the link to see the full list on Google Jobs:`;
+    jobsHtml += `<div class="card-base job-card">
+        <strong>Live Job Search Results</strong>
+        <span>Mercer County, NJ</span>
+        <div class="controls"><a href="${searchUrl}" target="_blank" rel="noopener" class="ctrl">View Live Jobs</a></div>
+    </div>`;
+    addB(jobsHtml);
+}
+
+function send(){ const t=(box.value||'').trim(); if(!t) return; handle(t); box.value=''; box.blur(); setTimeout(()=>box.focus(),100); }
 
 /* ================= THEME ================= */
 (function initTheme(){
   let saved=null; try{saved=localStorage.getItem('task_theme');}catch(e){}
   if(!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
-    document.documentElement.setAttribute('data-theme','dark'); theme.textContent='☾';
+    document.documentElement.setAttribute('data-theme','dark');
   } else if(saved){
-    document.documentElement.setAttribute('data-theme', saved); theme.textContent = saved==='dark'?'☾':'☼';
+    document.documentElement.setAttribute('data-theme', saved);
   }
 })();
-theme.addEventListener('click',()=>{
+themeToggle.addEventListener('click',()=>{
   const dark=document.documentElement.getAttribute('data-theme')==='dark';
   const next=dark?'light':'dark';
   document.documentElement.setAttribute('data-theme', next);
-  theme.textContent = next==='dark'?'☾':'☼';
   try{ localStorage.setItem('task_theme', next); }catch(e){}
 });
 
 /* ================= VOICE (if supported) ================= */
 (function initMic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ micBtn.title='Voice not supported on this browser'; return; }
+  if(!SR){ micBtn.style.display='none'; return; }
   const rec=new SR(); const langMap={en:'en-US', es:'es-ES', ht:'ht-HT'};
   micBtn.addEventListener('click',()=>{ rec.lang=langMap[lang]||'en-US'; rec.start(); });
   rec.onresult=e=>{ box.value=e.results[0][0].transcript; send(); };
 })();
 
-/* ================= RESET & EVENTS ================= */
-resetBtn.addEventListener('click',()=>{ chat.innerHTML=''; frustCount=0; lastSuggestionKey=''; greet(true); showCTA(false); });
+/* ================= EVENTS ================= */
+resetBtn.addEventListener('click',()=>{ chat.innerHTML=''; chatHistory=[]; greet(true); });
 ce('send').addEventListener('click',send);
 box.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
 box.addEventListener('focus',()=>setTimeout(()=>safeScroll(),300));
 ce('scrollTopBtn').addEventListener('click',()=>chat.scrollTo({top:0,behavior:'smooth'}));
-ce('scrollTopBtn').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); chat.scrollTo({top:0,behavior:'smooth'}); }});
 
-/* ================= GREETING ================= */
+/* ================= GREETING & OPPORTUNITY ENGINE ================= */
+async function fetchOpportunities() {
+    // In a real app, this would fetch from a live Google Sheet or API
+    const mockData = [
+      { title: '🔥 Hiring Event Today!', message: 'Amazon is hiring warehouse associates until 3 PM at their Robbinsville location.', link: 'https://search.amazondelivers.jobs/location/new-jersey-jobs', linkText: 'Apply at Amazon' },
+      { title: 'UPDATE: Bus Route 609', message: 'The 609 Bus is running on a delayed schedule this morning due to construction.', linkText: 'See Details', link: 'https://www.njtransit.com/service-advisory/165688' },
+    ];
+    return mockData;
+}
+
+ce('magicBtn').addEventListener('click', async () => {
+  vibrate('light');
+  addB('✨ Here are today\'s top opportunities:');
+  const opportunities = await fetchOpportunities();
+  let oppsHTML = '';
+  opportunities.forEach((item, i) => {
+    let cardHTML = `<div class="card-base opportunity-card" style="animation-delay: ${i*100}ms"><h3>${item.title}</h3><p>${item.message}</p>`;
+    if (item.linkText && item.link) {
+      cardHTML += `<div class="controls"><a class="ctrl" href="${item.link}" target="_blank" rel="noopener">${item.linkText}</a></div>`;
+    }
+    cardHTML += `</div>`;
+    oppsHTML += cardHTML;
+  });
+  addB(oppsHTML);
+});
+
+
 function greet(fromReset=false){
   if(fromReset){
     let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){}
-    setLang(saved || (navigator.language||'en').slice(0,2));
+    setLang(saved || 'en');
   }
-  addB(`🟡 <strong>${UI[lang].welcome}</strong><br><br>${UI[lang].q} 
-        <a href="https://bycell.co/ddmtn" target="_blank" rel="noopener">Training</a> • 
-        <a href="https://bycell.co/ddmtq" target="_blank" rel="noopener">Jobs</a> • 
-        <a href="https://bycell.co/ddmtr" target="_blank" rel="noopener">Alerts</a>`);
-  lastSuggestionKey='';
-  addSuggestions(['jobs','train','hours','loc','res','employment_info']);
+  const welcomeMessage = UI[lang] ? UI[lang].welcome : UI['en'].welcome;
+  addB(`<strong>${welcomeMessage}</strong>`);
 }
-(function initLang(){ let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){} setLang(saved || (navigator.language||'en').slice(0,2)); })();
+
+(function initLang(){ let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){} setLang(saved || 'en'); })();
 greet();
+
 </script>
 </body>
 </html>
+
