@@ -199,9 +199,16 @@ const micBtn = ce('micBtn');
 /* ================= SOUND & HAPTICS ================= */
 let synth;
 try {
+  // Chime sound configuration
   synth = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: "sine" },
-    envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 },
+    envelope: { 
+      attack: 0.005, 
+      decay: 0.8, // Longer decay for bell effect
+      sustain: 0.1, // Small sustain for resonance
+      release: 0.5 
+    }, 
+    volume: -10 
   }).toDestination();
 } catch (e) { console.warn("Tone.js failed to initialize."); synth = null; }
 
@@ -209,8 +216,8 @@ function playSound(type) {
   if (synth && Tone.context.state !== 'running') { Tone.start(); }
   if (synth) {
     try { 
-      if (type === 'send') synth.triggerAttackRelease("C5", "16n", Tone.now());
-      if (type === 'receive') synth.triggerAttackRelease(["E5", "A5"], "16n", Tone.now());
+      if (type === 'send') synth.triggerAttackRelease("G5", "8n", Tone.now());
+      if (type === 'receive') synth.triggerAttackRelease("C6", "8n", Tone.now()); 
     } catch(e) {}
   }
 }
@@ -236,10 +243,11 @@ function setLoadingState(isLoading) {
 /** Updates the status bar with an optional error message. */
 function setErrorStatus(message) {
     if (message) {
-        statusDiv.textContent = message;
+        // Updated error message to be less prescriptive about the user's network
+        statusDiv.innerHTML = `🚨 **Error**: ${message}`;
         statusDiv.classList.add('error-status');
     } else {
-        statusDiv.textContent = '⚠️ I can make mistakes — please double-check important info.';
+        statusDiv.innerHTML = '⚠️ I can make mistakes — please double-check important info.';
         statusDiv.classList.remove('error-status');
     }
 }
@@ -411,12 +419,13 @@ async function getAiResponse(prompt) {
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         chatHistory.push({ role: "model", parts: [{ text: text }] });
         
-        setErrorStatus(null); 
+        setErrorStatus(null); // <--- Clears the error status on success
         return text;
 
     } catch (error) {
         console.error("Gemini API call failed:", error);
-        setErrorStatus("🚨 Connection failed. Please check your network and try again.");
+        // Updated error status message
+        setErrorStatus("The AI service is temporarily unavailable. Please try again in a moment.");
         return "I'm sorry, I encountered a critical connection error. Please try again in a moment.";
     } finally {
         typing(false);
@@ -453,12 +462,15 @@ async function handle(t){
 
 async function getJobs(query) {
     addB(`Searching for the latest <strong>${query}</strong> jobs in Mercer County...`);
+    
+    // The link below goes directly to Google Jobs, which is a trusted aggregator
+    // that links directly to the employer's website.
     const jobQuery = `entry level ${query} jobs in Mercer County NJ`;
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(jobQuery)}&ibp=htl;jobs`;
     
-    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. Click the button to view the full, live list on Google Jobs:`;
+    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. For daily, real-time results and to navigate directly to the **Employer's Website** for safe application, click the button below:`;
     jobsHtml += `<div class="card-base job-card">
-        <strong>Live Job Search Results</strong>
+        <strong>Live Job Search Results (Google Jobs)</strong>
         <span>Mercer County, NJ</span>
         <div class="controls"><a href="${searchUrl}" target="_blank" rel="noopener" class="ctrl">View Live Jobs</a></div>
     </div>`;
@@ -522,7 +534,7 @@ document.addEventListener('click', (e) => {
 })();
 
 // --- Main Chat Events ---
-ce('resetBtn').addEventListener('click', () => { chat.innerHTML = ''; chatHistory = []; greet(true); });
+ce('resetBtn').addEventListener('click', () => { chat.innerHTML = ''; chatHistory = []; setErrorStatus(null); greet(true); });
 ce('send').addEventListener('click', send);
 box.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); send(); }});
 box.addEventListener('focus', () => setTimeout(() => safeScroll(), 300));
@@ -530,10 +542,15 @@ ce('scrollTopBtn').addEventListener('click', () => chat.scrollTo({top:0,behavior
 
 /* ================= GREETING & OPPORTUNITY ENGINE ================= */
 async function fetchOpportunities() {
-    // In a real app, this would fetch from a live Google Sheet or API
     const mockData = [
-      { title: '🔥 Hiring Event Today!', message: 'Amazon is hiring warehouse associates until 3 PM at their Robbinsville location.', link: 'https://search.amazondelivers.jobs/location/new-jersey-jobs', linkText: 'Apply at Amazon' },
-      { title: 'UPDATE: Bus Route 609', message: 'The 609 Bus is running on a delayed schedule this morning due to construction.', linkText: 'See Details', link: 'https://www.njtransit.com/service-advisory' },
+      // 1. UPDATED OPPORTUNITY: General Hiring Event (removed company name)
+      { title: '🔥 High-Volume Hiring Event Today!', message: 'Multiple regional employers are hiring warehouse and entry-level associates until 3 PM at a Robbinsville location.', link: 'https://www.google.com/search?q=warehouse+jobs+robbinsville+nj&ibp=htl;jobs', linkText: 'View Openings' },
+      
+      // 2. NEW CARD: Amazing Career Tips (using the provided link)
+      { title: '✨ Your Next Career Tip', message: 'Get helpful advice on interview prep, resume building, and securing your next job.', link: 'https://bycell.co/ddmnx', linkText: 'Get Tips' },
+
+      // 3. Local Bus Route Info (Consolidated Trip Planner Link)
+      { title: 'Local Bus Route Update', message: 'The 609 Bus is running on a delayed schedule this morning due to construction. Check the trip planner for alternatives.', linkText: 'Trip Planner', link: 'https://www.njtransit.com/trip-planner' },
     ];
     return mockData;
 }
@@ -555,8 +572,10 @@ ce('magicBtn').addEventListener('click', async () => {
         oppsHTML += cardHTML;
       });
       addB(oppsHTML);
+      setErrorStatus(null); 
   } catch (e) {
       addB("Sorry, I couldn't load the opportunities right now.");
+      setErrorStatus("Failed to load opportunities.");
   } finally {
       setLoadingState(false);
   }
@@ -578,6 +597,7 @@ function greet(fromReset = false){
     let saved = null; 
     try{ saved = localStorage.getItem('task_lang'); }catch(e){} 
     setLang(saved || 'en'); 
+    setErrorStatus(null); // Clears status bar on initial load
     greet();
 })();
 
