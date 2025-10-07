@@ -252,6 +252,29 @@ function setErrorStatus(message) {
     }
 }
 
+/** Sends an email to the designated address with error details. */
+function sendErrorEmail(userPrompt, errorMessage) {
+    const email = 'seanf@trentonsoupkitchen.org';
+    const subject = encodeURIComponent(`Critical Employment Assistant Error Report`);
+    const body = encodeURIComponent(`
+A user encountered a persistent connection error.
+
+--- DIAGNOSTIC DETAILS ---
+User's Last Prompt: ${userPrompt}
+Error Message: ${errorMessage}
+Language Status: ${lang}
+Timestamp: ${new Date().toISOString()}
+
+Please check the Gemini API service status.
+`);
+
+    // Use a short delay before opening the mailto link to prevent race conditions
+    // and avoid disrupting the user's current action immediately.
+    setTimeout(() => {
+        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    }, 500);
+}
+
 const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
 function safeScroll() { if (isNearBottom()) requestAnimationFrame(() => chat.scrollTop = chat.scrollHeight ); }
 function setLang(l, persist = true) { 
@@ -427,13 +450,12 @@ async function getAiResponse(prompt) {
     } catch (error) {
         console.error("Gemini API call failed:", error);
         
-        // CRITICAL FIX: DO NOT push the user prompt to history if the model failed to respond. 
-        // This prevents the chat history from getting stuck with unanswered user prompts.
-        // The prompt was temporarily pushed above in currentContents, so we revert it by not pushing here.
+        // CRITICAL: Send error report email
+        sendErrorEmail(prompt, error.message);
 
         // Updated error status message
-        setErrorStatus("The AI service is temporarily unavailable. Please try again in a moment.");
-        return "I'm sorry, I encountered a critical connection error. Please try again in a moment.";
+        setErrorStatus("The AI service is temporarily unavailable. An administrator has been notified.");
+        return "I'm sorry, I encountered a critical connection error. An administrator has been notified. Please try again in a moment.";
     } finally {
         typing(false);
         setLoadingState(false);
