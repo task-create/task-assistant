@@ -12,13 +12,33 @@
 <style>
 :root{
   --radius: 20px;
+  --bg: #0a0f1a;
+  --surface: #111929;
+  --surface-2: #0e1625;
+  --text: #eaf2ff;
+  --muted: #a7bad5;
+  --brand: #E34A27; /* TASK Red-Orange */
+  --accent: #003B5C; /* TASK Dark Blue */
+  --border: #344b6b;
+  --link: #ff8a6b;
+  --shadow: 0 20px 40px rgba(0,0,0,.6);
+  --shadow-soft: 0 8px 20px rgba(0,0,0,.45);
+  --header-bg: rgba(17, 25, 41, 0.7);
+  --header-border: #344b6b;
+  --bubble-bot-bg: #1e293b;
+  --bubble-bot-text: #eaf2ff;
+  --bubble-user-bg: var(--brand);
+  --bubble-user-text: #fff;
+  --typing: #aab4c3;
+  --error: #E53935; /* Red for errors */
+}
+/* DARK MODE */
+[data-theme="light"]{
   --bg: #f4f7fa;
   --surface: #ffffff;
   --surface-2: #f7fbff;
   --text: #0a121e;
   --muted: #5a6b82;
-  --brand: #E34A27; /* TASK Red-Orange */
-  --accent: #003B5C; /* TASK Dark Blue */
   --border: #e2e8f0;
   --link: var(--brand);
   --shadow: 0 20px 40px rgba(30, 50, 80, .1);
@@ -30,23 +50,6 @@
   --bubble-user-bg: var(--brand);
   --bubble-user-text: #fff;
   --typing: #aab4c3;
-  --error: #E53935; /* Red for errors */
-}
-/* DARK MODE */
-[data-theme="dark"]{
-  --bg: #0a0f1a;
-  --surface: #111929;
-  --surface-2: #0e1625;
-  --text: #eaf2ff;
-  --muted: #a7bad5;
-  --border: #344b6b;
-  --link: #ff8a6b;
-  --header-bg: rgba(17, 25, 41, 0.7);
-  --header-border: #344b6b;
-  --bubble-bot-bg: #1e293b;
-  --bubble-bot-text: #eaf2ff;
-  --shadow: 0 22px 46px rgba(0,0,0,.6);
-  --shadow-soft: 0 12px 28px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -86,7 +89,6 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
 .settings-menu[aria-hidden="false"]{display:block}
 .settings-menu button{display:flex; gap: 8px; align-items: center; width:100%;text-align:left;padding:10px 12px;background:transparent;border:none;cursor:pointer; color: var(--text);}
 .settings-menu button:hover{background:var(--surface-2)}
-/* .langmenu { right: 10px; } - REMOVED */
 
 .chat{
   flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; padding-top: 80px; padding-bottom:120px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
@@ -199,16 +201,10 @@ const micBtn = ce('micBtn');
 /* ================= SOUND & HAPTICS ================= */
 let synth;
 try {
-  // Chime sound configuration
+  // Sound is a soft, pleasant chime/bell tone (Marimba or metallic tone)
   synth = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: "sine" },
-    envelope: { 
-      attack: 0.005, 
-      decay: 0.8, // Longer decay for bell effect
-      sustain: 0.1, // Small sustain for resonance
-      release: 0.5 
-    }, 
-    volume: -10 
+    oscillator: { type: "marimba" }, 
+    envelope: { attack: 0.01, decay: 0.6, sustain: 0.1, release: 0.8 }, 
   }).toDestination();
 } catch (e) { console.warn("Tone.js failed to initialize."); synth = null; }
 
@@ -216,8 +212,10 @@ function playSound(type) {
   if (synth && Tone.context.state !== 'running') { Tone.start(); }
   if (synth) {
     try { 
-      if (type === 'send') synth.triggerAttackRelease("G5", "8n", Tone.now());
-      if (type === 'receive') synth.triggerAttackRelease("C6", "8n", Tone.now()); 
+      // Chime: Send (single note)
+      if (type === 'send') synth.triggerAttackRelease("G4", "8n", Tone.now());
+      // Chime: Receive (a soft, ascending chord)
+      if (type === 'receive') synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", Tone.now()); 
     } catch(e) {}
   }
 }
@@ -243,36 +241,12 @@ function setLoadingState(isLoading) {
 /** Updates the status bar with an optional error message. */
 function setErrorStatus(message) {
     if (message) {
-        // Updated error message to be less prescriptive about the user's network
         statusDiv.innerHTML = `🚨 **Error**: ${message}`;
         statusDiv.classList.add('error-status');
     } else {
         statusDiv.innerHTML = '⚠️ I can make mistakes — please double-check important info.';
         statusDiv.classList.remove('error-status');
     }
-}
-
-/** Sends an email to the designated address with error details. */
-function sendErrorEmail(userPrompt, errorMessage) {
-    const email = 'seanf@trentonsoupkitchen.org';
-    const subject = encodeURIComponent(`Critical Employment Assistant Error Report`);
-    const body = encodeURIComponent(`
-A user encountered a persistent connection error.
-
---- DIAGNOSTIC DETAILS ---
-User's Last Prompt: ${userPrompt}
-Error Message: ${errorMessage}
-Language Status: ${lang}
-Timestamp: ${new Date().toISOString()}
-
-Please check the Gemini API service status.
-`);
-
-    // Use a short delay before opening the mailto link to prevent race conditions
-    // and avoid disrupting the user's current action immediately.
-    setTimeout(() => {
-        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-    }, 500);
 }
 
 const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
@@ -320,9 +294,9 @@ function typing(on){
     safeScroll();
 }
 
-
-/* ================= AI CORE (GEMINI) - WITH EXPONENTIAL BACKOFF ================= */
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
+/* ================= AI CORE (GEMINI) - WITH EXPONENTIAL BACKOFF & REPORTING ================= */
+const API_KEY = "AIzaSyBGCzk-xHAi4uZITtxGbsw_2uhK0asMhO8"; // Inserted Key
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
 const MAX_RETRIES = 3;
 
 const systemPrompt = `
@@ -346,8 +320,37 @@ const systemPrompt = `
   - **Diani (Appointment Contact)**: **609-697-6166**
   - **Training Application Link**: [https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659](https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659)
   - **SORA License Info**: Official NJ site is [https://www.njsp.org/private-detective/sora.shtml](https://www.njsp.org/private-detective/sora.shtml)
-  - **Career Tips**: Based on [https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170675](https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170675)
+  - **Career Tips**: Based on [https://bycell.co/ddmnx](https://bycell.co/ddmnx)
 `;
+
+/**
+ * Sends a silent diagnostic report to a Microsoft Form endpoint.
+ * This is the silent replacement for the mailto: function.
+ */
+function sendErrorReport(userPrompt, errorMessage) {
+    // These values are based on the Microsoft Form provided by the user.
+    // The silent reporting works by POSTing to the form submission URL.
+    const FORM_URL = 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ow8z6jKllki1K9QxRGz9cM5ktnuJ8wNItOJyCNgnAy9UREpHV0lQTVdNV0c1VTYzOUg2WjlZUVc4Qi4u&action=Submit'; 
+    const USER_PROMPT_FIELD = 'q1_q1'; // ID for the "User Prompt" field
+    const ERROR_DETAILS_FIELD = 'q2_q2'; // ID for the "Error Details" field
+    
+    // Create the data payload matching the form's expected structure
+    const formData = new FormData();
+    formData.append(USER_PROMPT_FIELD, userPrompt);
+    formData.append(ERROR_DETAILS_FIELD, errorMessage);
+
+    // Attempt a silent, non-blocking submission
+    fetch(FORM_URL, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors' // Use no-cors mode for silent submission to external form
+    }).then(() => {
+        console.log("Error report sent successfully to Microsoft Forms.");
+    }).catch(error => {
+        console.warn("Failed to send silent error report:", error);
+    });
+}
+
 
 /**
  * Handles API fetch with exponential backoff for transient errors.
@@ -355,33 +358,38 @@ const systemPrompt = `
 async function exponentialBackoffFetch(url, options, retries = 0) {
     try {
         const response = await fetch(url, options);
-        // Retry logic for rate limiting (429) or server errors (5xx)
-        if (response.status === 429 || response.status >= 500) {
-            if (retries < MAX_RETRIES) {
-                const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000); // 1s, 2s, 4s + jitter
-                await new Promise(resolve => setTimeout(resolve, delay));
-                return exponentialBackoffFetch(url, options, retries + 1);
-            }
-            throw new Error(`API error after ${MAX_RETRIES} attempts. Status: ${response.status} ${response.statusText}`);
-        }
+        
+        // Detailed error logging for diagnostics
         if (!response.ok) {
-             throw new Error(`Non-retryable API error. Status: ${response.status} ${response.statusText}`);
+            const errorText = await response.text();
+            console.error(`Attempt ${retries + 1} failed. Status: ${response.status}. Error: ${errorText}`);
+            
+            // Retry logic for rate limiting (429) or server errors (5xx)
+            if (response.status === 429 || response.status >= 500) {
+                if (retries < MAX_RETRIES - 1) {
+                    const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000); // 1s, 2s, 4s + jitter
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return exponentialBackoffFetch(url, options, retries + 1);
+                }
+                throw new Error(`Critical API error after ${MAX_RETRIES} attempts. Status: ${response.status}.`);
+            }
+            // Non-retryable error (e.g., 400 Bad Request)
+            throw new Error(`Non-retryable API error. Status: ${response.status}. Details: ${errorText.substring(0, 100)}...`);
         }
+        
         return response.json();
+
     } catch (error) {
-        // Log the specific error for developer troubleshooting
-        console.error("Fetch attempt failed:", error.message);
         throw error; // Re-throw the error for getAiResponse to handle
     }
 }
 
 /**
  * Uses Gemini in structured output mode to detect the language of the user's prompt.
- * If a supported language (en, es, ht) is detected and differs from the current lang, the state is updated.
  */
 async function detectAndSetLanguage(prompt) {
     const langDetectionPrompt = `Detect the language of the following user message and return the corresponding two-letter ISO 639-1 language code (en, es, or ht). Do not provide any other text. User message: "${prompt}"`;
-    const targetLanguages = ['en', 'es', 'ht']; // Supported languages
+    const targetLanguages = ['en', 'es', 'ht']; 
 
     try {
         const payload = {
@@ -410,10 +418,8 @@ async function detectAndSetLanguage(prompt) {
         if (targetLanguages.includes(detectedLang) && detectedLang !== lang) {
             setLang(detectedLang);
             console.log(`Language switched to: ${detectedLang}`);
-            // Note: We don't call greet here, as the chat response comes next.
         }
     } catch (e) {
-        // Log detection failure but allow the main chat to proceed.
         console.warn("Language detection failed, proceeding with current language.", e);
     }
 }
@@ -423,7 +429,9 @@ async function getAiResponse(prompt) {
     typing(true);
     setLoadingState(true);
 
+    // Do not add the user prompt to history BEFORE successful API response.
     const currentContents = [...chatHistory, { role: "user", parts: [{ text: prompt }] }];
+    let aiResponse = "I'm sorry, I encountered a critical connection error. An administrator has been notified. Please try again in a moment.";
 
     try {
         const payload = {
@@ -440,26 +448,25 @@ async function getAiResponse(prompt) {
         
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, the AI did not return a valid response.";
         
-        // Push the user prompt and the successful model response to history
+        // Only update history and clear error if successful
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         chatHistory.push({ role: "model", parts: [{ text: text }] });
-        
-        setErrorStatus(null); // <--- Clears the error status on success
-        return text;
+        setErrorStatus(null); 
+        aiResponse = text;
 
     } catch (error) {
-        console.error("Gemini API call failed:", error);
+        console.error("Gemini API call failed:", error.message);
         
-        // CRITICAL: Send error report email
-        sendErrorEmail(prompt, error.message);
+        // Trigger silent error report
+        sendErrorReport(prompt, error.message);
 
-        // Updated error status message
-        setErrorStatus("The AI service is temporarily unavailable. An administrator has been notified.");
-        return "I'm sorry, I encountered a critical connection error. An administrator has been notified. Please try again in a moment.";
+        // Update UI status
+        setErrorStatus("The AI service is temporarily unavailable. An administrator has been notified. Please try again in a moment.");
     } finally {
         typing(false);
         setLoadingState(false);
     }
+    return aiResponse;
 }
 
 
@@ -492,14 +499,12 @@ async function handle(t){
 async function getJobs(query) {
     addB(`Searching for the latest <strong>${query}</strong> jobs in Mercer County...`);
     
-    // The link below goes directly to Google Jobs, which is a trusted aggregator
-    // that links directly to the employer's website.
-    const jobQuery = `entry level ${query} jobs in Mercer County NJ`;
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(jobQuery)}&ibp=htl;jobs`;
+    // Google Jobs link provides real-time updates and navigates to the primary employer site.
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`entry level ${query} jobs in Mercer County NJ`)}&ibp=htl;jobs`;
     
-    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. For daily, real-time results and to navigate directly to the **Employer's Website** for safe application, click the button below:`;
+    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. Click the button to view the full, live list on **Google Jobs**. (Google Jobs links generally take you directly to the employer's website):`;
     jobsHtml += `<div class="card-base job-card">
-        <strong>Live Job Search Results (Google Jobs)</strong>
+        <strong>Live Job Search Results</strong>
         <span>Mercer County, NJ</span>
         <div class="controls"><a href="${searchUrl}" target="_blank" rel="noopener" class="ctrl">View Live Jobs</a></div>
     </div>`;
@@ -571,65 +576,50 @@ ce('scrollTopBtn').addEventListener('click', () => chat.scrollTo({top:0,behavior
 
 /* ================= GREETING & OPPORTUNITY ENGINE ================= */
 async function fetchOpportunities() {
+    // These mock data cards include the corrected NJ Transit link and new resources.
     const mockData = [
-      // 1. UPDATED OPPORTUNITY: General Hiring Event (removed company name)
-      { title: '🔥 High-Volume Hiring Event Today!', message: 'Multiple regional employers are hiring warehouse and entry-level associates until 3 PM at a Robbinsville location.', link: 'https://www.google.com/search?q=warehouse+jobs+robbinsville+nj&ibp=htl;jobs', linkText: 'View Openings' },
-      
-      // 2. NEW CARD: Amazing Career Tips (using the provided link)
-      { title: '✨ Your Next Career Tip', message: 'Get helpful advice on interview prep, resume building, and securing your next job.', link: 'https://bycell.co/ddmnx', linkText: 'Get Tips' },
-
-      // 3. Local Bus Route Info (Consolidated Trip Planner Link)
-      { title: 'Local Bus Route Update', message: 'The 609 Bus is running on a delayed schedule this morning due to construction. Check the trip planner for alternatives.', linkText: 'Trip Planner', link: 'https://www.njtransit.com/trip-planner' },
+      { title: 'New Career Tips', message: 'Ready for your next step? Find tailored advice and resources to help you prepare.', link: 'https://bycell.co/ddmnx', linkText: 'Read Career Tips' },
+      { title: 'Local Bus Route Update', message: 'Check for schedule changes and plan your trip to potential employer locations.', link: 'https://www.njtransit.com/trip-planner', linkText: 'Trip Planner' },
+      { title: '🔥 Regional Job Fair Alert', message: 'Multiple regional employers are currently hiring warehouse and logistics associates near Trenton.', link: 'https://search.google.com/local/jobs?q=entry+level+warehouse+jobs+in+Mercer+County+NJ&ibp=htl;jobs', linkText: 'View Openings' },
     ];
     return mockData;
 }
 
 ce('magicBtn').addEventListener('click', async () => {
   vibrate('light');
-  setLoadingState(true);
-  addB('✨ Here are today\'s top opportunities:');
+  addB('✨ Here are today\'s top opportunities and helpful resources:');
   
-  try {
-      const opportunities = await fetchOpportunities();
-      let oppsHTML = '';
-      opportunities.forEach((item, i) => {
-        let cardHTML = `<div class="card-base opportunity-card" style="animation-delay: ${i*100}ms"><h3>${item.title}</h3><p>${item.message}</p>`;
-        if (item.linkText && item.link) {
-          cardHTML += `<div class="controls"><a class="ctrl" href="${item.link}" target="_blank" rel="noopener">${item.linkText}</a></div>`;
-        }
-        cardHTML += `</div>`;
-        oppsHTML += cardHTML;
-      });
-      addB(oppsHTML);
-      setErrorStatus(null); 
-  } catch (e) {
-      addB("Sorry, I couldn't load the opportunities right now.");
-      setErrorStatus("Failed to load opportunities.");
-  } finally {
-      setLoadingState(false);
-  }
+  // Disable UI while loading opportunities
+  setLoadingState(true);
+  
+  const opportunities = await fetchOpportunities();
+  let oppsHTML = '';
+  opportunities.forEach((item, i) => {
+    let cardHTML = `<div class="card-base opportunity-card" style="animation-delay: ${i*100}ms"><h3>${item.title}</h3><p>${item.message}</p>`;
+    if (item.linkText && item.link) {
+      cardHTML += `<div class="controls"><a class="ctrl" href="${item.link}" target="_blank" rel="noopener">${item.linkText}</a></div>`;
+    }
+    cardHTML += `</div>`;
+    oppsHTML += cardHTML;
+  });
+  addB(oppsHTML);
+  
+  // Re-enable UI
+  setLoadingState(false);
 });
 
 
 function greet(fromReset = false){
   if(fromReset){
     let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){}
-    // Restore language setting on reset
     setLang(saved || 'en');
   }
   const welcomeMessage = UI[lang] ? UI[lang].welcome : UI['en'].welcome;
   addB(`<strong>${welcomeMessage}</strong>`);
 }
 
-// Initial setup on load
-(function init(){ 
-    let saved = null; 
-    try{ saved = localStorage.getItem('task_lang'); }catch(e){} 
-    setLang(saved || 'en'); 
-    setErrorStatus(null); // Clears status bar on initial load
-    greet();
-})();
-
+(function initLang(){ let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){} setLang(saved || 'en'); })();
+greet();
 </script>
 </body>
 </html>
