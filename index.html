@@ -339,13 +339,14 @@ async function exponentialBackoffFetch(url, options, retries = 0) {
                 await new Promise(resolve => setTimeout(resolve, delay));
                 return exponentialBackoffFetch(url, options, retries + 1);
             }
-            throw new Error(`API error after ${MAX_RETRIES} attempts: ${response.statusText}`);
+            throw new Error(`API error after ${MAX_RETRIES} attempts. Status: ${response.status} ${response.statusText}`);
         }
         if (!response.ok) {
-             throw new Error(`Non-retryable API error: ${response.status} ${response.statusText}`);
+             throw new Error(`Non-retryable API error. Status: ${response.status} ${response.statusText}`);
         }
         return response.json();
     } catch (error) {
+        // Log the specific error for developer troubleshooting
         console.error("Fetch attempt failed:", error.message);
         throw error; // Re-throw the error for getAiResponse to handle
     }
@@ -416,6 +417,7 @@ async function getAiResponse(prompt) {
         
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, the AI did not return a valid response.";
         
+        // Push the user prompt and the successful model response to history
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         chatHistory.push({ role: "model", parts: [{ text: text }] });
         
@@ -424,6 +426,11 @@ async function getAiResponse(prompt) {
 
     } catch (error) {
         console.error("Gemini API call failed:", error);
+        
+        // CRITICAL FIX: DO NOT push the user prompt to history if the model failed to respond. 
+        // This prevents the chat history from getting stuck with unanswered user prompts.
+        // The prompt was temporarily pushed above in currentContents, so we revert it by not pushing here.
+
         // Updated error status message
         setErrorStatus("The AI service is temporarily unavailable. Please try again in a moment.");
         return "I'm sorry, I encountered a critical connection error. Please try again in a moment.";
