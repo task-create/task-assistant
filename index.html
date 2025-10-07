@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -31,8 +31,10 @@
   --bubble-user-text: #fff;
   --typing: #aab4c3;
   --error: #E53935; /* Red for errors */
+  --legal-bg: #1a2a40; /* Darker blue for footer */
+  --legal-text: #8c9bb4;
 }
-/* DARK MODE */
+/* LIGHT MODE */
 [data-theme="light"]{
   --bg: #f4f7fa;
   --surface: #ffffff;
@@ -50,6 +52,8 @@
   --bubble-user-bg: var(--brand);
   --bubble-user-text: #fff;
   --typing: #aab4c3;
+  --legal-bg: #e9eef3; 
+  --legal-text: #5a6b82;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -91,7 +95,10 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
 .settings-menu button:hover{background:var(--surface-2)}
 
 .chat{
-  flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; padding-top: 80px; padding-bottom:120px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+  flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; padding-top: 80px; 
+  /* Adjusted padding-bottom to account for the footer and the legal disclaimer */
+  padding-bottom:120px; 
+  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   background: var(--surface-2);
 }
 .bubble-wrapper { display: flex; align-items: flex-end; gap: 8px; margin: 20px 0; max-width: 92%; animation: pop-in .3s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -119,17 +126,26 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
 .typing .dot:nth-child(2){animation-delay:.12s}.typing .dot:nth-child(3){animation-delay:.24s}
 @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.6}40%{transform:translateY(-6px);opacity:1}}
 @media (prefers-reduced-motion: reduce){.typing .dot{animation:none}}
-.footer{position:absolute;bottom:0;left:0;right:0;padding:12px;background:var(--surface-2);border-top:1px solid var(--border);z-index:100}
+/* Adjusted bottom position to sit just above the legal disclaimer (32px tall) */
+.footer{position:absolute;bottom:32px;left:0;right:0;padding:12px;background:var(--surface-2);border-top:1px solid var(--border);z-index:100}
+
+.legal-footer {
+    position: fixed; bottom: 0; left: 0; right: 0; width: 100%; z-index: 99;
+    padding: 8px 12px; font-size: 10px; text-align: center; color: var(--legal-text);
+    background: var(--legal-bg); border-top: 1px solid var(--border);
+    max-height: 32px;
+    line-height: 1.2;
+}
 .row{display:flex;gap:10px;align-items:center}
 #box{flex:1;padding:14px 50px 14px 18px;border:2px solid var(--border);border-radius:999px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);}
 #box:disabled { background: var(--surface-2); cursor: not-allowed; }
 .magic-btn { position: absolute; right: 75px; top: 18px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); transition: transform 0.2s ease, color 0.2s ease; }
 .magic-btn:hover { transform: scale(1.2); color: var(--accent); }
 
-.send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:white;font-size:18px;background:var(--brand);box-shadow:var(--shadow-soft);transition:transform .1s ease, background .1s ease;}
+.send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:white;font-size:18px;background:var(--brand);box-shadow:var(--shadow-soft);transition:transform .1s ease, background .1s ease, opacity 0.1s ease;}
 .send:hover { background: var(--accent); }
 .send:active{transform:scale(.95)}
-.send:disabled { background: var(--muted); cursor: not-allowed; }
+.send:disabled { background: var(--muted); cursor: not allowed; }
 .status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
 .error-status { color: var(--error); font-weight: 600; }
 /* --- Cards --- */
@@ -140,13 +156,56 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
 }
 .card-base h3 { font-family: "Nunito", sans-serif; font-size: 18px; color: var(--accent); margin-bottom: 8px; }
 .card-base p { margin-bottom: 12px; line-height: 1.5; }
-.card-base .ctrl { background: var(--surface-2); }
+.card-base .ctrl { 
+    background: var(--surface-2);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    border-color: var(--border);
+    font-size: 14px;
+    padding: 8px 14px;
+    font-weight: 700;
+}
 .job-card { margin-top: 10px; }
 .job-card strong { display: block; font-family: "Nunito", sans-serif; }
 .job-card span { color: var(--muted); font-size: 14px; }
+/* Contact Buttons */
+.contact-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.contact-btn {
+    padding: 10px 16px; border-radius: 999px; font-weight: 700; cursor: pointer;
+    transition: all .12s ease; font-size: 14px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.contact-btn.call { background: #34D399; color: #064E3B; border: 1px solid #10B981; } /* Green */
+.contact-btn.call:hover { background: #10B981; }
+.contact-btn.text { background: #60A5FA; color: #1E40AF; border: 1px solid #3B82F6; } /* Blue */
+.contact-btn.text:hover { background: #3B82F6; }
+
+/* Quick-Start Prompt Suggestions */
+.suggestions-container {
+    display: flex; flex-direction: column; gap: 12px; margin: 16px 0;
+    padding: 16px; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+.suggestion-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 14px 18px;
+    background: var(--surface-2);
+    color: var(--accent); 
+    font-size: 16px; font-weight: 700;
+    border: 1px solid var(--border); border-radius: 12px;
+    cursor: pointer;
+    transition: all .15s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.suggestion-btn:hover {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transform: translateY(-1px);
+}
 </style>
 </head>
-<body>
+<body data-theme="dark">
 <main class="app">
 <header class="header">
   <button class="reset icon-btn" id="resetBtn" aria-label="Clear chat">↺</button>
@@ -166,21 +225,90 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
     <input id="box" type="text" placeholder="Ask me anything..." autocomplete="off"/>
     <button class="magic-btn" id="magicBtn" aria-label="Show suggestions">✨</button>
     <button class="send" id="send" aria-label="Send">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
+      <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
     </button>
   </div>
   <div class="status" id="status-bar">⚠️ I can make mistakes — please double-check important info.</div>
 </footer>
 </main>
 
+<div class="legal-footer">
+    Disclaimer: This AI is for information and referrals only and **does not** provide legal, financial, or medical advice. Always verify crucial information.
+</div>
+
 <script>
 'use strict';
 
+/* ================= CONFIGURATION & DATA ================= */
+
+const CONFIG = {
+    // API and Keys
+    API_KEY: "AIzaSyBGCzk-xHAi4uZITtxGbsw_2uhK0asMhO8",
+    MODEL_URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=",
+    MAX_RETRIES: 3,
+
+    // Staff Contacts
+    DIANI_NUMBER: '6096976166',
+    SEAN_NUMBER: '6096976215',
+    APPOINTMENT_LINE: '6093371624',
+
+    // Essential Links
+    TASK_WEBSITE: 'https://www.trentonsoupkitchen.org',
+    TRAINING_APP_LINK: 'https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659',
+    SORA_LINK: 'https://www.njsp.org/private-detective/sora.shtml',
+    CAREER_TIPS_LINK: 'https://bycell.co/ddmnx',
+    NJ_TRANSIT_LINK: 'https://www.njtransit.com/trip-planner',
+
+    // Microsoft Forms for Silent Error Reporting
+    FORM_URL: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ow8z6jKllki1K9QxRGz9cM5ktnuJ8wNItOJyCNgnAy9UREpHV0lQTVdNV0c1VTYzOUg2WjlZUVc4Qi4u&action=Submit', 
+    USER_PROMPT_FIELD: 'q1_q1', 
+    ERROR_DETAILS_FIELD: 'q2_q2', 
+};
+
+// Full API URL
+const API_URL = CONFIG.MODEL_URL + CONFIG.API_KEY;
+
 /* ================= UI STRINGS (Multilingual) ================= */
 const UI = {
-  en:{welcome:'👋 Hi there! How can I help you today?', hello:'Hi! 👋 How can I help today?', thanks:"You're welcome! 😊 Is there anything else?", bye:'Take care! If you need to schedule, call (609) 337-1624.', noWalk:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.', frust:'I understand this can be frustrating, and I\'m sorry you\'re having trouble. Let\'s try something else. Here are our main phone numbers for direct help:'},
-  es:{welcome:'👋 ¡Hola! ¿En qué te puedo ayudar hoy?', hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?', thanks:'¡Con gusto! 😊 ¿Algo más?',bye:'¡Cuídate! Si necesitas una cita, llama al (609) 337-1624.', noWalk:'No atendemos <strong>sin cita</strong>. Por favor llama para programar.', frust:'Entiendo que esto puede ser frustrante y lamento que tengas problemas. Probemos otra cosa. Aquí están nuestros números de teléfono principales para obtener ayuda directa:'},
-  ht:{welcome:'👋 Bonjou! Kijan mwen ka ede w jodi a?', hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?', thanks:'Avèk plezi! 😊 Gen lòt bagay?',bye:'Si ou bezwen randevou, rele (609) 337-1624.', noWalk:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.', frust:'Mwen konprann sa ka fwistre, e mwen regrèt ou gen pwoblèm. Ann eseye yon lòt bagay. Men nimewo telefòn prensipal nou yo pou jwenn èd dirèk:'}
+  en:{
+      welcome:'👋 Hi there! How can I help you today? This chat does not record conversations or identify you.', 
+      hello:'Hi! 👋 How can I help today?', 
+      thanks:"You're welcome! 😊 Is there anything else?", 
+      bye:`Take care! If you need to schedule, call (${CONFIG.APPOINTMENT_LINE.substring(0, 3)}) ${CONFIG.APPOINTMENT_LINE.substring(3, 6)}-${CONFIG.APPOINTMENT_LINE.substring(6)}.`, 
+      noWalk:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.', 
+      frust:'I understand this can be frustrating, and I\'m sorry you\'re having trouble. Let\'s try something else. Here are our main phone numbers for direct help:',
+      prompts: [
+          { text: "Find Jobs", query: "I need to search for jobs" },
+          { text: "Get Training Info", query: "How do I apply for job training?" },
+          { text: "Talk to Diani", query: "I need Diani's contact info for an appointment" },
+      ]
+  },
+  es:{
+      welcome:'👋 ¡Hola! ¿En qué te puedo ayudar hoy? Este chat no graba conversaciones ni te identifica.', 
+      hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?', 
+      thanks:'¡Con gusto! 😊 ¿Algo más?',
+      bye:`¡Cuídate! Si necesitas una cita, llama al (${CONFIG.APPOINTMENT_LINE.substring(0, 3)}) ${CONFIG.APPOINTMENT_LINE.substring(3, 6)}-${CONFIG.APPOINTMENT_LINE.substring(6)}.`, 
+      noWalk:'No atendemos <strong>sin cita</strong>. Por favor llama para programar.', 
+      frust:'Entiendo que esto puede ser frustrante y lamento que tengas problemas. Probemos otra cosa. Aquí están nuestros números de teléfono principales para obtener ayuda directa:',
+      prompts: [
+          { text: "Buscar Empleos", query: "Necesito buscar empleos" },
+          { text: "Obtener Información de Capacitación", query: "¿Cómo solicito capacitación laboral?" },
+          { text: "Hablar con Diani", query: "Necesito la información de contacto de Diani para una cita" },
+      ]
+  },
+  ht:{
+      welcome:'👋 Bonjou! Kijan mwen ka ede w jodi a? Chat sa a pa anrejistre konvèsasyon ni idantifye w.', 
+      hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?', 
+      thanks:'Avèk plezi! 😊 Gen lòt bagay?',
+      bye:`Si ou bezwen randevou, rele (${CONFIG.APPOINTMENT_LINE.substring(0, 3)}) ${CONFIG.APPOINTMENT_LINE.substring(3, 6)}-${CONFIG.APPOINTMENT_LINE.substring(6)}.`, 
+      noWalk:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.', 
+      frust:'Mwen konprann sa ka fwistre, e mwen regrèt ou gen pwoblèm. Ann eseye yon lòt bagay. Men nimewo telefòn prensipal nou yo pou jwenn èd dirèk:',
+      prompts: [
+          { text: "Jwenn Travay", query: "Mwen bezwen chèche travay" },
+          { text: "Jwenn Enfòmasyon sou Fòmasyon", query: "Kijan pou mwen aplike pou fòmasyon travay?" },
+          { text: "Pale ak Diani", query: "Mwen bezwen enfòmasyon kontak Diani pou yon randevou" },
+      ]
+  }
 };
 
 
@@ -192,6 +320,7 @@ const ce = id => document.getElementById(id);
 const chat = ce('chat');
 const box = ce('box');
 const sendBtn = ce('send');
+const sendIcon = ce('send-icon');
 const statusDiv = ce('status-bar');
 
 const settingsBtn = ce('settingsBtn');
@@ -212,9 +341,8 @@ function playSound(type) {
   if (synth && Tone.context.state !== 'running') { Tone.start(); }
   if (synth) {
     try { 
-      // Chime: Send (single note)
+      // Chime tone configuration
       if (type === 'send') synth.triggerAttackRelease("G4", "8n", Tone.now());
-      // Chime: Receive (a soft, ascending chord)
       if (type === 'receive') synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", Tone.now()); 
     } catch(e) {}
   }
@@ -255,7 +383,34 @@ function setLang(l, persist = true) {
     lang = (['en', 'es', 'ht'].includes(l) ? l : 'en'); 
     if (persist) { try { localStorage.setItem('task_lang', lang); } catch(e) {} } 
 }
-window.textInfo = (text) => { const url = `sms:?&body=${encodeURIComponent(text)}`; window.location.href = url; vibrate('medium'); };
+// Functions for one-click calling/texting
+window.callPhone = (number) => { window.location.href = `tel:${number}`; vibrate('light'); };
+window.textPhone = (number) => { window.location.href = `sms:${number}`; vibrate('light'); };
+
+/**
+ * Sends a silent diagnostic report to a Microsoft Form endpoint.
+ */
+function sendErrorReport(userPrompt, errorMessage) {
+    const FORM_URL = CONFIG.FORM_URL;
+    const USER_PROMPT_FIELD = CONFIG.USER_PROMPT_FIELD; 
+    const ERROR_DETAILS_FIELD = CONFIG.ERROR_DETAILS_FIELD; 
+    
+    const formData = new FormData();
+    formData.append(USER_PROMPT_FIELD, userPrompt);
+    formData.append(ERROR_DETAILS_FIELD, errorMessage);
+
+    // Attempt a silent, non-blocking submission
+    fetch(FORM_URL, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors' 
+    }).then(() => {
+        console.log("Error report sent successfully to Microsoft Forms.");
+    }).catch(error => {
+        console.warn("Failed to send silent error report:", error);
+    });
+}
+
 
 /* ================= RENDER FUNCTIONS ================= */
 function addU(t){ 
@@ -268,17 +423,80 @@ function addU(t){
     vibrate('light'); 
 }
 
+/**
+ * Adds a bot bubble, handling special content like contact buttons.
+ */
 function addB(html){
     const wrapper = document.createElement('div');
     wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
     const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
-    const bubble = `<div class="bubble bot">${html}</div>`;
+    
+    // Contact information mapping
+    const contactMap = {};
+    contactMap[CONFIG.SEAN_NUMBER.replace(/-/g, '')] = 'Sean (Training)';
+    contactMap[CONFIG.DIANI_NUMBER.replace(/-/g, '')] = 'Diani (Appointments)';
+    
+    let bubbleContent = html;
+    
+    for (const [cleanNumber, label] of Object.entries(contactMap)) {
+        // Regex to find both formatted (609-697-6215) and unformatted (6096976215) versions
+        const numberRegex = new RegExp(`(<strong>)?${cleanNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}|${cleanNumber}(</strong>)?`, 'g');
+        
+        if (html.match(numberRegex)) {
+            const buttonHtml = `
+                <div class="contact-controls">
+                    <button class="contact-btn call" onclick="callPhone('${cleanNumber}')" role="button">📞 Call ${label}</button>
+                    <button class="contact-btn text" onclick="textPhone('${cleanNumber}')" role="button">💬 Text ${label}</button>
+                </div>
+            `;
+            // Replace the number text (formatted or unformatted) with the button block
+            bubbleContent = bubbleContent.replace(numberRegex, `<strong>${cleanNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}</strong>${buttonHtml}`);
+        }
+    }
+
+    const bubble = `<div class="bubble bot">${bubbleContent}</div>`;
     wrapper.innerHTML = avatar + bubble;
     chat.appendChild(wrapper);
     safeScroll();
     playSound('receive');
     vibrate('light');
 }
+
+/**
+ * Adds a bot bubble containing clickable quick-start prompts.
+ */
+function addQuickStartPrompts() {
+    const prompts = UI[lang].prompts || UI['en'].prompts;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+    
+    const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+    let content = `<div class="bubble bot">`;
+    content += `<div class="suggestions-container">`;
+    
+    prompts.forEach((p) => {
+        content += `<button class="suggestion-btn" onclick="sendQuickQuery('${p.query}')">${p.text}</button>`;
+    });
+
+    content += `</div></div>`;
+    wrapper.innerHTML = avatar + content;
+    chat.appendChild(wrapper);
+    safeScroll();
+}
+
+// Global function to be called by the quick-start buttons
+window.sendQuickQuery = (query) => {
+    box.value = query;
+    send();
+    // Remove the button menu after a selection is made (optional, but cleaner)
+    // Attempt to remove the last bot bubble if it was the quick-start menu
+    const lastBubble = ce('chat').lastElementChild;
+    if (lastBubble && lastBubble.querySelector('.suggestions-container')) {
+        lastBubble.remove();
+    }
+};
+
 
 function typing(on){
     const id = 'typing';
@@ -294,11 +512,7 @@ function typing(on){
     safeScroll();
 }
 
-/* ================= AI CORE (GEMINI) - WITH EXPONENTIAL BACKOFF & REPORTING ================= */
-const API_KEY = "AIzaSyBGCzk-xHAi4uZITtxGbsw_2uhK0asMhO8"; // Inserted Key
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
-const MAX_RETRIES = 3;
-
+/* ================= AI CORE (GEMINI) ================= */
 const systemPrompt = `
   You are the Employment Assistant for the Trenton Area Soup Kitchen (TASK). 
   Your persona is friendly, empathetic, and extremely helpful. Your goal is to provide clear, actionable information.
@@ -306,51 +520,23 @@ const systemPrompt = `
   
   ***IMPORTANT RULES***
   1.  **DETECT INTENT**: Analyze the user's message to determine their core need. Handle typos gracefully (e.g., "apointmetn" is "appointment", "tarinign" is "training").
-  2.  **HANDLE STAFF**: If the user mentions "Sean", provide his info for training. If they mention "Diani", provide her info for appointments.
+  2.  **HANDLE STAFF**: If the user mentions "Sean", provide his info for training, including his direct number: ${CONFIG.SEAN_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}. If they mention "Diani", provide her info for appointments, including her direct number: ${CONFIG.DIANI_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}.
   3.  **HANDLE JOBS**: If the user asks for "jobs", ALWAYS ask for the job type first (warehouse, retail, food service). Once they specify a type, respond ONLY with the tag: [SEARCH_JOBS: job_type]. For specific company names (Amazon, UPS, Sodexo, Trane, Aramark, P.F. Chang's, Red Lobster, Cheesecake Factory, Cooper's Riverview, Longhorn Steakhouse), respond ONLY with the tag: [SEARCH_JOBS: company_name].
-  4.  **HANDLE TRAINING**: If the user asks for "training", provide the direct application link.
+  4.  **HANDLE TRAINING**: If the user asks for "training", provide the direct application link: [Training Application Link](${CONFIG.TRAINING_APP_LINK}).
   5.  **PROVIDE INFO**: For all other topics (hours, address, SORA, etc.), provide the information directly.
   6.  **BE CONVERSATIONAL**: Don't just list facts. If a user says "hi", say hi back. If they are frustrated, be empathetic before providing help.
   7.  **MATCH LANGUAGE**: Always respond in the same language as the user's last message (English, Spanish, or Haitian Creole).
+  8.  **JOB SAFETY**: When providing job search links, always include a brief, firm safety warning, such as: "Remember to **NEVER** share sensitive information like bank or SSN details during the initial application process."
 
   ***YOUR KNOWLEDGE BASE***
-  - **TASK Website**: [https://www.trentonsoupkitchen.org](https://www.trentonsoupkitchen.org)
-  - **Appointments**: To make an appointment, call **609-337-1624**. We do NOT take walk-ins.
-  - **Sean (Training Contact)**: **609-697-6215**
-  - **Diani (Appointment Contact)**: **609-697-6166**
-  - **Training Application Link**: [https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659](https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659)
-  - **SORA License Info**: Official NJ site is [https://www.njsp.org/private-detective/sora.shtml](https://www.njsp.org/private-detective/sora.shtml)
-  - **Career Tips**: Based on [https://bycell.co/ddmnx](https://bycell.co/ddmnx)
+  - **TASK Website**: [TASK Website](${CONFIG.TASK_WEBSITE})
+  - **Appointments**: To make an appointment, call **${CONFIG.APPOINTMENT_LINE.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}**. We do NOT take walk-ins.
+  - **Sean (Training Contact)**: **${CONFIG.SEAN_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}**
+  - **Diani (Appointment Contact)**: **${CONFIG.DIANI_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}**
+  - **Training Application Link**: [Apply for Training](${CONFIG.TRAINING_APP_LINK})
+  - **SORA License Info**: Official NJ site is [SORA License Site](${CONFIG.SORA_LINK})
+  - **Career Tips**: Based on [Career Tips Link](${CONFIG.CAREER_TIPS_LINK})
 `;
-
-/**
- * Sends a silent diagnostic report to a Microsoft Form endpoint.
- * This is the silent replacement for the mailto: function.
- */
-function sendErrorReport(userPrompt, errorMessage) {
-    // These values are based on the Microsoft Form provided by the user.
-    // The silent reporting works by POSTing to the form submission URL.
-    const FORM_URL = 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ow8z6jKllki1K9QxRGz9cM5ktnuJ8wNItOJyCNgnAy9UREpHV0lQTVdNV0c1VTYzOUg2WjlZUVc4Qi4u&action=Submit'; 
-    const USER_PROMPT_FIELD = 'q1_q1'; // ID for the "User Prompt" field
-    const ERROR_DETAILS_FIELD = 'q2_q2'; // ID for the "Error Details" field
-    
-    // Create the data payload matching the form's expected structure
-    const formData = new FormData();
-    formData.append(USER_PROMPT_FIELD, userPrompt);
-    formData.append(ERROR_DETAILS_FIELD, errorMessage);
-
-    // Attempt a silent, non-blocking submission
-    fetch(FORM_URL, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors' // Use no-cors mode for silent submission to external form
-    }).then(() => {
-        console.log("Error report sent successfully to Microsoft Forms.");
-    }).catch(error => {
-        console.warn("Failed to send silent error report:", error);
-    });
-}
-
 
 /**
  * Handles API fetch with exponential backoff for transient errors.
@@ -359,28 +545,24 @@ async function exponentialBackoffFetch(url, options, retries = 0) {
     try {
         const response = await fetch(url, options);
         
-        // Detailed error logging for diagnostics
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`Attempt ${retries + 1} failed. Status: ${response.status}. Error: ${errorText}`);
+            console.error(`Attempt ${retries + 1} failed. Status: ${response.status}. Error: ${errorText.substring(0, 100)}...`);
             
-            // Retry logic for rate limiting (429) or server errors (5xx)
             if (response.status === 429 || response.status >= 500) {
-                if (retries < MAX_RETRIES - 1) {
-                    const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000); // 1s, 2s, 4s + jitter
+                if (retries < CONFIG.MAX_RETRIES - 1) {
+                    const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000); 
                     await new Promise(resolve => setTimeout(resolve, delay));
                     return exponentialBackoffFetch(url, options, retries + 1);
                 }
-                throw new Error(`Critical API error after ${MAX_RETRIES} attempts. Status: ${response.status}.`);
+                throw new Error(`Critical API error after ${CONFIG.MAX_RETRIES} attempts. Status: ${response.status}.`);
             }
-            // Non-retryable error (e.g., 400 Bad Request)
             throw new Error(`Non-retryable API error. Status: ${response.status}. Details: ${errorText.substring(0, 100)}...`);
         }
-        
         return response.json();
 
     } catch (error) {
-        throw error; // Re-throw the error for getAiResponse to handle
+        throw error; 
     }
 }
 
@@ -417,9 +599,9 @@ async function detectAndSetLanguage(prompt) {
         
         if (targetLanguages.includes(detectedLang) && detectedLang !== lang) {
             setLang(detectedLang);
-            console.log(`Language switched to: ${detectedLang}`);
         }
     } catch (e) {
+        // Silent failure is okay for non-critical features like language detection
         console.warn("Language detection failed, proceeding with current language.", e);
     }
 }
@@ -429,9 +611,12 @@ async function getAiResponse(prompt) {
     typing(true);
     setLoadingState(true);
 
-    // Do not add the user prompt to history BEFORE successful API response.
+    // Show message sent indicator
+    sendIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9.5 13.5a.75.75 0 0 1-1.127.073l-4.75-4.75a.75.75 0 0 1 1.06-1.06l4.283 4.283 9.043-12.875a.75.75 0 0 1 1.04-.208Z" clip-rule="evenodd" /></svg>`;
+    sendIcon.style.opacity = 1;
+    
     const currentContents = [...chatHistory, { role: "user", parts: [{ text: prompt }] }];
-    let aiResponse = "I'm sorry, I encountered a critical connection error. An administrator has been notified. Please try again in a moment.";
+    let aiResponse = "";
 
     try {
         const payload = {
@@ -446,13 +631,11 @@ async function getAiResponse(prompt) {
             body: JSON.stringify(payload)
         });
         
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, the AI did not return a valid response.";
+        aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, the AI did not return a valid response.";
         
-        // Only update history and clear error if successful
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-        chatHistory.push({ role: "model", parts: [{ text: text }] });
+        chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
         setErrorStatus(null); 
-        aiResponse = text;
 
     } catch (error) {
         console.error("Gemini API call failed:", error.message);
@@ -460,11 +643,16 @@ async function getAiResponse(prompt) {
         // Trigger silent error report
         sendErrorReport(prompt, error.message);
 
+        // Fallback error message for the user
+        aiResponse = "I'm sorry, I encountered a critical connection error. An administrator has been notified. Please try again in a moment.";
+        
         // Update UI status
         setErrorStatus("The AI service is temporarily unavailable. An administrator has been notified. Please try again in a moment.");
     } finally {
         typing(false);
         setLoadingState(false);
+        // Restore send icon after response or failure
+        sendIcon.innerHTML = `<path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />`;
     }
     return aiResponse;
 }
@@ -474,12 +662,10 @@ async function getAiResponse(prompt) {
 async function handle(t){
   if(!t) return;
   
-  // 1. Auto-detect language BEFORE sending to main model
   await detectAndSetLanguage(t); 
 
   addU(t);
   
-  // 2. Process main AI response
   const aiResponse = await getAiResponse(t);
 
   if (aiResponse.startsWith('[SEARCH_JOBS:')) {
@@ -489,7 +675,7 @@ async function handle(t){
     } else {
         addB("I received a job search request but couldn't parse the type. Please try again.");
     }
-  } else {
+  } else if (aiResponse) {
     // Convert Markdown links to standard HTML anchor tags for rendering
     const formattedResponse = aiResponse.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     addB(formattedResponse);
@@ -499,11 +685,13 @@ async function handle(t){
 async function getJobs(query) {
     addB(`Searching for the latest <strong>${query}</strong> jobs in Mercer County...`);
     
-    // Google Jobs link provides real-time updates and navigates to the primary employer site.
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`entry level ${query} jobs in Mercer County NJ`)}&ibp=htl;jobs`;
     
-    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. Click the button to view the full, live list on **Google Jobs**. (Google Jobs links generally take you directly to the employer's website):`;
+    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. Click the button to view the full, live list on **Google Jobs**. (Links generally take you directly to the employer's website).`;
+    
     jobsHtml += `<div class="card-base job-card">
+        <h3>🚨 Job Search Safety Warning</h3>
+        <p>Before applying or submitting any information, **always check the URL** to ensure you are on a legitimate employer website. **NEVER** give sensitive data like your Social Security Number, bank details, or credit card information during the initial application process.</p>
         <strong>Live Job Search Results</strong>
         <span>Mercer County, NJ</span>
         <div class="controls"><a href="${searchUrl}" target="_blank" rel="noopener" class="ctrl">View Live Jobs</a></div>
@@ -513,7 +701,7 @@ async function getJobs(query) {
 
 function send(){ 
     const t = (box.value||'').trim(); 
-    if(!t) return; 
+    if(!t || box.disabled) return; 
     handle(t); 
     box.value = ''; 
     box.blur(); 
@@ -526,10 +714,10 @@ function send(){
 // --- Theme Initialization ---
 (function initTheme(){
   let saved = null; try{saved = localStorage.getItem('task_theme');}catch(e){}
-  if(!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+  if(!saved || saved === 'dark'){
     document.documentElement.setAttribute('data-theme','dark');
-  } else if(saved){
-    document.documentElement.setAttribute('data-theme', saved);
+  } else {
+    document.documentElement.setAttribute('data-theme','light');
   }
 })();
 ce('themeToggle').addEventListener('click',()=>{
@@ -546,7 +734,6 @@ settingsBtn.addEventListener('click', () => {
     settingsBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
 });
 document.addEventListener('click', (e) => {
-    // Only close the settings menu if the click is outside the button and menu
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
         settingsMenu.setAttribute('aria-hidden', 'true');
     }
@@ -558,7 +745,6 @@ document.addEventListener('click', (e) => {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ micBtn.style.display = 'none'; return; }
   const rec = new SR(); 
-  // Voice input uses the current global language setting
   const langMap = {en:'en-US', es:'es-ES', ht:'ht-HT'};
   micBtn.addEventListener('click', () => { 
       rec.lang = langMap[lang] || 'en-US'; 
@@ -576,11 +762,10 @@ ce('scrollTopBtn').addEventListener('click', () => chat.scrollTo({top:0,behavior
 
 /* ================= GREETING & OPPORTUNITY ENGINE ================= */
 async function fetchOpportunities() {
-    // These mock data cards include the corrected NJ Transit link and new resources.
     const mockData = [
-      { title: 'New Career Tips', message: 'Ready for your next step? Find tailored advice and resources to help you prepare.', link: 'https://bycell.co/ddmnx', linkText: 'Read Career Tips' },
-      { title: 'Local Bus Route Update', message: 'Check for schedule changes and plan your trip to potential employer locations.', link: 'https://www.njtransit.com/trip-planner', linkText: 'Trip Planner' },
-      { title: '🔥 Regional Job Fair Alert', message: 'Multiple regional employers are currently hiring warehouse and logistics associates near Trenton.', link: 'https://search.google.com/local/jobs?q=entry+level+warehouse+jobs+in+Mercer+County+NJ&ibp=htl;jobs', linkText: 'View Openings' },
+      { title: 'New Career Tips', message: 'Ready for your next step? Find tailored advice and resources to help you prepare.', link: CONFIG.CAREER_TIPS_LINK, linkText: 'Read Career Tips' },
+      { title: 'Local Bus Route Update', message: 'Check for schedule changes and plan your trip to potential employer locations.', link: CONFIG.NJ_TRANSIT_LINK, linkText: 'Trip Planner' },
+      { title: '🔥 Regional Job Fair Alert', message: 'Multiple regional employers are currently hiring warehouse and logistics associates near Trenton.', link: `https://search.google.com/local/jobs?q=${encodeURIComponent('entry level warehouse jobs in Mercer County NJ')}&ibp=htl;jobs`, linkText: 'View Openings' },
     ];
     return mockData;
 }
@@ -589,7 +774,6 @@ ce('magicBtn').addEventListener('click', async () => {
   vibrate('light');
   addB('✨ Here are today\'s top opportunities and helpful resources:');
   
-  // Disable UI while loading opportunities
   setLoadingState(true);
   
   const opportunities = await fetchOpportunities();
@@ -604,7 +788,6 @@ ce('magicBtn').addEventListener('click', async () => {
   });
   addB(oppsHTML);
   
-  // Re-enable UI
   setLoadingState(false);
 });
 
@@ -616,6 +799,9 @@ function greet(fromReset = false){
   }
   const welcomeMessage = UI[lang] ? UI[lang].welcome : UI['en'].welcome;
   addB(`<strong>${welcomeMessage}</strong>`);
+  
+  // Add quick-start buttons on greeting
+  addQuickStartPrompts();
 }
 
 (function initLang(){ let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){} setLang(saved || 'en'); })();
