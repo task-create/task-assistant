@@ -30,6 +30,7 @@
   --bubble-user-bg: var(--brand);
   --bubble-user-text: #fff;
   --typing: #aab4c3;
+  --error: #E53935; /* Red for errors */
 }
 /* DARK MODE */
 [data-theme="dark"]{
@@ -85,7 +86,7 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
 .settings-menu[aria-hidden="false"]{display:block}
 .settings-menu button{display:flex; gap: 8px; align-items: center; width:100%;text-align:left;padding:10px 12px;background:transparent;border:none;cursor:pointer; color: var(--text);}
 .settings-menu button:hover{background:var(--surface-2)}
-.langmenu { right: 10px; }
+/* .langmenu { right: 10px; } - REMOVED */
 
 .chat{
   flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; padding-top: 80px; padding-bottom:120px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
@@ -119,13 +120,16 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
 .footer{position:absolute;bottom:0;left:0;right:0;padding:12px;background:var(--surface-2);border-top:1px solid var(--border);z-index:100}
 .row{display:flex;gap:10px;align-items:center}
 #box{flex:1;padding:14px 50px 14px 18px;border:2px solid var(--border);border-radius:999px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);}
+#box:disabled { background: var(--surface-2); cursor: not-allowed; }
 .magic-btn { position: absolute; right: 75px; top: 18px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); transition: transform 0.2s ease, color 0.2s ease; }
 .magic-btn:hover { transform: scale(1.2); color: var(--accent); }
 
 .send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:white;font-size:18px;background:var(--brand);box-shadow:var(--shadow-soft);transition:transform .1s ease, background .1s ease;}
 .send:hover { background: var(--accent); }
 .send:active{transform:scale(.95)}
+.send:disabled { background: var(--muted); cursor: not-allowed; }
 .status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.error-status { color: var(--error); font-weight: 600; }
 /* --- Cards --- */
 .card-base {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -148,13 +152,7 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
   <button class="settings-btn icon-btn" id="settingsBtn" aria-label="Settings menu" aria-haspopup="menu" aria-expanded="false">...</button>
   <div class="settings-menu" id="settingsMenu" role="menu" aria-hidden="true">
     <button role="menuitem" id="micBtn">🎙️ Voice Input</button>
-    <button role="menuitem" id="langBtn">🌐 Language</button>
     <button role="menuitem" id="themeToggle">🌗 Theme</button>
-  </div>
-   <div class="langmenu" id="langMenu" role="menu" aria-hidden="true">
-    <button role="menuitem" data-lang="en">English</button>
-    <button role="menuitem" data-lang="es">Español</button>
-    <button role="menuitem" data-lang="ht">Kreyòl Ayisyen</button>
   </div>
 </header>
 
@@ -169,43 +167,34 @@ a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoratio
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
     </button>
   </div>
-  <div class="status">⚠️ I can make mistakes — please double-check important info.</div>
+  <div class="status" id="status-bar">⚠️ I can make mistakes — please double-check important info.</div>
 </footer>
 </main>
 
 <script>
 'use strict';
 
-/* ================= UI STRINGS ================= */
+/* ================= UI STRINGS (Multilingual) ================= */
 const UI = {
-  en:{welcome:'👋 Hi there! How can I help you today?',
-      hello:'Hi! 👋 How can I help today?',
-      thanks:"You're welcome! 😊 Is there anything else?",
-      bye:'Take care! If you need to schedule, call (609) 337-1624.',
-      noWalk:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.',
-      frust:'I understand this can be frustrating, and I\'m sorry you\'re having trouble. Let\'s try something else. Here are our main phone numbers for direct help:'},
-  es:{welcome:'👋 ¡Hola! ¿En qué te puedo ayudar hoy?',
-      hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?',
-      thanks:'¡Con gusto! 😊 ¿Algo más?',bye:'¡Cuídate! Si necesitas una cita, llama al (609) 337-1624.',
-      noWalk:'No atendemos <strong>sin cita</strong>. Por favor llama para programar.',
-      frust:'Entiendo que esto puede ser frustrante y lamento que tengas problemas. Probemos otra cosa. Aquí están nuestros números de teléfono principales para obtener ayuda directa:'},
-  ht:{welcome:'👋 Bonjou! Kijan mwen ka ede w jodi a?',
-      hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?',
-      thanks:'Avèk plezi! 😊 Gen lòt bagay?',bye:'Si ou bezwen randevou, rele (609) 337-1624.',
-      noWalk:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.',
-      frust:'Mwen konprann sa ka fwistre, e mwen regrèt ou gen pwoblèm. Ann eseye yon lòt bagay. Men nimewo telefòn prensipal nou yo pou jwenn èd dirèk:'}
+  en:{welcome:'👋 Hi there! How can I help you today?', hello:'Hi! 👋 How can I help today?', thanks:"You're welcome! 😊 Is there anything else?", bye:'Take care! If you need to schedule, call (609) 337-1624.', noWalk:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.', frust:'I understand this can be frustrating, and I\'m sorry you\'re having trouble. Let\'s try something else. Here are our main phone numbers for direct help:'},
+  es:{welcome:'👋 ¡Hola! ¿En qué te puedo ayudar hoy?', hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?', thanks:'¡Con gusto! 😊 ¿Algo más?',bye:'¡Cuídate! Si necesitas una cita, llama al (609) 337-1624.', noWalk:'No atendemos <strong>sin cita</strong>. Por favor llama para programar.', frust:'Entiendo que esto puede ser frustrante y lamento que tengas problemas. Probemos otra cosa. Aquí están nuestros números de teléfono principales para obtener ayuda directa:'},
+  ht:{welcome:'👋 Bonjou! Kijan mwen ka ede w jodi a?', hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?', thanks:'Avèk plezi! 😊 Gen lòt bagay?',bye:'Si ou bezwen randevou, rele (609) 337-1624.', noWalk:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.', frust:'Mwen konprann sa ka fwistre, e mwen regrèt ou gen pwoblèm. Ann eseye yon lòt bagay. Men nimewo telefòn prensipal nou yo pou jwenn èd dirèk:'}
 };
 
 
-/* ================= DATA & STATE ================= */
-let lang='en';
-const ce=id=>document.getElementById(id);
-const chat=ce('chat'), box=ce('box'), theme=ce('themeToggle');
-const resetBtn=ce('resetBtn');
-const langBtn=ce('langBtn'), langMenu=ce('langMenu');
-const settingsBtn = ce('settingsBtn'), settingsMenu = ce('settingsMenu');
-const micBtn = ce('micBtn');
+/* ================= DOM ELEMENTS & STATE ================= */
+let lang = 'en';
 let chatHistory = [];
+
+const ce = id => document.getElementById(id);
+const chat = ce('chat');
+const box = ce('box');
+const sendBtn = ce('send');
+const statusDiv = ce('status-bar');
+
+const settingsBtn = ce('settingsBtn');
+const settingsMenu = ce('settingsMenu');
+const micBtn = ce('micBtn');
 
 /* ================= SOUND & HAPTICS ================= */
 let synth;
@@ -234,63 +223,76 @@ function vibrate(style = 'light') {
   }
 }
 
-/* ================= HELPERS & UI ================= */
-const isNearBottom=()=> (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
-function safeScroll(){ if(isNearBottom()) requestAnimationFrame(()=> chat.scrollTop=chat.scrollHeight ); }
-function setLang(l,persist=true){ lang=(['en','es','ht'].includes(l)?l:'en'); if(persist){try{localStorage.setItem('task_lang',lang);}catch(e){}} }
+/* ================= UTILITY FUNCTIONS ================= */
+
+/** Toggles loading/interaction state for the input box and send button. */
+function setLoadingState(isLoading) {
+    box.disabled = isLoading;
+    sendBtn.disabled = isLoading;
+    ce('magicBtn').disabled = isLoading;
+    ce('resetBtn').disabled = isLoading;
+}
+
+/** Updates the status bar with an optional error message. */
+function setErrorStatus(message) {
+    if (message) {
+        statusDiv.textContent = message;
+        statusDiv.classList.add('error-status');
+    } else {
+        statusDiv.textContent = '⚠️ I can make mistakes — please double-check important info.';
+        statusDiv.classList.remove('error-status');
+    }
+}
+
+const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
+function safeScroll() { if (isNearBottom()) requestAnimationFrame(() => chat.scrollTop = chat.scrollHeight ); }
+function setLang(l, persist = true) { 
+    lang = (['en', 'es', 'ht'].includes(l) ? l : 'en'); 
+    if (persist) { try { localStorage.setItem('task_lang', lang); } catch(e) {} } 
+}
 window.textInfo = (text) => { const url = `sms:?&body=${encodeURIComponent(text)}`; window.location.href = url; vibrate('medium'); };
 
-settingsBtn.addEventListener('click', () => {
-    const open = settingsMenu.getAttribute('aria-hidden') === 'false';
-    settingsMenu.setAttribute('aria-hidden', open ? 'true' : 'false');
-    settingsBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
-});
-langBtn.addEventListener('click', () => {
-    const open = langMenu.getAttribute('aria-hidden') === 'false';
-    langMenu.setAttribute('aria-hidden', open ? 'true' : 'false');
-});
-langMenu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-    setLang(b.dataset.lang);
-    langMenu.setAttribute('aria-hidden', 'true');
-    settingsMenu.setAttribute('aria-hidden', 'true');
-    greet(true);
-}));
-document.addEventListener('click', (e) => {
-    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target) && !langBtn.contains(e.target) && !langMenu.contains(e.target)) {
-        settingsMenu.setAttribute('aria-hidden', 'true');
-        langMenu.setAttribute('aria-hidden', 'true');
-    }
-});
-
-/* ================= RENDER ================= */
-function addU(t){ const e=document.createElement('div'); e.className='bubble-wrapper user-bubble-wrapper'; e.innerHTML=`<div class="bubble user">${t}</div>`; chat.appendChild(e); safeScroll(); playSound('send'); vibrate('light'); }
-function addB(html){
-  const wrapper=document.createElement('div');
-  wrapper.className='bubble-wrapper bot-bubble-wrapper';
-  const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
-  const bubble = `<div class="bubble bot">${html}</div>`;
-  wrapper.innerHTML = avatar + bubble;
-  chat.appendChild(wrapper);
-  safeScroll();
-  playSound('receive');
-  vibrate('light');
+/* ================= RENDER FUNCTIONS ================= */
+function addU(t){ 
+    const e = document.createElement('div'); 
+    e.className = 'bubble-wrapper user-bubble-wrapper'; 
+    e.innerHTML = `<div class="bubble user">${t}</div>`; 
+    chat.appendChild(e); 
+    safeScroll(); 
+    playSound('send'); 
+    vibrate('light'); 
 }
-function typing(on){
-  const id='typing';
-  if(on){
+
+function addB(html){
     const wrapper = document.createElement('div');
-    wrapper.id = id;
     wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
     const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
-    const bubble = `<div class="bubble bot"><div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
+    const bubble = `<div class="bubble bot">${html}</div>`;
     wrapper.innerHTML = avatar + bubble;
     chat.appendChild(wrapper);
-  } else { ce(id)?.remove(); }
-  safeScroll();
+    safeScroll();
+    playSound('receive');
+    vibrate('light');
 }
 
-/* ================= AI CORE (GEMINI) ================= */
+function typing(on){
+    const id = 'typing';
+    if(on){
+        const wrapper = document.createElement('div');
+        wrapper.id = id;
+        wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+        const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+        const bubble = `<div class="bubble bot"><div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
+        wrapper.innerHTML = avatar + bubble;
+        chat.appendChild(wrapper);
+    } else { ce(id)?.remove(); }
+    safeScroll();
+}
+
+
+/* ================= AI CORE (GEMINI) - WITH EXPONENTIAL BACKOFF ================= */
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
+const MAX_RETRIES = 3;
 
 const systemPrompt = `
   You are the Employment Assistant for the Trenton Area Soup Kitchen (TASK). 
@@ -304,6 +306,7 @@ const systemPrompt = `
   4.  **HANDLE TRAINING**: If the user asks for "training", provide the direct application link.
   5.  **PROVIDE INFO**: For all other topics (hours, address, SORA, etc.), provide the information directly.
   6.  **BE CONVERSATIONAL**: Don't just list facts. If a user says "hi", say hi back. If they are frustrated, be empathetic before providing help.
+  7.  **MATCH LANGUAGE**: Always respond in the same language as the user's last message (English, Spanish, or Haitian Creole).
 
   ***YOUR KNOWLEDGE BASE***
   - **TASK Website**: [https://www.trentonsoupkitchen.org](https://www.trentonsoupkitchen.org)
@@ -315,58 +318,145 @@ const systemPrompt = `
   - **Career Tips**: Based on [https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170675](https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170675)
 `;
 
-async function getAiResponse(prompt) {
-    typing(true);
-    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+/**
+ * Handles API fetch with exponential backoff for transient errors.
+ */
+async function exponentialBackoffFetch(url, options, retries = 0) {
+    try {
+        const response = await fetch(url, options);
+        // Retry logic for rate limiting (429) or server errors (5xx)
+        if (response.status === 429 || response.status >= 500) {
+            if (retries < MAX_RETRIES) {
+                const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000); // 1s, 2s, 4s + jitter
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return exponentialBackoffFetch(url, options, retries + 1);
+            }
+            throw new Error(`API error after ${MAX_RETRIES} attempts: ${response.statusText}`);
+        }
+        if (!response.ok) {
+             throw new Error(`Non-retryable API error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Fetch attempt failed:", error.message);
+        throw error; // Re-throw the error for getAiResponse to handle
+    }
+}
+
+/**
+ * Uses Gemini in structured output mode to detect the language of the user's prompt.
+ * If a supported language (en, es, ht) is detected and differs from the current lang, the state is updated.
+ */
+async function detectAndSetLanguage(prompt) {
+    const langDetectionPrompt = `Detect the language of the following user message and return the corresponding two-letter ISO 639-1 language code (en, es, or ht). Do not provide any other text. User message: "${prompt}"`;
+    const targetLanguages = ['en', 'es', 'ht']; // Supported languages
 
     try {
-        const response = await fetch(API_URL, {
+        const payload = {
+            contents: [{ parts: [{ text: langDetectionPrompt }] }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: { "language": { "type": "STRING", "description": "The two-letter ISO 639-1 code (en, es, or ht)." } },
+                    propertyOrdering: ["language"]
+                }
+            },
+            systemInstruction: { parts: [{ text: "You are a language detection expert. Output only the requested JSON object." }] },
+        };
+
+        const result = await exponentialBackoffFetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: chatHistory,
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                tools: [{ "google_search": {} }]
-            })
+            body: JSON.stringify(payload)
         });
-        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-        const result = await response.json();
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I'm having trouble connecting right now.";
-        
-        chatHistory.push({ role: "model", parts: [{ text: text }] });
-        return text;
 
-    } catch (error) {
-        console.error("Gemini API call failed:", error);
-        return "I'm sorry, I encountered an error. Please try again in a moment.";
-    } finally {
-        typing(false);
+        const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parsedJson = JSON.parse(jsonText);
+        const detectedLang = parsedJson.language.toLowerCase();
+        
+        if (targetLanguages.includes(detectedLang) && detectedLang !== lang) {
+            setLang(detectedLang);
+            console.log(`Language switched to: ${detectedLang}`);
+            // Note: We don't call greet here, as the chat response comes next.
+        }
+    } catch (e) {
+        // Log detection failure but allow the main chat to proceed.
+        console.warn("Language detection failed, proceeding with current language.", e);
     }
 }
 
 
-/* ================= FLOW ================= */
+async function getAiResponse(prompt) {
+    typing(true);
+    setLoadingState(true);
+
+    const currentContents = [...chatHistory, { role: "user", parts: [{ text: prompt }] }];
+
+    try {
+        const payload = {
+            contents: currentContents,
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            tools: [{ "google_search": {} }]
+        };
+
+        const result = await exponentialBackoffFetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, the AI did not return a valid response.";
+        
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+        chatHistory.push({ role: "model", parts: [{ text: text }] });
+        
+        setErrorStatus(null); 
+        return text;
+
+    } catch (error) {
+        console.error("Gemini API call failed:", error);
+        setErrorStatus("🚨 Connection failed. Please check your network and try again.");
+        return "I'm sorry, I encountered a critical connection error. Please try again in a moment.";
+    } finally {
+        typing(false);
+        setLoadingState(false);
+    }
+}
+
+
+/* ================= APPLICATION FLOW ================= */
 async function handle(t){
   if(!t) return;
+  
+  // 1. Auto-detect language BEFORE sending to main model
+  await detectAndSetLanguage(t); 
+
   addU(t);
   
+  // 2. Process main AI response
   const aiResponse = await getAiResponse(t);
 
   if (aiResponse.startsWith('[SEARCH_JOBS:')) {
-    const jobQuery = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/)[1];
-    await getJobs(jobQuery);
+    const jobMatch = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/);
+    if (jobMatch && jobMatch[1]) {
+        await getJobs(jobMatch[1]);
+    } else {
+        addB("I received a job search request but couldn't parse the type. Please try again.");
+    }
   } else {
+    // Convert Markdown links to standard HTML anchor tags for rendering
     const formattedResponse = aiResponse.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     addB(formattedResponse);
   }
 }
 
 async function getJobs(query) {
-    addB(`Searching for the latest ${query} jobs in Mercer County...`);
+    addB(`Searching for the latest <strong>${query}</strong> jobs in Mercer County...`);
     const jobQuery = `entry level ${query} jobs in Mercer County NJ`;
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(jobQuery)}&ibp=htl;jobs`;
     
-    let jobsHtml = `Here are some recent ${query} openings. Click the link to see the full list on Google Jobs:`;
+    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. Click the button to view the full, live list on Google Jobs:`;
     jobsHtml += `<div class="card-base job-card">
         <strong>Live Job Search Results</strong>
         <span>Mercer County, NJ</span>
@@ -375,39 +465,68 @@ async function getJobs(query) {
     addB(jobsHtml);
 }
 
-function send(){ const t=(box.value||'').trim(); if(!t) return; handle(t); box.value=''; box.blur(); setTimeout(()=>box.focus(),100); }
+function send(){ 
+    const t = (box.value||'').trim(); 
+    if(!t) return; 
+    handle(t); 
+    box.value = ''; 
+    box.blur(); 
+    setTimeout(() => box.focus(), 100); 
+}
 
-/* ================= THEME ================= */
+
+/* ================= INITIALIZATION & EVENTS ================= */
+
+// --- Theme Initialization ---
 (function initTheme(){
-  let saved=null; try{saved=localStorage.getItem('task_theme');}catch(e){}
+  let saved = null; try{saved = localStorage.getItem('task_theme');}catch(e){}
   if(!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
     document.documentElement.setAttribute('data-theme','dark');
   } else if(saved){
     document.documentElement.setAttribute('data-theme', saved);
   }
 })();
-themeToggle.addEventListener('click',()=>{
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  const next=dark?'light':'dark';
+ce('themeToggle').addEventListener('click',()=>{
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = dark ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   try{ localStorage.setItem('task_theme', next); }catch(e){}
 });
 
-/* ================= VOICE (if supported) ================= */
+// --- Settings Menu ---
+settingsBtn.addEventListener('click', () => {
+    const open = settingsMenu.getAttribute('aria-hidden') === 'false';
+    settingsMenu.setAttribute('aria-hidden', open ? 'true' : 'false');
+    settingsBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+});
+document.addEventListener('click', (e) => {
+    // Only close the settings menu if the click is outside the button and menu
+    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
+        settingsMenu.setAttribute('aria-hidden', 'true');
+    }
+});
+
+
+// --- Voice Input ---
 (function initMic(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ micBtn.style.display='none'; return; }
-  const rec=new SR(); const langMap={en:'en-US', es:'es-ES', ht:'ht-HT'};
-  micBtn.addEventListener('click',()=>{ rec.lang=langMap[lang]||'en-US'; rec.start(); });
-  rec.onresult=e=>{ box.value=e.results[0][0].transcript; send(); };
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ micBtn.style.display = 'none'; return; }
+  const rec = new SR(); 
+  // Voice input uses the current global language setting
+  const langMap = {en:'en-US', es:'es-ES', ht:'ht-HT'};
+  micBtn.addEventListener('click', () => { 
+      rec.lang = langMap[lang] || 'en-US'; 
+      rec.start(); 
+  });
+  rec.onresult = e => { box.value = e.results[0][0].transcript; send(); };
 })();
 
-/* ================= EVENTS ================= */
-resetBtn.addEventListener('click',()=>{ chat.innerHTML=''; chatHistory=[]; greet(true); });
-ce('send').addEventListener('click',send);
-box.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
-box.addEventListener('focus',()=>setTimeout(()=>safeScroll(),300));
-ce('scrollTopBtn').addEventListener('click',()=>chat.scrollTo({top:0,behavior:'smooth'}));
+// --- Main Chat Events ---
+ce('resetBtn').addEventListener('click', () => { chat.innerHTML = ''; chatHistory = []; greet(true); });
+ce('send').addEventListener('click', send);
+box.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); send(); }});
+box.addEventListener('focus', () => setTimeout(() => safeScroll(), 300));
+ce('scrollTopBtn').addEventListener('click', () => chat.scrollTo({top:0,behavior:'smooth'}));
 
 /* ================= GREETING & OPPORTUNITY ENGINE ================= */
 async function fetchOpportunities() {
@@ -421,34 +540,47 @@ async function fetchOpportunities() {
 
 ce('magicBtn').addEventListener('click', async () => {
   vibrate('light');
+  setLoadingState(true);
   addB('✨ Here are today\'s top opportunities:');
-  const opportunities = await fetchOpportunities();
-  let oppsHTML = '';
-  opportunities.forEach((item, i) => {
-    let cardHTML = `<div class="card-base opportunity-card" style="animation-delay: ${i*100}ms"><h3>${item.title}</h3><p>${item.message}</p>`;
-    if (item.linkText && item.link) {
-      cardHTML += `<div class="controls"><a class="ctrl" href="${item.link}" target="_blank" rel="noopener">${item.linkText}</a></div>`;
-    }
-    cardHTML += `</div>`;
-    oppsHTML += cardHTML;
-  });
-  addB(oppsHTML);
+  
+  try {
+      const opportunities = await fetchOpportunities();
+      let oppsHTML = '';
+      opportunities.forEach((item, i) => {
+        let cardHTML = `<div class="card-base opportunity-card" style="animation-delay: ${i*100}ms"><h3>${item.title}</h3><p>${item.message}</p>`;
+        if (item.linkText && item.link) {
+          cardHTML += `<div class="controls"><a class="ctrl" href="${item.link}" target="_blank" rel="noopener">${item.linkText}</a></div>`;
+        }
+        cardHTML += `</div>`;
+        oppsHTML += cardHTML;
+      });
+      addB(oppsHTML);
+  } catch (e) {
+      addB("Sorry, I couldn't load the opportunities right now.");
+  } finally {
+      setLoadingState(false);
+  }
 });
 
 
-function greet(fromReset=false){
+function greet(fromReset = false){
   if(fromReset){
-    let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){}
+    let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){}
+    // Restore language setting on reset
     setLang(saved || 'en');
   }
   const welcomeMessage = UI[lang] ? UI[lang].welcome : UI['en'].welcome;
   addB(`<strong>${welcomeMessage}</strong>`);
 }
 
-(function initLang(){ let saved=null; try{ saved=localStorage.getItem('task_lang'); }catch(e){} setLang(saved || 'en'); })();
-greet();
+// Initial setup on load
+(function init(){ 
+    let saved = null; 
+    try{ saved = localStorage.getItem('task_lang'); }catch(e){} 
+    setLang(saved || 'en'); 
+    greet();
+})();
 
 </script>
 </body>
 </html>
-
