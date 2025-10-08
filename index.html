@@ -1,363 +1,2089 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Employment Assistant</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <style>
-        :root {
-            --bg-color-light: #f7f8fa;
-            --bg-color-dark: #121212;
-            --text-color-light: #1d1d1f;
-            --text-color-dark: #e1e1e1;
-            --bubble-user-bg-light: #007aff;
-            --bubble-user-bg-dark: #0a84ff;
-            --bubble-bot-bg-light: #e5e5ea;
-            --bubble-bot-bg-dark: #2c2c2e;
-            --bubble-bot-text-light: #000;
-            --bubble-bot-text-dark: #fff;
-            --border-color-light: #d1d1d6;
-            --border-color-dark: #3a3a3c;
-            --header-bg-light: rgba(255, 255, 255, 0.7);
-            --header-bg-dark: rgba(28, 28, 30, 0.7);
-            --input-bg-light: #fff;
-            --input-bg-dark: #1c1c1e;
-            --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --font-size-base: 16px;
-            --border-radius: 18px;
-            --max-width: 720px;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Employment Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+<meta name="theme-color" content="#FFFFFF">
+<script src="https://unpkg.com/tone"></script>
+<style>
+/* =================== BRAND GUIDELINES & COLORS =================== */
+:root{
+  --radius: 20px;
+  --bg: #0a0f1a;
+  --surface: #111929;
+  --surface-2: #0e1625;
+  --text: #eaf2ff;
+  --muted: #a7bad5;
+  --brand: #FF911F; /* TASK Logo Orange (New) */
+  --accent: #145078; /* TASK Logo Blue (New) */
+  --border: #344b6b;
+  --link: #ff8a6b;
+  --shadow: 0 20px 40px rgba(0,0,0,.6);
+  --shadow-soft: 0 8px 20px rgba(0,0,0,.45);
+  --header-bg: rgba(17, 25, 41, 0.7);
+  --header-border: #344b6b;
+  --bubble-bot-bg: #1e293b;
+  --bubble-bot-text: #eaf2ff;
+  --bubble-user-bg: var(--brand);
+  --bubble-user-text: #fff;
+  --typing: #aab4c3;
+  --error: #bc2f32; /* Red for errors (Required Red) */
+  --success: #13a10e;
+  --base-font-size: 17px; 
+}
+/* LIGHT MODE */
+[data-theme="light"]{
+  --bg: #f4f7fa;
+  --surface: #ffffff;
+  --surface-2: #f7fbff;
+  --text: #0a121e;
+  --muted: #5a6b82;
+  --border: #e2e8f0;
+  --link: var(--brand);
+  --shadow: 0 20px 40px rgba(30, 50, 80, .1);
+  --shadow-soft: 0 8px 20px rgba(30, 50, 80, .08);
+  --header-bg: rgba(255, 255, 255, 0.7);
+  --header-border: #d9e2ec;
+  --bubble-bot-bg: #e9eef3;
+  --bubble-bot-text: #111827;
+  --bubble-user-bg: var(--brand);
+  --bubble-user-text: #fff;
+  --typing: #aab4c3;
+  --legal-bg: #e9eef3; 
+  --legal-text: #5a6b82;
+}
+/* =================== BASE STYLES =================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:var(--bg); color:var(--text); display:flex; align-items:center; justify-content:center;
+  font-size:clamp(16px, 1.7vw, 18px); 
+  min-height:100vh;
+}
+a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoration:underline}
 
-        @media (prefers-color-scheme: dark) { :root {
-            --bg-color: var(--bg-color-dark); --text-color: var(--text-color-dark); --bubble-user-bg: var(--bubble-user-bg-dark); --bubble-bot-bg: var(--bubble-bot-bg-dark);
-            --bubble-bot-text: var(--bubble-bot-text-dark); --border-color: var(--border-color-dark); --header-bg: var(--header-bg-dark); --input-bg: var(--input-bg-dark);
-        } }
-        @media (prefers-color-scheme: light) { :root {
-            --bg-color: var(--bg-color-light); --text-color: var(--text-color-light); --bubble-user-bg: var(--bubble-user-bg-light); --bubble-bot-bg: var(--bubble-bot-bg-light);
-            --bubble-bot-text: var(--bubble-bot-text-light); --border-color: var(--border-color-light); --header-bg: var(--header-bg-light); --input-bg: var(--input-bg-light);
-        } }
+/* Main App Container */
+.main-container{
+  width:100%; max-width:600px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; height:100vh; position:relative;
+}
+@media (min-width: 600px) {
+  .main-container {
+      height: 95vh;
+  }
+}
 
-        html, body {
-            height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: var(--font-family-sans); background-color: var(--bg-color); color: var(--text-color); font-size: var(--font-size-base);
-        }
-        #chat-container { display: flex; flex-direction: column; height: 100%; max-width: var(--max-width); margin: 0 auto; box-sizing: border-box; }
-        #header, #status-bar {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 10px 16px; background-color: var(--header-bg);
-            backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%);
-            border-bottom: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center;
-        }
-        #header { height: 40px; }
-        #status-bar { top: 61px; height: 25px; font-size: 12px; text-align: center; font-weight: 500; border-bottom: none; border-top: 1px solid var(--border-color); }
-        #header h1 { font-size: 17px; font-weight: 600; margin: 0; }
-        .header-btn { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-color); cursor: pointer; padding: 5px; }
-        #chat-window { flex-grow: 1; overflow-y: auto; padding: 110px 16px 16px; scrollbar-width: thin; scroll-behavior: smooth; }
-        .bubble-wrapper {
-            display: flex; margin-bottom: 12px; max-width: 85%; align-items: flex-end; opacity: 0; transform: translateY(10px); animation: pop-in 0.3s ease-out forwards;
-        }
-        @keyframes pop-in { to { opacity: 1; transform: translateY(0); } }
-        .user-bubble-wrapper { margin-left: auto; justify-content: flex-end; }
-        .bot-bubble-wrapper { margin-right: auto; justify-content: flex-start; }
-        .avatar {
-            width: 28px; height: 28px; border-radius: 50%; background-color: var(--bubble-bot-bg); color: var(--bubble-bot-text); display: flex;
-            align-items: center; justify-content: center; font-weight: 600; font-size: 14px; margin-right: 8px; flex-shrink: 0;
-        }
-        .bubble { padding: 10px 14px; border-radius: var(--border-radius); line-height: 1.5; word-wrap: break-word; font-size: 15px; }
-        .user { background-color: var(--bubble-user-bg); color: white; border-bottom-right-radius: 4px; }
-        .bot { background-color: var(--bubble-bot-bg); color: var(--bubble-bot-text); border-bottom-left-radius: 4px; }
-        .bot a { color: var(--bubble-user-bg); text-decoration: none; font-weight: 500; }
-        .bot a:hover { text-decoration: underline; }
-        .bot ul { margin: 8px 0; padding-left: 20px; }
-        .bot li { margin-bottom: 4px; }
-        .typing { display: flex; align-items: center; }
-        .typing .dot {
-            width: 6px; height: 6px; margin: 0 2px; background-color: currentColor; opacity: 0.5; border-radius: 50%; animation: typing-anim 1.2s infinite ease-in-out;
-        }
-        .typing .dot:nth-child(2) { animation-delay: 0.15s; }
-        .typing .dot:nth-child(3) { animation-delay: 0.3s; }
-        @keyframes typing-anim { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
-        #input-area {
-            display: flex; align-items: flex-end; padding: 8px 12px; background-color: var(--header-bg);
-            backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%); border-top: 1px solid var(--border-color);
-        }
-        #user-input {
-            flex-grow: 1; border: 1.5px solid var(--border-color); border-radius: 20px; padding: 10px 16px; font-size: 15px;
-            line-height: 1.3; max-height: 100px; resize: none; background-color: var(--input-bg); color: var(--text-color); font-family: inherit; transition: border-color 0.2s ease;
-        }
-        #user-input:focus { outline: none; border-color: var(--bubble-user-bg); }
-        #send-btn, #magic-btn, .header-btn { background: none; border: none; cursor: pointer; padding: 8px; flex-shrink: 0; color: var(--bubble-user-bg); transition: transform 0.1s ease; }
-        #send-btn:active, #magic-btn:active, .header-btn:active { transform: scale(0.9); }
-        #send-btn { margin-left: 8px; }
-        #send-btn:disabled, #magic-btn:disabled, .header-btn:disabled { color: var(--border-color); cursor: not-allowed; transform: none; }
-        #send-btn svg, #magic-btn svg, .header-btn svg { width: 24px; height: 24px; fill: currentColor; }
-        .suggestions-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px 0; animation: pop-in 0.4s 0.2s ease-out forwards; opacity: 0; }
-        .suggestion-btn {
-            background-color: var(--bubble-bot-bg); color: var(--bubble-bot-text); border: none; border-radius: 16px; padding: 10px 16px;
-            font-size: 14px; font-weight: 500; cursor: pointer; transition: transform 0.1s ease, background-color 0.2s;
-        }
-        .suggestion-btn.clicked, .suggestion-btn:active { transform: scale(0.95); background-color: var(--border-color); }
-        .card-base { background-color: var(--input-bg); border-radius: 12px; padding: 12px; margin-top: 8px; border: 1px solid var(--border-color); }
-        .card-base h3 { margin: 0 0 8px 0; font-size: 16px; }
-        .card-base p { margin: 0 0 12px 0; font-size: 14px; }
-        .card-base .controls a {
-            display: block; text-align: center; padding: 10px; background-color: var(--bubble-bot-bg); color: var(--bubble-bot-text);
-            font-weight: 600; border-radius: 8px; text-decoration: none; transition: background-color 0.2s ease;
-        }
-        .card-base .controls a:hover { background-color: var(--border-color); }
-        .contact-buttons { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .call-btn, .text-btn {
-            flex-grow: 1; padding: 8px 12px; border-radius: 8px; text-align: center; text-decoration: none;
-            font-size: 14px; font-weight: 500; transition: transform 0.1s ease;
-        }
-        .call-btn:active, .text-btn:active { transform: scale(0.95); }
-        .call-btn { background-color: #34c759; color: white; }
-        .text-btn { background-color: var(--bubble-user-bg); color: white; }
-    </style>
+/* Header */
+.header{
+  position: sticky; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--header-bg);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--header-border); 
+  padding:10px 15px; text-align:center;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.header-title {
+  font:800 1.2em/1 "Nunito", sans-serif; 
+  color: var(--accent);
+}
+.icon-btn {
+  width:38px; height:38px; border:none; border-radius:50%; background:transparent;
+  color:var(--accent); cursor:pointer; transition:all .2s ease; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.icon-btn:hover { color: var(--brand); background: rgba(0,0,0,0.05); }
+.icon-btn:active { transform: scale(.95); }
+.reset{margin-left: 0;}
+
+/* Settings Menu */
+.settings-menu{position:absolute;top:50px;right:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-soft);display:none;min-width:180px;z-index:200}
+.settings-menu[aria-hidden="false"]{display:block}
+.settings-menu button{display:flex; gap: 8px; align-items: center; width:100%;text-align:left;padding:10px 12px;background:transparent;border:none;cursor:pointer; color: var(--text);}
+.settings-menu button:hover{background:var(--surface-2)}
+
+/* Chat Area */
+.chat{
+  flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; 
+  padding-bottom: 120px; /* Space for the fixed input bar */
+  background: var(--surface-2);
+  min-height: 400px; 
+}
+.bubble-wrapper { 
+  display: flex; align-items: flex-start; gap: 10px; 
+  margin: 16px 0; max-width: 95%; 
+  animation: pop-in .3s ease-out; 
+  padding: 0 5px; 
+}
+.bot-bubble-wrapper { margin-right: 18%; }
+.user-bubble-wrapper { margin-left: auto; flex-direction: row-reverse; display: flex; align-items: flex-start; }
+
+.avatar { 
+  width: 32px; height: 32px; border-radius: 50%; background:var(--accent); 
+  color: white; font-family: "Nunito", sans-serif; font-weight: 700; font-size: 14px; 
+  flex-shrink: 0;
+}
+
+.bubble{
+  padding: 14px 18px; border-radius: 20px; line-height: 1.6;
+  box-shadow: var(--shadow-soft); 
+  transition: box-shadow .15s ease, transform .08s ease;
+  font-size: 0.95em;
+  padding-top: 10px; 
+}
+.bubble.bot{
+  background:var(--bubble-bot-bg); color: var(--bubble-bot-text); 
+  border:1px solid var(--border); 
+  border-radius: 20px 20px 20px 6px;
+  max-width: 100%;
+}
+.bubble.user{
+  color:var(--bubble-user-text); background:var(--bubble-user-bg); 
+  border-radius:20px 20px 6px 20px; 
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  max-width: 100%;
+}
+.bubble.bot ul, .bubble.bot ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 20px;
+  list-style: disc;
+}
+.bubble.bot li { margin-bottom: 0.25em; }
+@keyframes pop-in { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Quick Start Buttons */
+.suggestions-container {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; padding: 10px 0;
+}
+.suggestion-btn {
+  border: 2px solid var(--brand); background: var(--brand); color: white; 
+  border-radius: 999px; padding: 12px 18px; font-weight: 700; cursor: pointer; 
+  transition: all .2s ease; font-size: 0.9em; flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+}
+.suggestion-btn:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15); 
+  background: var(--accent); 
+  border-color: var(--accent);
+}
+.suggestion-btn:active {transform: scale(.95)}
+.suggestion-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.suggestion-btn.clicked {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  transform: scale(0.98);
+}
+
+
+/* Loading and Status */
+.typing{display:inline-flex;gap:6px;align-items:flex-end}
+.typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);animation:bounce 1s infinite ease-in-out}
+.typing .dot:nth-child(2){animation-delay:.12s}.typing .dot:nth-child(3){animation-delay:.24s}
+
+/* Footer and Input */
+.input-area{position:relative;bottom:0;left:0;right:0;padding:12px;background:var(--surface-2);border-top:1px solid var(--border);z-index:100}
+.row{display:flex;gap:10px;align-items:center}
+#box{flex:1;padding:14px 18px;border:2px solid var(--border);border-radius:999px;font-size:1em;background:var(--surface);color:var(--text);caret-color:var(--accent); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);}
+#box:disabled { background: var(--surface-2); cursor: not-allowed; }
+
+.send{width:50px;height:50px;border-radius:50%;background:var(--brand);color:white;box-shadow:var(--shadow-soft);transition:transform .1s ease, background .1s ease;}
+.send:hover { background: var(--accent); }
+.send:active{transform:scale(.95)}
+.send:disabled { background: var(--muted); cursor: not allowed; }
+.send-icon { transition: transform 0.2s ease; }
+.send:disabled .send-icon { transform: scale(0.8) rotate(360deg); }
+
+/* Status Bar & Error Display */
+.status{margin-top:6px;text-align:center;font-size:0.75em;color:var(--muted)}
+.error-status { 
+    color: var(--error); 
+    font-weight: 600; 
+    padding: 8px 12px;
+    margin-top: 0;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: block;
+}
+.error-status strong { color: var(--error); margin-right: 5px; }
+
+/* Disclaimer Bar */
+.legal-disclaimer {
+    background: var(--accent);
+    color: white;
+    padding: 6px 10px;
+    font-size: 0.7em;
+    text-align: center;
+    line-height: 1.3;
+    z-index: 101;
+}
+
+/* Call/Text Buttons */
+.contact-buttons { display: flex; gap: 8px; margin-top: 10px; }
+.contact-buttons a {
+    padding: 8px 12px; border-radius: 999px; font-weight: 700; transition: all 0.15s ease;
+    text-decoration: none; display: flex; align-items: center; gap: 5px;
+}
+.contact-buttons .call-btn {
+    background: var(--success);
+    color: white;
+    border: 1px solid var(--success);
+}
+.contact-buttons .text-btn {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+.contact-buttons a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-decoration: none;
+}
+.contact-buttons .text-btn:hover {
+    background: var(--accent);
+    color: white;
+}
+/* Card Styles */
+.card-base {
+    background: var(--surface); 
+    border: 1px solid var(--border); 
+    border-radius: 12px;
+    padding: 16px; 
+    box-shadow: var(--shadow-soft); 
+    margin-top: 10px; 
+    margin-bottom: 8px;
+}
+.card-base h3 { 
+    font-family: "Nunito", sans-serif; 
+    font-size: 1.1em; 
+    color: var(--accent); 
+    margin-bottom: 8px; 
+}
+.card-base p { margin-bottom: 12px; line-height: 1.5; }
+.card-base .ctrl { background: var(--surface-2); }
+.job-card strong { display: block; font-family: "Nunito", sans-serif; }
+.job-card span { color: var(--muted); font-size: 0.85em; }
+
+/* =================== SPLASH SCREEN =================== */
+#splash-screen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--accent); /* TASK Blue */
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: opacity 0.5s ease;
+    font-family: "Nunito", sans-serif;
+    text-align: center;
+}
+.splash-content {
+    animation: fadeIn 1.5s ease forwards;
+    opacity: 0;
+    max-width: 80%;
+}
+.splash-logo {
+    width: 250px;
+    height: auto;
+    margin: 0 auto 30px; /* Centering fix */
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    display: block; /* Ensures centering works */
+}
+.splash-logo img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.splash-text h1 {
+    font-size: clamp(1.8em, 5vw, 3em);
+    margin-bottom: 10px;
+}
+.splash-text p {
+    font-size: clamp(1em, 3vw, 1.3em);
+    margin-bottom: 40px;
+    line-height: 1.4;
+}
+.splash-button {
+    background: var(--brand); /* TASK Orange */
+    color: white;
+    border: 2px solid white;
+    padding: 15px 30px;
+    border-radius: 999px;
+    font-size: 1.2em;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+.splash-button:hover {
+    background: #e0801a; 
+    transform: scale(1.05);
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* =================== ADVANCED TOOLS OVERLAY (NEW) =================== */
+.tools-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+}
+.tools-panel {
+    background: var(--surface);
+    width: 95%;
+    max-width: 500px;
+    height: 95vh;
+    max-height: 800px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: var(--text);
+}
+.tools-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.tools-header h2 {
+    font-size: 1.2em;
+    color: var(--accent);
+    font-family: "Nunito", sans-serif;
+}
+.tools-tabs {
+    display: flex;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.tools-tabs button {
+    padding: 10px 15px;
+    white-space: nowrap;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.1s;
+    font-size: 0.85em;
+}
+.tools-tabs button.active {
+    border-bottom: 2px solid var(--brand);
+    color: var(--brand);
+}
+.tools-body {
+    padding: 15px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+.tool-content h3 {
+    font-size: 1.1em;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-family: "Nunito", sans-serif;
+}
+.tool-content textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    resize: vertical;
+    font-size: 1em;
+    background: var(--surface-2);
+    color: var(--text);
+}
+.tool-content input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 1em;
+    background: var(--surface-2);
+    color: var(--text);
+}
+.tool-content button {
+    background: var(--brand);
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 15px;
+}
+.tool-output {
+    min-height: 150px;
+    border: 1px dashed var(--muted);
+    padding: 10px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    white-space: pre-wrap;
+    text-align: left;
+    font-size: 0.95em;
+}
+
+</style>
 </head>
 <body>
-    <div id="chat-container">
-        <header id="header">
-            <h1>Employment Assistant</h1>
-            <button id="resetBtn" class="header-btn" title="Reset Conversation">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.963 0-9 4.037-9 9s4.037 9 9 9s9-4.037 9-9s-4.037-9-9-9zm0 16c-3.859 0-7-3.141-7-7s3.141-7 7-7s7 3.141 7 7s-3.141 7-7 7z"/><path d="m13.707 12.293-1.414 1.414L15 16.414l1.414-1.414-2.707-2.707zM8.586 7.586l1.414-1.414L7.293 8.879l-1.414 1.414 2.707 2.707 1.414-1.414L8.586 10.293l4.707-4.707 1.414 1.414L16.121 7l-1.414-1.414z"/></svg>
-            </button>
-        </header>
-        <div id="status-bar">⚠️ I can make mistakes — please double-check important info.</div>
-        <div id="chat-window"></div>
-        <div id="input-area">
-             <button id="magicBtn" title="Quick Suggestions">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.707 12.293 7.293 9.879l-1.414 1.414L8.586 14l-2.707 2.707 1.414 1.414L9.707 15.414l2.293 2.293 1.414-1.414L10.414 14l2.707-2.707-1.414-1.414zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/></svg>
-             </button>
-            <textarea id="user-input" placeholder="Type a message..." rows="1"></textarea>
-            <button id="sendBtn" title="Send Message">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/>
+
+<div id="splash-screen">
+    <div class="splash-content">
+        <div class="splash-logo">
+            <img src="https://placehold.co/500x125/FFFFFF/145078?text=TASK+Logo" alt="TASK Logo">
+        </div>
+        <div class="splash-text">
+            <h1>Welcome to the Employment Assistant</h1>
+            <p>Your guide to jobs, training, and resources in the Greater Trenton Area.</p>
+        </div>
+        <button class="splash-button" onclick="startApp()">Start Chatting</button>
+    </div>
+</div>
+
+<div class="main-container" id="app-container" style="display: none;">
+    <header class="header">
+        <button class="icon-btn" id="resetBtn" aria-label="Clear chat">↺</button>
+        <div class="header-title">Employment Assistant</div>
+        <div class="header-actions">
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle Theme">🌗</button>
+            <button class="icon-btn" id="magicBtn" aria-label="Advanced Tools">✨</button>
+        </div>
+    </header>
+
+    <section class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat transcript"></section>
+
+    <div class="input-area">
+        <div class="row">
+            <input id="box" type="text" placeholder="Ask me anything..." autocomplete="off"/>
+            <button class="send" id="send" aria-label="Send">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" class="send-icon">
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                 </svg>
             </button>
         </div>
+        <div class="status" id="status-bar">⚠️ I can make mistakes — please double-check important info.</div>
     </div>
-<script>
-// --- START OF JAVASCRIPT ---
+    <div class="legal-disclaimer">
+        Disclaimer: This assistant is for informational purposes only and is not legal, financial, or employment advice.
+    </div>
+</main>
+</div>
+<div class="tools-overlay" id="tools-overlay">
+    <div class="tools-panel">
+        <div class="tools-header">
+            <h2>Advanced Job Search Tools</h2>
+            <button class="icon-btn" onclick="closeToolsOverlay()">✕</button>
+        </div>
+        <div class="tools-tabs" id="tools-tabs">
+            </div>
+        <div class="tools-body" id="tools-body">
+            </div>
+    </div>
+</div>
 
-// ================== CONFIGURATION ================== //
+<script>
+/* ================== SCRIPT START ================== */
+'use strict';
+
+/* ================== CONFIGURATION & STATE ================== */
 const CONFIG = {
-    API_KEY: 'YOUR_GEMINI_API_KEY_HERE',
-    DIANI_NUMBER: '6091234567',
-    SEAN_NUMBER: '6097654321',
-    APPOINTMENT_NUMBER: '6099876543',
-    TASK_WEBSITE: 'https://www.trentonsoupkitchen.org/',
-    TRAINING_APPLY_LINK: 'https://example.com/training-application',
-    SORA_LINK: 'https://www.njsp.org/private-detective/sora.shtml',
-    GOOGLE_MAPS_BASE: 'https://www.google.com/maps/search/?api=1&query=',
+    // --- API Key (Inserted from user input) ---
+    API_KEY: "AIzaSyBGCzk-xHAi4uZITtxGbsw_2uhK0asMhO8",
+    API_URL_BASE: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=",
+    
+    // --- Contact & Resource Links (Centralized) ---
+    APPOINTMENT_NUMBER: '6093371624',
+    DIANI_NUMBER: '6096976166',
+    SEAN_NUMBER: '6096976215',
     TASK_ADDRESS: '72 1/2 Escher Street, Trenton, NJ 08609',
-    MS_FORM_URL: 'YOUR_MICROSOFT_FORM_SUBMISSION_URL_HERE',
-    USER_PROMPT_FIELD: 'entry.xxxxxxxxxx',
-    ERROR_DETAILS_FIELD: 'entry.yyyyyyyyyy',
+    TASK_WEBSITE: 'https://www.trentonsoupkitchen.org',
+    TRAINING_APPLY_LINK: 'https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659',
+    SORA_LINK: 'https://www.njsp.org/private-detective/sora.shtml',
+    CAREER_TIPS_LINK: 'https://bycell.co/ddmnx',
+    NJ_TRANSIT_TRIP_PLANNER: 'https://www.njtransit.com/trip-planner',
+    GOOGLE_MAPS_BASE: 'https://www.google.com/maps/search/?api=1&query=$',
+
     MAX_RETRIES: 3,
-    INITIAL_GREEETING_DELAY: 500,
+
+    // --- Advanced Tools Configuration (23 Tools) ---
+    ADVANCED_TOOLS: [
+        { id: 'simplify', title: 'Job Simplifier', inputs: [{ id: 'jargon', label: 'Paste Job Jargon/Text Here', type: 'textarea' }, { id: 'job_type', label: 'Target Job (e.g., Warehouse, Retail)', type: 'text' }] },
+        { id: 'resume_keywords', title: 'Keyword Checker', inputs: [{ id: 'resume_text', label: 'Paste your resume text', type: 'textarea' }, { id: 'job_type', label: 'Target Job (e.g., Warehouse, Retail)', type: 'text' }] },
+        { id: 'interview_prep', title: 'Interview Coach', inputs: [{ id: 'job_desc', label: 'Paste Job Description', type: 'textarea' }] },
+        { id: 'cover_letter', title: 'Cover Letter Drafter', inputs: [{ id: 'job_title', label: 'Job Title You Are Applying For', type: 'text' }] },
+        { id: 'doc_explainer', title: 'Document Explainer', inputs: [{ id: 'doc_text', label: 'Paste document text (Pay Stub, Form, etc.)', type: 'textarea' }] },
+        { id: 'follow_up_email', title: 'Follow-up Email Drafter', inputs: [{ id: 'context', label: 'Interview Context (e.g., "Interviewed with John for warehouse job yesterday")', type: 'textarea' }] },
+        { id: 'negotiation_planner', title: 'Negotiation Planner', inputs: [{ id: 'job_title_neg', label: 'Job Title', type: 'text' }, { id: 'pay_rate', label: 'Expected Pay Rate (e.g., $18/hr)', type: 'text' }] },
+        { id: 'financial_goals', title: 'Financial Goal Planner', inputs: [{ id: 'job_type_pay', label: 'Job/Pay Rate (e.g., $17/hr warehouse job)', type: 'text' }] },
+        { id: 'resource_finder', title: 'Local Resource Finder', inputs: [{ id: 'query', label: 'Resource Needed (e.g., Food assistance, shelter, utility help)', type: 'text' }] },
+        { id: 'search_strategy', title: 'Search Strategy Planner', inputs: [{ id: 'tasks', label: 'Current To-Do List (e.g., Write resume, check email)', type: 'textarea' }] },
+        { id: 'balance_check', title: 'Emotional Support Check-In', inputs: [{ id: 'stress_level', label: 'Describe your stress level and search intensity', type: 'textarea' }] },
+        { id: 'scam_checker', title: 'Scam and Fraud Checker', inputs: [{ id: 'suspicious_text', label: 'Paste suspicious email/text/post here', type: 'textarea' }] },
+        { id: 'form_assistant', title: 'Digital Form Assistant', inputs: [{ id: 'form_question', label: 'Paste Confusing Form Question', type: 'textarea' }] },
+        { id: 'career_path', title: 'Career Path Finder', inputs: [{ id: 'interests', label: 'Interests/Skills (e.g., driving, working with hands)', type: 'textarea' }] },
+        { id: 'task_prioritizer', title: 'Search Task Prioritizer', inputs: [{ id: 'daily_tasks', label: 'Paste all tasks you need to do today', type: 'textarea' }] },
+        { id: 'workplace_rights', title: 'Workplace Rights Explainer', inputs: [{ id: 'rights_term', label: 'Confusing Term (e.g., FMLA, Deductible, PTO)', type: 'text' }] },
+        { id: 'skill_translator', title: 'Food Service Skill Translator', inputs: [{ id: 'kitchen_task', label: 'Describe a task you did (e.g., "I wash dishes fast")', type: 'textarea' }] },
+        { id: 'digital_coach', title: 'Basic Digital Skill Coach', inputs: [{ id: 'digital_task', label: 'Digital Task (e.g., attach file to email, join Zoom)', type: 'text' }] },
+        { id: 'benefits_explainer', title: 'Benefits Explainer', inputs: [{ id: 'benefits_term', label: 'Confusing Benefit (e.g., 401k, Deductible, HSA)', type: 'text' }] },
+        { id: 'resume_score', title: 'Resume Feedback & Scoring', inputs: [{ id: 'resume_draft', label: 'Paste your current resume draft', type: 'textarea' }] },
+        { id: 'skill_gap', title: 'Skill Gap Analyzer', inputs: [{ id: 'job_goal', label: 'Desired Job Title', type: 'text' }, { id: 'known_skill', label: 'A skill you already have', type: 'text' }] },
+        { id: 'app_troubleshooter', title: 'App Troubleshooter', inputs: [{ id: 'app_name', label: 'App Name (e.g., Indeed, LinkedIn)', type: 'text' }, { id: 'error_msg', label: 'Error Message/Problem', type: 'textarea' }] },
+        { id: 'public_route', title: 'Public Transit Route Planner', inputs: [{ id: 'start_address', label: 'Starting Address', type: 'text' }, { id: 'destination', label: 'Destination Address', type: 'text' }] },
+    ]
 };
 
-// ================== GLOBAL STATE & REFERENCES ================== //
-let chatHistory = [];
-let lang = 'en';
-let isLoading = false;
-let synth;
-const ce = (id) => document.getElementById(id);
-const chatWindow = ce('chat-window'), userInput = ce('user-input'), sendBtn = ce('sendBtn'),
-      magicBtn = ce('magicBtn'), resetBtn = ce('resetBtn'), statusBar = ce('status-bar');
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CONFIG.API_KEY}`;
+const API_URL = CONFIG.API_URL_BASE + CONFIG.API_KEY;
 
-// ================== SOUND & HAPTICS ================== //
+let lang = 'en';
+let chatHistory = [];
+const ce = id => document.getElementById(id);
+const chat = ce('chat');
+const box = ce('box');
+const sendBtn = ce('send');
+const sendIcon = ce('send-icon');
+const statusDiv = ce('status-bar');
+
+const settingsBtn = ce('settingsBtn');
+const micBtn = document.createElement('button'); // Mic button needs to be created dynamically
+micBtn.id = 'micBtn';
+micBtn.innerHTML = '🎙️';
+micBtn.className = 'icon-btn';
+micBtn.style.display = 'none';
+
+/* ================== UI STRINGS (Multilingual) ================== */
+const UI = {
+  en:{
+      welcome:'👋 Hi there! How can I help you today?', 
+      hello:'Hi! 👋 How can I help today?', 
+      thanks:"You're welcome! 😊 Is there anything else?", 
+      bye:`Take care! If you need to schedule, call (${CONFIG.APPOINTMENT_NUMBER.substring(0, 3)}) ${CONFIG.APPOINTMENT_NUMBER.substring(3, 6)}-${CONFIG.APPOINTMENT_NUMBER.substring(6)}.`, 
+      noWalk:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.', 
+      frust:'I understand this can be frustrating, and I\'m sorry you\'re having trouble. Let\'s try something else. Here are our main phone numbers for direct help:',
+      prompts: [
+          { text: "Find Jobs", query: "I need to search for jobs" },
+          { text: "Get Training Info", query: "How do I apply for job training?" }
+      ]
+  },
+  es:{
+      welcome:'👋 ¡Hola! ¿En qué te puedo ayudar hoy?', 
+      hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?', 
+      thanks:'¡Con gusto! 😊 ¿Algo más?',
+      bye:`¡Cuídate! Si necesitas una cita, llama al (${CONFIG.APPOINTMENT_NUMBER.substring(0, 3)}) ${CONFIG.APPOINTMENT_NUMBER.substring(3, 6)}-${CONFIG.APPOINTMENT_NUMBER.substring(6)}.`, 
+      noWalk:'No atendemos <strong>sin cita</strong>. Por favor llama para programar.', 
+      frust:'Entiendo que esto puede ser frustrante y lamento que tengas problemas. Probemos otra cosa. Aquí están nuestros números de teléfono principales para obtener ayuda directa:',
+      prompts: [
+          { text: "Buscar Empleos", query: "Necesito buscar empleos" },
+          { text: "Obtener Información de Capacitación", query: "¿Cómo solicito capacitación laboral?" }
+      ]
+  },
+  ht:{
+      welcome:'👋 Bonjou! Kijan mwen ka ede w jodi a?', 
+      hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?', 
+      thanks:'Avèk plezi! 😊 Gen lòt bagay?',
+      bye:`Si ou bezwen randevou, rele (${CONFIG.APPOINTMENT_NUMBER.substring(0, 3)}) ${CONFIG.APPOINTMENT_NUMBER.substring(3, 6)}-${CONFIG.APPOINTMENT_NUMBER.substring(6)}.`, 
+      noWalk:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.', 
+      frust:'Mwen konprann sa ka fwistre, e mwen regrèt ou gen pwoblèm. Ann eseye yon lòt bagay. Men nimewo telefòn prensipal nou yo pou jwenn èd dirèk:',
+      prompts: [
+          { text: "Jwenn Travay", query: "Mwen bezwen chèche travay" },
+          { text: "Jwenn Enfòmasyon sou Fòmasyon", query: "Kijan pou mwen aplike pou fòmasyon travay?" }
+      ]
+  }
+};
+
+/* ================== SOUND & HAPTICS ================== */
+let synth;
 try {
-  synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination();
+  synth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "marimba" }, 
+    envelope: { attack: 0.01, decay: 0.6, sustain: 0.1, release: 0.8 }, 
+  }).toDestination();
 } catch (e) { console.warn("Tone.js failed to initialize."); synth = null; }
 
 function playSound(type) {
-    if (!synth) return;
-    if (Tone.context.state !== 'running') { Tone.start(); }
-    try {
-        const now = Tone.now();
-        if (type === 'send') synth.triggerAttackRelease("C5", "8n", now);
-        if (type === 'receive') synth.triggerAttackRelease(["C4", "G4"], "8n", now);
-        if (type === 'reset') synth.triggerAttackRelease("G3", "8n", now);
-    } catch (e) { console.warn("Sound playback failed", e); }
+  if (synth && Tone.context.state !== 'running') { Tone.start(); }
+  if (synth) {
+    try { 
+      if (type === 'send') synth.triggerAttackRelease("G4", "8n", Tone.now());
+      if (type === 'receive') synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", Tone.now()); 
+    } catch(e) {}
+  }
 }
-function vibrate(style = 'light') { if (window.navigator?.vibrate) { try { if (style === 'light') navigator.vibrate(10); if (style === 'medium') navigator.vibrate([40, 60, 40]); } catch (e) { console.warn("Vibration failed", e); } } }
-
-// ================== UTILITY FUNCTIONS ================== //
-const isNearBottom = () => (chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight) < 100;
-function safeScroll() { if (isNearBottom()) { chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' }); } }
-
-function setLoadingState(loading) {
-    isLoading = loading;
-    [userInput, sendBtn, magicBtn, resetBtn].forEach(el => el.disabled = loading);
-    userInput.placeholder = loading ? "Assistant is typing..." : "Type a message...";
-    if (!loading) {
-        userInput.focus();
-        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>`;
-    }
+function vibrate(style = 'light') {
+  if (window.navigator?.vibrate) {
+    try { 
+      if (style === 'light') navigator.vibrate(10);
+      if (style === 'medium') navigator.vibrate([30, 50, 30]);
+    } catch(e) {}
+  }
 }
 
-function setStatus(message, isError = false) {
-    statusBar.textContent = message || '⚠️ I can make mistakes — please double-check important info.';
-    statusBar.style.color = isError ? '#ff453a' : 'inherit';
+/* ================== UTILITY FUNCTIONS ================== */
+
+const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
+function safeScroll() { if (isNearBottom()) requestAnimationFrame(() => chat.scrollTop = chat.scrollHeight ); }
+
+/** Toggles loading/interaction state for the input box and send button. */
+function setLoadingState(isLoading) {
+    box.disabled = isLoading;
+    sendBtn.disabled = isLoading;
+    ce('magicBtn').disabled = isLoading;
+    ce('resetBtn').disabled = isLoading;
+    // Show checkmark briefly on successful send
+    if (isLoading) {
+        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" class="send-icon"><path d="M10.75 16.75l-4.5-4.5 1.06-1.06 3.44 3.44 6.94-6.94 1.06 1.06-8 8z" /></svg>`;
+    } else {
+        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" class="send-icon"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>`;
+    }
 }
 
+/** Updates the status bar with an optional error message and contact info. */
+function setErrorStatus(message) {
+    if (message) {
+        // Formatted contact info using the configured numbers
+        const contactInfo = `
+            <div style="margin-top: 8px;">
+                <p style="margin: 0; padding-bottom: 4px;">
+                    **Need immediate help?** Call one of our staff directly:
+                </p>
+                <ul style="list-style-type: none; padding: 0; margin: 0;">
+                    <li style="display:inline-block; margin-right: 12px;"><a href="tel:${CONFIG.DIANI_NUMBER}">📞 Diani: ${CONFIG.DIANI_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}</a></li>
+                    <li style="display:inline-block;"><a href="tel:${CONFIG.SEAN_NUMBER}">📞 Sean: ${CONFIG.SEAN_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}</a></li>
+                </ul>
+            </div>
+        `;
+        // Use softer error messaging
+        statusDiv.innerHTML = `
+            <span style="font-weight: 700;">
+                🚨 We're having trouble connecting to our resources right now.
+            </span> 
+            ${contactInfo}
+        `;
+        statusDiv.classList.add('error-status');
+    } else {
+        statusDiv.innerHTML = '⚠️ I can make mistakes — please double-check important info.';
+        statusDiv.classList.remove('error-status');
+    }
+}
+
+function setLang(l, persist = true) { 
+    lang = (['en', 'es', 'ht'].includes(l) ? l : 'en'); 
+    if (persist) { try { localStorage.setItem('task_lang', lang); } catch(e) {} } 
+}
+
+/** Function to handle Quick Query button clicks */
+function sendQuickQuery(event) {
+    vibrate('light');
+    const query = event.currentTarget.getAttribute('data-query'); 
+    if (!query) return;
+
+    event.currentTarget.classList.add('clicked');
+    setTimeout(() => { event.currentTarget.classList.remove('clicked'); }, 400);
+
+    box.value = query;
+    send(); 
+}
+
+window.callPhone = (number) => { window.location.href = `tel:${number}`; vibrate('light'); };
+window.textPhone = (number) => { window.location.href = `sms:${number}`; vibrate('light'); };
+
+// --- Error Reporting Function ---
 async function sendErrorReport(userPrompt, errorMessage) {
-    const { MS_FORM_URL, USER_PROMPT_FIELD, ERROR_DETAILS_FIELD } = CONFIG;
-    if (MS_FORM_URL.includes('YOUR_MICROSOFT_FORM_SUBMISSION_URL_HERE')) return;
-    const formData = new FormData();
-    formData.append(USER_PROMPT_FIELD, userPrompt);
-    formData.append(ERROR_DETAILS_FIELD, `${errorMessage} | Lang: ${lang} | Time: ${new Date().toISOString()}`);
-    try { await fetch(MS_FORM_URL, { method: 'POST', body: formData, mode: 'no-cors' }); }
-    catch (error) { console.error("Failed to send error report:", error); }
+    const FORM_URL = CONFIG.MS_FORM_URL; 
+    const USER_PROMPT_FIELD = CONFIG.USER_PROMPT_FIELD; 
+    const ERROR_DETAILS_FIELD = CONFIG.ERROR_DETAILS_FIELD; 
+
+    if (FORM_URL.includes('YOUR_MICROSOFT_FORM_SUBMISSION_URL_HERE')) {
+        console.warn("Error Reporting Disabled: Please configure Microsoft Form URL/IDs.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append(USER_PROMPT_FIELD, userPrompt);
+    formData.append(ERROR_DETAILS_FIELD, errorMessage + " | Time: " + new Date().toISOString());
+
+    try {
+        await fetch(FORM_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors' // Use no-cors for silent submissions to external forms
+        });
+        console.log("Error report sent successfully (via Microsoft Form).");
+    } catch (error) {
+        console.error("Failed to send silent error report:", error);
+    }
 }
 
-// ================== RENDER FUNCTIONS ================== //
-function addUserBubble(text) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'bubble-wrapper user-bubble-wrapper';
-    wrapper.innerHTML = `<div class="bubble user">${text}</div>`;
-    chatWindow.appendChild(wrapper); safeScroll(); playSound('send'); vibrate('light');
-}
-function addBotBubble(html) {
-    const sanitizedHTML = DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
-    const wrapper = document.createElement('div');
-    wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
-    wrapper.innerHTML = `<div class="avatar" aria-hidden="true">E</div><div class="bubble bot">${sanitizedHTML}</div>`;
-    chatWindow.appendChild(wrapper); safeScroll(); playSound('receive');
-}
-function showTypingIndicator(show) {
-    const existing = ce('typing-indicator');
-    if (show && !existing) {
-        const wrapper = document.createElement('div');
-        wrapper.id = 'typing-indicator';
-        wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
-        wrapper.innerHTML = `<div class="avatar" aria-hidden="true">E</div><div class="bubble bot"><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
-        chatWindow.appendChild(wrapper); safeScroll();
-    } else if (!show && existing) { existing.remove(); }
+/* ================== RENDER FUNCTIONS ================== */
+function addU(t){ 
+    const e = document.createElement('div'); 
+    e.className = 'bubble-wrapper user-bubble-wrapper'; 
+    e.innerHTML = `<div class="bubble user">${t}</div>`; 
+    chat.appendChild(e); 
+    safeScroll(); 
+    playSound('send'); 
+    vibrate('light'); 
 }
 
-// ================== DYNAMIC CONTENT & "TOOLS" ================== //
-function showSuggestionButtons(suggestions) {
-    const container = document.createElement('div');
-    container.className = 'suggestions-container';
-    container.innerHTML = suggestions.map(s => `<button class="suggestion-btn" data-query="${s.query}">${s.text}</button>`).join('');
-    container.querySelectorAll('.suggestion-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            vibrate('light');
-            const query = e.currentTarget.getAttribute('data-query');
-            if (!query) return;
-            e.currentTarget.classList.add('clicked');
-            userInput.value = query;
-            setTimeout(() => { send(); container.remove(); }, 200);
-        });
-    });
-    chatWindow.appendChild(container); safeScroll();
-}
-function renderGoogleMapsCard() {
-    const { TASK_ADDRESS, GOOGLE_MAPS_BASE } = CONFIG;
-    addBotBubble(`<div class="card-base"><h3>TASK Location & Map</h3><p><strong>${TASK_ADDRESS}</strong></p><div class="controls"><a href="${GOOGLE_MAPS_BASE}${encodeURIComponent(TASK_ADDRESS)}" target="_blank" rel="noopener">Open in Google Maps</a></div></div>`);
-}
-function renderJobSearchCard(query) {
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + ' jobs in Mercer County NJ')}&ibp=htl;jobs`;
-    addBotBubble(`<div class="card-base"><h3>Live Job Search</h3><p>Here are the latest <strong>${query}</strong> job listings. Remember to be cautious of scams!</p><div class="controls"><a href="${searchUrl}" target="_blank" rel="noopener">⚠️ View Live Job Openings Safely</a></div></div>`);
+function addB(html){
+    const sanitizedHTML = DOMPurify.sanitize(html);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+    const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+    const bubble = `<div class="bubble bot">${sanitizedHTML}</div>`;
+    wrapper.innerHTML = avatar + bubble;
+    chat.appendChild(wrapper);
+    safeScroll();
+    playSound('receive');
+    vibrate('light');
 }
 
-// ================== AI CORE (GEMINI) ================== //
-const systemPrompt = (currentLang) => `You are the "Employment Assistant" for the Trenton Area Soup Kitchen (TASK). Persona is professional, empathetic, clear, helpful. MUST respond ONLY in ${currentLang}.
-MANDATORY RULES:
-1. Safety First: ALWAYS warn about job scams.
-2. Formatting: Use Markdown lists (* item) for clarity.
-3. Tool Usage: To show map, respond ONLY with [TASK_ADDRESS]. To search jobs, respond ONLY with [SEARCH_JOBS: job_type].
-4. No Outside Knowledge: ONLY use info below.
-KNOWLEDGE BASE:
-- Primary Goal: Help with employment resources.
-- Main Contact: For ALL appointments, call ${CONFIG.APPOINTMENT_NUMBER}. No walk-ins.
-- Staff: Diani (${CONFIG.DIANI_NUMBER}) for general inquiries; Sean (${CONFIG.SEAN_NUMBER}) for training.
-- Services: Job search, resume building, interview coaching.
-- Links: Official site ${CONFIG.TASK_WEBSITE}, Training App ${CONFIG.TRAINING_APPLY_LINK}, SORA Info ${CONFIG.SORA_LINK}.`;
+function typing(on){
+    const id = 'typing';
+    if(on){
+        const wrapper = document.createElement('div');
+        wrapper.id = id;
+        wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+        const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+        const bubble = `<div class="bubble bot"><div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
+        wrapper.innerHTML = avatar + bubble;
+        chat.appendChild(wrapper);
+    } else { ce(id)?.remove(); }
+    safeScroll();
+}
+
+/** Clears old prompts and adds new quick-start buttons below the welcome message. */
+function showQuickStartPrompts() {
+    const promptsHTML = UI[lang].prompts.map(p => 
+        `<button class="suggestion-btn" data-query="${p.query}">
+            ${p.query.includes("Jobs") ? '💼' : '🎓'} ${p.text}
+        </button>`
+    ).join('');
+
+    const promptsWrapper = document.createElement('div');
+    promptsWrapper.className = 'suggestions-container';
+    promptsWrapper.innerHTML = promptsHTML;
+    chat.appendChild(promptsWrapper);
+    
+    promptsWrapper.querySelectorAll('.suggestion-btn').forEach(btn => {
+        btn.addEventListener('click', sendQuickQuery);
+    });
+    safeScroll();
+}
+
+function renderGoogleMapsCard(address) {
+    const mapUrl = `${CONFIG.GOOGLE_MAPS_BASE}${encodeURIComponent(address)}`;
+    const html = `
+        <div class="card-base">
+            <h3>TASK Location & Map</h3>
+            <p><strong>${address}</strong></p>
+            <div class="controls">
+                <a href="${mapUrl}" target="_blank" rel="noopener" class="ctrl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Open Google Maps
+                </a>
+            </div>
+        </div>`;
+    addB(html);
+}
+
+/* ================== AI CORE (GEMINI) - WITH BACKOFF ================== */
+async function exponentialBackoffFetch(url, options, retries = 0) {
+    try {
+        const response = await fetch(url, options);
+        if (response.status === 429 || response.status >= 500) {
+            if (retries < MAX_RETRIES) {
+                const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                console.warn(`API retry ${retries + 1} after ${delay}ms: Status ${response.status}`);
+                return exponentialBackoffFetch(url, options, retries + 1);
+            }
+            throw new Error(`API error after ${MAX_RETRIES} attempts: ${response.statusText || response.status}`);
+        }
+        if (!response.ok) {
+            const errorText = await response.text();
+             throw new Error(`Non-retryable API error: ${response.status} ${response.statusText || errorText}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Fetch attempt failed:", error.message);
+        throw error;
+    }
+}
+
+const systemPrompt = (currentLang) => `
+    You are the Employment Assistant for the Trenton Area Soup Kitchen (TASK). 
+    Your persona is friendly, empathetic, and extremely helpful. Your primary goal is to provide clear, actionable, and safe information related to employment services.
+    
+    The user's current language is ${currentLang}. **You MUST respond in this language.**
+
+    ***MANDATORY RULES & ACTIONS***
+    1.  **Format for Clarity:** When presenting lists, multiple steps, or diverse information, **you MUST use Markdown bullet points (* ) or numbered lists.** AVOID large, blocky paragraphs.
+    2.  **Safety First:** If discussing jobs or applications, always reinforce the need for caution against scams and identity theft. Advise applying directly on the official employer website whenever possible.
+    3.  **Hyperlinking:** Automatically convert the following official information into markdown links in your response. DO NOT add "Call" or "Text" buttons; the front-end handles that separately.
+        * **Appointment Line**: ${CONFIG.APPOINTMENT_NUMBER} (Link to tel:${CONFIG.APPOINTMENT_NUMBER})
+        * **Diani's Number**: ${CONFIG.DIANI_NUMBER} (Link to tel:${CONFIG.DIANI_NUMBER})
+        * **Sean's Number**: ${CONFIG.SEAN_NUMBER} (Link to tel:${CONFIG.SEAN_NUMBER})
+        * **Appointments/Scheduling**: Link to ${CONFIG.TASK_WEBSITE} or mention the phone number.
+        * **Training Application**: Link to [Application](${CONFIG.TRAINING_APPLY_LINK})
+        * **TASK Website**: Link to [TASK Website](${CONFIG.TASK_WEBSITE})
+        * **SORA License**: Link to [Official NJ Site](${CONFIG.SORA_LINK})
+    4.  **Handle Jobs:** If the user asks for "jobs" or "openings," ask for the job type (warehouse, retail, food service, specific company) first. Once they specify a type, respond **ONLY** with the tag: [SEARCH_JOBS: job_type_or_company].
+    5.  **Handle Location:** If the user asks for "address" or "location," respond **ONLY** with the tag: [TASK_ADDRESS].
+    6.  **Be Empathetic:** If the user expresses frustration, respond with empathy before providing resources.
+
+    ***YOUR KNOWLEDGE BASE***
+    - **Appointments**: To make an appointment, call **${CONFIG.APPOINTMENT_NUMBER}**. We do NOT take walk-ins.
+    - **TASK Address**: **${CONFIG.TASK_ADDRESS}**
+    - **Sean (Training Contact)**: **${CONFIG.SEAN_NUMBER}**
+    - **Diani (Appointment Contact)**: **${CONFIG.DIANI_NUMBER}**
+`;
 
 async function getAiResponse(prompt) {
-    const payload = { contents: [...chatHistory, { role: "user", parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemPrompt(lang) }] }, tools: [{ "google_search": {} }] };
-    let lastError = null;
-    for (let i = 0; i < CONFIG.MAX_RETRIES; i++) {
-        try {
-            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) { if (response.status === 429 || response.status >= 500) { const delay = Math.pow(2, i) * 1000 + Math.random() * 1000; await new Promise(res => setTimeout(res, delay)); continue; } throw new Error(`API Error: ${response.status} ${await response.text()}`); }
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error("Received empty response from API.");
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] }, { role: "model", parts: [{ text }] });
-            setStatus(null);
-            return text;
-        } catch (error) { console.error(`Fetch attempt ${i + 1} failed:`, error); lastError = error; }
-    }
-    const hardErrorMsg = UI_STRINGS[lang].errorHard;
-    setStatus(hardErrorMsg, true);
-    sendErrorReport(prompt, lastError.message);
-    return hardErrorMsg;
+    const currentContents = [...chatHistory, { role: "user", parts: [{ text: prompt }] }];
+    let finalResponseText = '';
+    
+    try {
+        const payload = {
+            contents: currentContents,
+            systemInstruction: { parts: [{ text: systemPrompt(lang) }] },
+            tools: [{ "google_search": {} }]
+        };
+
+        const result = await exponentialBackoffFetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        finalResponseText = result.candidates?.[0]?.content?.parts?.[0]?.text || UI[lang].errorSoft;
+        
+        chatHistory.push({ role: "model", parts: [{ text: finalResponseText }] });
+        setErrorStatus(null); 
+        return finalResponseText;
+
+    } catch (error) {
+        console.error("Gemini API call failed:", error);
+        
+        const hardErrorMsg = UI[lang].errorHard;
+        const diagnosticMsg = `Prompt: "${prompt}" | Error: ${error.message}`;
+        sendErrorReport(prompt, diagnosticMsg);
+        
+        finalResponseText = hardErrorMsg;
+        setErrorStatus(finalResponseText); 
+        return finalResponseText;
+
+    } finally {
+        // NOTE: typing(false) and setLoadingState(false) are handled in handle(t)
+    }
 }
 
-// ================== FLOW CONTROL & EVENT HANDLING ================== //
-async function handleUserInput(text) {
-    if (!text || isLoading) return;
-    setLoadingState(true); addUserBubble(text); showTypingIndicator(true);
-    if (chatHistory.length === 0) await detectAndSetLanguage(text);
-    const aiResponse = await getAiResponse(text);
-    showTypingIndicator(false);
-    if (aiResponse.startsWith('[SEARCH_JOBS:')) { const query = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/)?.[1]; if (query) renderJobSearchCard(query); else addBotBubble(UI_STRINGS[lang].errorSoft); }
-    else if (aiResponse.startsWith('[TASK_ADDRESS]')) { renderGoogleMapsCard(); }
-    else { addBotBubble(formatBotResponse(aiResponse)); }
-    setLoadingState(false); adjustTextareaHeight();
+/* ================== FLOW CONTROL ================== */
+/** Main function to handle user input and trigger AI response */
+async function handle(t){
+    if(!t) return;
+
+    // 1. Instant User Feedback/Loading Signal
+    addU(t); 
+    setLoadingState(true);
+    typing(true); 
+
+    // 2. Auto-detect language 
+    await detectAndSetLanguage(t); 
+
+    // 3. Process main AI response
+    const aiResponse = await getAiResponse(t);
+
+    if (aiResponse.startsWith('[SEARCH_JOBS:')) {
+        const jobMatch = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/);
+        if (jobMatch && jobMatch[1]) {
+            await getJobs(jobMatch[1]);
+        } else {
+            addB(UI[lang].errorSoft);
+        }
+    } else if (aiResponse.startsWith('[TASK_ADDRESS]')) {
+        renderGoogleMapsCard(CONFIG.TASK_ADDRESS);
+        
+    } else {
+        // Apply hyperlinking and rendering
+        const formattedResponse = applyHyperlinks(aiResponse);
+        addB(formattedResponse);
+    }
+    
+    // 4. Reset UI after all rendering is complete
+    typing(false); 
+    setLoadingState(false);
 }
 
-function formatBotResponse(text) {
-    let html = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/^\* (.*$)/gm, '<li>$1</li>');
-    if (html.includes('<li>')) html = `<ul>${html.replace(/<\/li>\n/g, '</li>')}</ul>`;
-    if (html.includes(CONFIG.DIANI_NUMBER) || html.includes(CONFIG.SEAN_NUMBER)) {
-         html += `<div class="contact-buttons">${html.includes(CONFIG.DIANI_NUMBER) ? `<a href="tel:${CONFIG.DIANI_NUMBER}" class="call-btn">📞 Call Diani</a><a href="sms:${CONFIG.DIANI_NUMBER}" class="text-btn">💬 Text Diani</a>` : ''}${html.includes(CONFIG.SEAN_NUMBER) ? `<a href="tel:${CONFIG.SEAN_NUMBER}" class="call-btn">📞 Call Sean</a><a href="sms:${CONFIG.SEAN_NUMBER}" class="text-btn">💬 Text Sean</a>` : ''}</div>`;
-    }
-    return html;
+function applyHyperlinks(text) {
+    let result = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+        if (url.startsWith('tel:')) { return `<a href="${url}" class="font-bold">${linkText}</a>`; }
+        return `<a href="${url}" target="_blank" rel="noopener">${linkText}</a>`;
+    });
+
+    // 2. Convert Markdown lists (needed for bullet point formatting)
+    result = result.replace(/\* (.*)/g, '<li>$1</li>');
+    if (result.includes('<li>')) {
+        result = `<ul>${result}</ul>`;
+    }
+
+    // 3. Add hyperlinking for non-markdown instances of phone numbers and address
+    // (A) Phone Numbers 
+    const phoneRegex = /(\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})/g;
+    result = result.replace(phoneRegex, (match) => `<a href="tel:${match.replace(/[^0-9]/g, '')}" class="font-bold">${match}</a>`);
+    
+    // (B) Address 
+    const addressRegex = new RegExp(CONFIG.TASK_ADDRESS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    result = result.replace(addressRegex, (match) => `<a href="${CONFIG.GOOGLE_MAPS_BASE}${encodeURIComponent(CONFIG.TASK_ADDRESS)}" target="_blank" rel="noopener">${match}</a>`);
+
+    // (C) Appointment/Training mentions (contextual links)
+    result = result.replace(/training\s+application/gi, (match) => `<a href="${CONFIG.TRAINING_APPLY_LINK}" target="_blank" rel="noopener">${match}</a>`);
+    result = result.replace(/appointments?|scheduling/gi, (match) => `<a href="tel:${CONFIG.APPOINTMENT_NUMBER}" class="font-bold">${match}</a>`);
+    result = result.replace(/SORA\s+License/gi, (match) => `<a href="${CONFIG.SORA_LINK}" target="_blank" rel="noopener">${match}</a>`);
+    
+    // 4. Add Call/Text buttons for staff phone numbers if mentioned
+    if (result.includes(CONFIG.DIANI_NUMBER) || result.includes(CONFIG.SEAN_NUMBER)) {
+        const staffButtons = `
+            <div class="contact-buttons">
+                <a href="tel:${CONFIG.DIANI_NUMBER}" class="call-btn">📞 Call Diani</a>
+                <a href="sms:${CONFIG.DIANI_NUMBER}" class="text-btn">💬 Text Diani</a>
+                <a href="tel:${CONFIG.SEAN_NUMBER}" class="call-btn">📞 Call Sean</a>
+                <a href="sms:${CONFIG.SEAN_NUMBER}" class="text-btn">💬 Text Sean</a>
+            </div>
+        `;
+        result = result.replace(/<\/ul>$/, '') + staffButtons + (result.endsWith('</ul>') ? '</ul>' : '');
+    }
+
+    return result;
 }
 
-function send() {
-    const text = userInput.value.trim();
-    if (text) {
-        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M10.75 16.75l-4.5-4.5 1.06-1.06 3.44 3.44 6.94-6.94 1.06 1.06-8 8z"/></svg>`;
-        handleUserInput(text); userInput.value = '';
-    }
-    adjustTextareaHeight();
+async function getJobs(query) {
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&ibp=htl;jobs`;
+    
+    let jobsHtml = `<p>Searching for the latest <strong>${query}</strong> jobs in Mercer County... Click the button below for the most up-to-date listings.</p>`;
+    
+    jobsHtml += `<div class="card-base job-card">
+        <h3>Live Job Search Results</h3>
+        <p><strong>Mercer County, NJ</strong></p>
+        <div class="controls">
+            <a href="${searchUrl}" target="_blank" rel="noopener" class="ctrl">
+                ⚠️ View Live Openings Safely
+            </a>
+        </div>
+    </div>`;
+    addB(jobsHtml);
 }
-function resetConversation() { vibrate('medium'); playSound('reset'); chatWindow.innerHTML = ''; chatHistory = []; lang = 'en'; greet(); }
-function adjustTextareaHeight() { userInput.style.height = 'auto'; userInput.style.height = (userInput.scrollHeight) + 'px'; }
 
-// ================== MULTILINGUAL SUPPORT ================== //
-const UI_STRINGS = {
-    en: { greeting: "Hello! I'm the TASK Employment Assistant. How can I help you?", suggestions: [{ query: "Find jobs near me", text: "💼 Find Jobs" }, { query: "Tell me about training programs", text: "🎓 Get Training" }, { query: "How do I make an appointment?", text: "🗓️ Make an Appointment" }], errorHard: "I'm having trouble connecting to my resources right now. Please try again later or call the appointment line directly.", errorSoft: "I'm sorry, I had a little trouble with that request. Could you please try rephrasing it?" },
-    es: { greeting: "¡Hola! Soy el Asistente de Empleo de TASK. ¿Cómo puedo ayudarte hoy?", suggestions: [{ query: "Encontrar trabajos cerca de mí", text: "💼 Buscar Trabajos" }, { query: "Infórmame sobre los programas de capacitación", text: "🎓 Obtener Capacitación" }, { query: "Como puedo hacer una cita?", text: "🗓️ Hacer una Cita" }], errorHard: "Tengo problemas para conectarme a mis recursos. Por favor, inténtalo más tarde o llama a la línea de citas.", errorSoft: "Lo siento, tuve un problema con esa solicitud. ¿Podrías reformularla?" },
-    ht: { greeting: "Bonjou! Mwen se Asistan Travay TASK la. Kòman mwen ka ede w jodi a?", suggestions: [{ query: "Jwenn travay toupre mwen", text: "💼 Jwenn Travay" }, { query: "Pale m de pwogram fòmasyon yo", text: "🎓 Jwenn Fòmasyon" }, { query: "Kòman pou m pran yon randevou?", text: "🗓️ Pran Randevou" }], errorHard: "Mwen gen pwoblèm pou konekte ak resous mwen yo. Tanpri eseye ankò pita oswa rele liy randevou a.", errorSoft: "Mwen regrèt, mwen te gen yon pwoblèm ak demann sa a. Èske ou ta ka reformile li?" }
+function send(){ 
+    const t = (box.value||'').trim(); 
+    if(!t) return; 
+    handle(t); 
+    box.value = ''; 
+    box.blur(); 
+    setTimeout(() => box.focus(), 100); 
+}
+
+
+/* ================== LANGUAGE DETECTION ================== */
+async function detectAndSetLanguage(prompt) {
+    const langDetectionPrompt = `Detect the language of the following user message and return the corresponding two-letter ISO 639-1 language code (en, es, or ht). Do not provide any other text. User message: "${prompt}"`;
+    const targetLanguages = ['en', 'es', 'ht'];
+
+    try {
+        const payload = {
+            contents: [{ parts: [{ text: langDetectionPrompt }] }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: { "language": { "type": "STRING", "description": "The two-letter ISO 639-1 code (en, es, or ht)." } },
+                    propertyOrdering: ["language"]
+                }
+            },
+            systemInstruction: { parts: [{ text: "You are a language detection expert. Output only the requested JSON object." }] },
+        };
+
+        const result = await exponentialBackoffFetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }, 0); 
+
+        const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parsedJson = JSON.parse(jsonText);
+        const detectedLang = parsedJson.language.toLowerCase();
+        
+        if (targetLanguages.includes(detectedLang) && detectedLang !== lang) {
+            setLang(detectedLang);
+            console.log(`Language switched to: ${detectedLang}`);
+        }
+    } catch (e) {
+        console.warn("Language detection failed, proceeding with current language.", e);
+    }
+}
+
+/* ================== ADVANCED LLM TOOLS ================== */
+
+// Tool 1: Job Description Simplifier
+async function simplifyJobDescription(jargon, jobType) {
+    const prompt = `Act as an Employment Coach. Simplify the following complex job jargon or job description for someone with low literacy. Keep the language direct, use simple words, and summarize the key duties using bullet points: "${jargon}" for a job titled "${jobType}".`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Job Jargon Simplification:</strong><p>${response}</p>`;
+}
+
+// Tool 2: Resume Keyword Checker
+async function checkResumeKeywords(resumeText, jobType) {
+    const prompt = `Act as a Resume Analyst. Analyze the following resume skills section and suggest 3-5 keywords or phrases specific to a "${jobType}" job that the user should add or highlight. Resume Text: "${resumeText}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Resume Keyword Analysis for ${jobType}:</strong><p>${response}</p>`;
+}
+
+// Tool 3: Interview Prep Coach
+async function generateInterviewQuestions(jobDesc) {
+    const prompt = `Act as an Interview Coach. Based ONLY on the job description below, generate 3 clear, simple interview questions (2 behavioral, 1 technical) that a candidate with low literacy can easily understand and prepare for. Present them as a numbered list. Job Description: "${jobDesc}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Interview Questions:</strong><p>${response}</p>`;
+}
+
+// Tool 4: Cover Letter Drafter
+async function draftCoverLetter(jobTitle) {
+    const prompt = `Act as a professional writer. Draft a concise, 3-paragraph cover letter structure for a client applying for a "${jobTitle}" position. Use simple, direct language. The client will copy and fill in their name and details later.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Cover Letter Draft for ${jobTitle}:</strong><p>${response}</p>`;
+}
+
+// Tool 5: Document Explainer
+async function explainDocument(docText) {
+    const prompt = `Act as an Explainer. Analyze the following document text and provide a simple, 2-sentence summary of the document's purpose, and list the 3 most important actions the user must take. Document Text: "${docText}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Document Explanation:</strong><p>${response}</p>`;
+}
+
+// Tool 6: Follow-up Email Drafter
+async function draftFollowUpEmail(context) {
+    const prompt = `Act as a Communication Coach. Draft a short, professional thank-you email template based on the following context: "${context}". Use clear language and end with a call to action.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Follow-up Email Draft:</strong><p>${response}</p>`;
+}
+
+// Tool 7: Negotiation Planner
+async function planNegotiation(jobTitle, payRate) {
+    const prompt = `Act as a Financial Negotiator. Based on a job title of "${jobTitle}" and pay rate of "${payRate}", provide 3 simple, bulleted talking points for a client to use when discussing salary or asking for better benefits.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Negotiation Talking Points:</strong><p>${response}</p>`;
+}
+
+// Tool 8: Financial Goal Planner
+async function planFinancialGoals(jobPay) {
+    const prompt = `Act as a Financial Coach. Based on the income of "${jobPay}", create a simplified 4-category monthly budget framework (Housing, Food, Transport, Other). Then, list 3 clear, simple financial goals the client can achieve in 6 months.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Financial Plan:</strong><p>${response}</p>`;
+}
+
+// Tool 9: Local Resource Finder
+async function findLocalResources(query) {
+    const prompt = `Act as a Local Guide. Find and list 3 organizations in the Trenton/Mercer County area that provide assistance for the following need: "${query}". Include the organization name and one contact detail (phone or address) for each. Use Google Search grounding to find local results.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Local Resources for ${query}:</strong><p>${response}</p>`;
+}
+
+// Tool 10: Job Search Strategy Planner
+async function planJobSearchStrategy(tasks) {
+    const prompt = `Act as a Career Planner. Based on the following list of tasks, create a simple, prioritized 5-day job search strategy (Day 1, Day 2, etc.) for a client, ensuring no day is too overwhelming. Tasks: "${tasks}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Your 5-Day Action Plan:</strong><p>${response}</p>`;
+}
+
+// Tool 11: Emotional Support Check-In
+async function checkWorkLifeBalance(stressLevel) {
+    const prompt = `Act as a compassionate Wellness Coach. The user says: "${stressLevel}". Validate their feelings, then provide 3 simple, non-clinical, actionable stress-coping steps they can take today. Gently encourage them to seek human help if needed.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Wellness Check:</strong><p>${response}</p>`;
+}
+
+// Tool 12: Scam and Fraud Checker
+async function checkForScam(suspiciousText) {
+    const prompt = `Act as a Fraud Analyst. Analyze the text below for common job scam red flags (upfront fees, urgency, generic contact). Provide a clear verdict (Safe, Warning, High Risk) and a bulleted list of 3 specific reasons for the verdict. Text: "${suspiciousText}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Scam Check Result:</strong><p>${response}</p>`;
+}
+
+// Tool 13: Digital Form Assistant
+async function assistWithFormQuestion(formQuestion) {
+    const prompt = `Act as a Digital Form Coach. Analyze this application question: "${formQuestion}". Provide a simple, plain-language explanation of what the question is asking for, and suggest a simple template for the answer.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Form Question Assistance:</strong><p>${response}</p>`;
+}
+
+// Tool 14: Career Path Finder
+async function findCareerPath(interests) {
+    const prompt = `Act as a Vocational Counselor. Based on the user's interests: "${interests}", suggest 2 realistic, entry-level career paths in the Trenton area. For each path, list the single most important next action the user should take.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Suggested Career Paths:</strong><p>${response}</p>`;
+}
+
+// Tool 15: Search Task Prioritizer
+async function prioritizeTasks(dailyTasks) {
+    const prompt = `Act as a Productivity Expert. Take the user's list of tasks: "${dailyTasks}". Prioritize and simplify it into a bulleted list of the top 3 most important and achievable tasks for today only. Add a brief, motivational statement.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Your Priority Tasks for Today:</strong><p>${response}</p>`;
+}
+
+// Tool 16: Workplace Rights Explainer
+async function explainWorkplaceRight(rightsTerm) {
+    const prompt = `Act as a Rights Explainer. Provide a simple, short explanation of the following term: "${rightsTerm}". Explain what it is, and list 2 ways it benefits the worker.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Explanation of ${rightsTerm}:</strong><p>${response}</p>`;
+}
+
+// Tool 17: Food Service Skill Translator
+async function translateFoodServiceSkill(kitchenTask) {
+    const prompt = `Act as a Resume Expert. Translate the following informal food service task: "${kitchenTask}" into one high-impact, professional resume bullet point suitable for a server or kitchen assistant.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Professional Resume Bullet:</strong><p>${response}</p>`;
+}
+
+// Tool 18: Basic Digital Skill Coach
+async function coachDigitalSkill(digitalTask) {
+    const prompt = `Act as a Digital Literacy Coach. Provide simple, numbered, step-by-step instructions (no more than 5 steps) on how to perform the following task: "${digitalTask}". Use extremely basic language.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>How to: ${digitalTask}</strong><p>${response}</p>`;
+}
+
+// Tool 19: Benefits Explainer
+async function explainBenefit(benefitsTerm) {
+    const prompt = `Act as a Benefits Counselor. Explain the following employment benefit: "${benefitsTerm}". Provide a simple, two-sentence explanation of what it is and one sentence about how it primarily helps the employee.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Explaining ${benefitsTerm}:</strong><p>${response}</p>`;
+}
+
+// Tool 20: Resume Feedback and Scoring
+async function scoreResume(resumeDraft) {
+    const prompt = `Act as a Career Analyst. Analyze the following resume draft. Give a score from 1 to 5 (1 being poor, 5 being excellent) for clarity, and provide 2-3 specific, bulleted suggestions on how to improve the resume for local jobs. Resume: "${resumeDraft}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Resume Feedback:</strong><p>${response}</p>`;
+}
+
+// Tool 21: Skill Gap Analyzer
+async function analyzeSkillGap(jobGoal, knownSkill) {
+    const prompt = `Act as an Education Advisor. The user wants a job as a "${jobGoal}" and knows the skill "${knownSkill}". Analyze local job requirements and suggest 2 additional, prioritized skills they should learn. Then provide one simple, immediate action step for the user to learn each suggested skill.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Skill Gap Analysis:</strong><p>${response}</p>`;
+}
+
+// Tool 22: App Troubleshooter
+async function troubleshootAppError(appName, errorMsg) {
+    const prompt = `Act as a Digital Support Expert. The user is struggling with the app "${appName}" and got the error: "${errorMsg}". Provide 3 simple, numbered troubleshooting steps a client with low literacy can try to resolve the issue.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Troubleshooting ${appName}:</strong><p>${response}</p>`;
+}
+
+// Tool 23: Public Transportation Route Planner
+async function planPublicRoute(startAddress, destination) {
+    const prompt = `Act as a Route Planner. Provide simple, numbered directions for taking public transit from "${startAddress}" to "${destination}". Use Google Search grounding to find the route and simplify the steps into 3-5 easy-to-read instructions.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Public Transit Route:</strong><p>${response}</p>`;
+}
+
+// Tool 24: Workplace Rights Explainer
+async function explainWorkplaceRight(rightsTerm) {
+    const prompt = `Act as a Rights Explainer. Provide a simple, short explanation of the following term: "${rightsTerm}". Explain what it is, and list 2 ways it benefits the worker.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Explanation of ${rightsTerm}:</strong><p>${response}</p>`;
+}
+
+async function getAiToolResponse(toolId, inputs) {
+    const toolFunctions = {
+        simplify: simplifyJobDescription,
+        resume_keywords: checkResumeKeywords,
+        interview_prep: generateInterviewQuestions,
+        cover_letter: draftCoverLetter,
+        doc_explainer: explainDocument,
+        follow_up_email: draftFollowUpEmail,
+        negotiation_planner: planNegotiation,
+        financial_goals: planFinancialGoals,
+        resource_finder: findLocalResources,
+        search_strategy: planJobSearchStrategy,
+        balance_check: checkWorkLifeBalance,
+        scam_checker: checkForScam,
+        form_assistant: assistWithFormQuestion,
+        career_path: findCareerPath,
+        task_prioritizer: prioritizeTasks,
+        workplace_rights: explainWorkplaceRight,
+        skill_translator: translateFoodServiceSkill,
+        digital_coach: coachDigitalSkill,
+        benefits_explainer: explainBenefit,
+        resume_score: scoreResume,
+        skill_gap: analyzeSkillGap,
+        app_troubleshooter: troubleshootAppError,
+        public_route: planPublicRoute,
+    };
+
+    const func = toolFunctions[toolId];
+    if (func) {
+        // Map the tool inputs correctly based on the function signature
+        const params = [];
+        switch (toolId) {
+            case 'simplify': params.push(inputs.jargon, inputs.job_type); break;
+            case 'resume_keywords': params.push(inputs.resume_text, inputs.job_type); break;
+            case 'interview_prep': params.push(inputs.job_desc); break;
+            case 'cover_letter': params.push(inputs.job_title); break;
+            case 'doc_explainer': params.push(inputs.doc_text); break;
+            case 'follow_up_email': params.push(inputs.context); break;
+            case 'negotiation_planner': params.push(inputs.job_title_neg, inputs.pay_rate); break;
+            case 'financial_goals': params.push(inputs.job_type_pay); break;
+            case 'resource_finder': params.push(inputs.query); break;
+            case 'search_strategy': params.push(inputs.tasks); break;
+            case 'balance_check': params.push(inputs.stress_level); break;
+            case 'scam_checker': params.push(inputs.suspicious_text); break;
+            case 'form_assistant': params.push(inputs.form_question); break;
+            case 'career_path': params.push(inputs.interests); break; // Only takes one input (interests)
+            case 'task_prioritizer': params.push(inputs.daily_tasks); break;
+            case 'workplace_rights': params.push(inputs.rights_term); break;
+            case 'skill_translator': params.push(inputs.kitchen_task); break;
+            case 'digital_coach': params.push(inputs.digital_task); break;
+            case 'benefits_explainer': params.push(inputs.benefits_term); break;
+            case 'resume_score': params.push(inputs.resume_draft); break;
+            case 'skill_gap': params.push(inputs.job_goal, inputs.known_skill); break;
+            case 'app_troubleshooter': params.push(inputs.app_name, inputs.error_msg); break;
+            case 'public_route': params.push(inputs.start_address, inputs.destination); break;
+        }
+        return func(...params);
+    }
+    throw new Error("Invalid tool ID.");
+}
+
+/* ================== INITIALIZATION & EVENTS ================== */
+function initTheme(){
+    let saved = null; try{saved = localStorage.getItem('task_theme');}catch(e){}
+    if(!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('data-theme','dark');
+    } else if(saved){
+        document.documentElement.setAttribute('data-theme', saved);
+    }
+}
+ce('themeToggle').addEventListener('click',()=>{
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const next = dark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try{ localStorage.setItem('task_theme', next); }catch(e){}
+});
+
+function initMic(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ return; }
+    // Add the microphone button to the header actions
+    const headerActions = document.querySelector('.header-actions');
+    headerActions.insertBefore(micBtn, headerActions.firstChild);
+
+    const rec = new SR(); 
+    const langMap = {en:'en-US', es:'es-ES', ht:'ht-HT'};
+    micBtn.addEventListener('click', () => { 
+        rec.lang = langMap[lang] || 'en-US'; 
+        rec.start(); 
+    });
+    rec.onresult = e => { box.value = e.results[0][0].transcript; send(); };
+}
+
+ce('resetBtn').addEventListener('click', () => { chat.innerHTML = ''; chatHistory = []; setErrorStatus(null); greet(true); });
+ce('send').addEventListener('click', send);
+box.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); send(); }});
+box.addEventListener('focus', () => setTimeout(() => safeScroll(), 300));
+ce('magicBtn').addEventListener('click', () => {
+    vibrate('light');
+    showToolsOverlay();
+});
+
+// --- Advanced Tools Overlay Logic ---
+let currentTool = CONFIG.ADVANCED_TOOLS[0].id;
+const toolsOverlay = ce('tools-overlay');
+const toolsTabs = ce('tools-tabs');
+const toolsBody = ce('tools-body');
+
+function renderToolsPanel() {
+    let tabsHtml = '';
+    let bodyHtml = '';
+
+    CONFIG.ADVANCED_TOOLS.forEach((tool, index) => {
+        const isActive = tool.id === currentTool;
+        tabsHtml += `<button class="${isActive ? 'active' : ''}" data-tool-id="${tool.id}" onclick="switchTool('${tool.id}')">${tool.title}</button>`;
+
+        let inputFieldsHtml = tool.inputs.map(input => `
+            <label>${input.label}:</label>
+            <${input.type === 'textarea' ? 'textarea' : 'input'} id="tool-input-${input.id}" placeholder="${input.label}" ${input.type === 'text' ? 'type="text"' : ''}></${input.type === 'textarea' ? 'textarea' : 'input'}>
+        `).join('');
+
+        bodyHtml += `
+            <div class="tool-content" id="tool-content-${tool.id}" style="display: ${isActive ? 'block' : 'none'};">
+                <h3>${tool.title}</h3>
+                ${inputFieldsHtml}
+                <button onclick="runTool('${tool.id}')">Generate Assistant Output</button>
+                <div class="tool-output" id="tool-output-${tool.id}">Output will appear here.</div>
+            </div>
+        `;
+    });
+
+    toolsTabs.innerHTML = tabsHtml;
+    toolsBody.innerHTML = bodyHtml;
+}
+
+window.switchTool = (toolId) => {
+    toolsTabs.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+    toolsTabs.querySelector(`button[data-tool-id="${toolId}"]`).classList.add('active');
+    
+    toolsBody.querySelectorAll('.tool-content').forEach(div => div.style.display = 'none');
+    toolsBody.querySelector(`#tool-content-${toolId}`).style.display = 'block';
+    currentTool = toolId;
 };
 
-async function detectAndSetLanguage(text) {
-    const lowerText = text.toLowerCase();
-    if (/\b(hola|gracias|cita|trabajo|ayuda)\b/.test(lowerText)) { lang = 'es'; }
-    else if (/\b(bonjou|mwen|ede|kòman|travay)\b/.test(lowerText)) { lang = 'ht'; }
-    else { lang = 'en'; }
+window.runTool = async (toolId) => {
+    const tool = CONFIG.ADVANCED_TOOLS.find(t => t.id === toolId);
+    if (!tool) return;
+
+    const outputElement = ce(`tool-output-${toolId}`);
+    const inputValues = {};
+    let allInputsValid = true;
+
+    tool.inputs.forEach(input => {
+        const inputElement = ce(`tool-input-${input.id}`);
+        inputValues[input.id] = inputElement.value.trim();
+        if (inputValues[input.id] === '') {
+            inputElement.style.border = '2px solid var(--error)';
+            allInputsValid = false;
+        } else {
+            inputElement.style.border = '1px solid var(--border)';
+        }
+    });
+
+    if (!allInputsValid) {
+        outputElement.innerHTML = `<strong style="color: var(--error);">Please fill out all required fields.</strong>`;
+        return;
+    }
+
+    outputElement.innerHTML = 'Analyzing... <div class="typing" style="display: inline-flex;"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+
+    try {
+        const result = await getAiToolResponse(toolId, inputValues);
+        outputElement.innerHTML = `<strong>Assistant Result:</strong><p>${result}</p>`;
+    } catch (e) {
+        outputElement.innerHTML = `<strong style="color: var(--error);">Error generating response. Please try again.</strong>`;
+        console.error(`Tool ${toolId} failed:`, e);
+    }
+};
+
+window.closeToolsOverlay = () => {
+    toolsOverlay.style.display = 'none';
+};
+
+function showToolsOverlay() {
+    renderToolsPanel();
+    toolsOverlay.style.display = 'flex';
+};
+
+
+function focusInput() {
+    box.focus();
 }
 
-function greet() { setTimeout(() => { addBotBubble(UI_STRINGS[lang].greeting); showSuggestionButtons(UI_STRINGS[lang].suggestions); }, CONFIG.INITIAL_GREEETING_DELAY || 500); }
+function greet(fromReset = false) {
+    if (fromReset) {
+        let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){}
+        setLang(saved || 'en');
+    }
+    const welcomeMessage = UI[lang].welcomeSession;
+    const welcomeCard = `
+        <div class="card-base">
+            <h3 class="text-xl">${UI[lang].welcome}</h3>
+            ${welcomeMessage}
+        </div>
+    `;
+    addB(welcomeCard);
+    showQuickStartPrompts();
+}
 
-// ================== INITIALIZATION ================== //
-document.addEventListener('DOMContentLoaded', () => {
-    sendBtn.addEventListener('click', send);
-    resetBtn.addEventListener('click', resetConversation);
-    magicBtn.addEventListener('click', () => { if(!isLoading && !document.querySelector('.suggestions-container')) { showSuggestionButtons(UI_STRINGS[lang].suggestions); } });
-    userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-    userInput.addEventListener('input', adjustTextareaHeight);
-    greet(); adjustTextareaHeight();
+function initApp() {
+    initTheme();
+    initMic();
+    // Load DOMPurify explicitly
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js';
+    script.onload = () => {
+        let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){} 
+        setLang(saved || 'en');
+        greet();
+        setTimeout(focusInput, 500); 
+    };
+    document.head.appendChild(script);
+}
+
+// --- Splash Screen Control ---
+document.getElementById('start-chat-btn').addEventListener('click', () => {
+    const splash = document.getElementById('splash-screen');
+    const mainAppContainer = document.getElementById('app-container');
+    splash.style.opacity = '0';
+    setTimeout(() => {
+        splash.style.display = 'none';
+        mainAppContainer.style.display = 'flex';
+        initApp(); // Initialize chat after splash screen disappears
+    }, 500);
 });
+
+// If the splash screen is not present (e.g., during development), initialize directly
+if (!document.getElementById('splash-screen')) {
+    document.addEventListener('DOMContentLoaded', initApp);
+}
 </script>
 </body>
 </html>
+
+/* ================== SOUND & HAPTICS ================== */
+let synth;
+try {
+  synth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "marimba" }, 
+    envelope: { attack: 0.01, decay: 0.6, sustain: 0.1, release: 0.8 }, 
+  }).toDestination();
+} catch (e) { console.warn("Tone.js failed to initialize."); synth = null; }
+
+function playSound(type) {
+  if (synth && Tone.context.state !== 'running') { Tone.start(); }
+  if (synth) {
+    try { 
+      if (type === 'send') synth.triggerAttackRelease("G4", "8n", Tone.now());
+      if (type === 'receive') synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", Tone.now()); 
+    } catch(e) {}
+  }
+}
+function vibrate(style = 'light') {
+  if (window.navigator?.vibrate) {
+    try { 
+      if (style === 'light') navigator.vibrate(10);
+      if (style === 'medium') navigator.vibrate([30, 50, 30]);
+    } catch(e) {}
+  }
+}
+
+/* ================== UTILITY FUNCTIONS ================== */
+
+const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
+function safeScroll() { if (isNearBottom()) requestAnimationFrame(() => chat.scrollTop = chat.scrollHeight ); }
+
+/** Toggles loading/interaction state for the input box and send button. */
+function setLoadingState(isLoading) {
+    box.disabled = isLoading;
+    sendBtn.disabled = isLoading;
+    ce('magicBtn').disabled = isLoading;
+    ce('resetBtn').disabled = isLoading;
+    // Show checkmark briefly on successful send
+    if (isLoading) {
+        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" class="send-icon"><path d="M10.75 16.75l-4.5-4.5 1.06-1.06 3.44 3.44 6.94-6.94 1.06 1.06-8 8z" /></svg>`;
+    } else {
+        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" class="send-icon"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>`;
+    }
+}
+
+/** Updates the status bar with an optional error message and contact info. */
+function setErrorStatus(message) {
+    if (message) {
+        // Formatted contact info using the configured numbers
+        const contactInfo = `
+            <div style="margin-top: 8px;">
+                <p style="margin: 0; padding-bottom: 4px;">
+                    **Need immediate help?** Call one of our staff directly:
+                </p>
+                <ul style="list-style-type: none; padding: 0; margin: 0;">
+                    <li style="display:inline-block; margin-right: 12px;"><a href="tel:${CONFIG.DIANI_NUMBER}">📞 Diani: ${CONFIG.DIANI_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}</a></li>
+                    <li style="display:inline-block;"><a href="tel:${CONFIG.SEAN_NUMBER}">📞 Sean: ${CONFIG.SEAN_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}</a></li>
+                </ul>
+            </div>
+        `;
+        // Use softer error messaging
+        statusDiv.innerHTML = `
+            <span style="font-weight: 700;">
+                🚨 We're having trouble connecting to our resources right now.
+            </span> 
+            ${contactInfo}
+        `;
+        statusDiv.classList.add('error-status');
+    } else {
+        statusDiv.innerHTML = '⚠️ I can make mistakes — please double-check important info.';
+        statusDiv.classList.remove('error-status');
+    }
+}
+
+function setLang(l, persist = true) { 
+    lang = (['en', 'es', 'ht'].includes(l) ? l : 'en'); 
+    if (persist) { try { localStorage.setItem('task_lang', lang); } catch(e) {} } 
+}
+
+/** Function to handle Quick Query button clicks */
+function sendQuickQuery(event) {
+    vibrate('light');
+    const query = event.currentTarget.getAttribute('data-query'); 
+    if (!query) return;
+
+    event.currentTarget.classList.add('clicked');
+    setTimeout(() => { event.currentTarget.classList.remove('clicked'); }, 400);
+
+    box.value = query;
+    send(); 
+}
+
+window.callPhone = (number) => { window.location.href = `tel:${number}`; vibrate('light'); };
+window.textPhone = (number) => { window.location.href = `sms:${number}`; vibrate('light'); };
+
+// --- Error Reporting Function ---
+async function sendErrorReport(userPrompt, errorMessage) {
+    const FORM_URL = CONFIG.MS_FORM_URL; 
+    const USER_PROMPT_FIELD = CONFIG.USER_PROMPT_FIELD; 
+    const ERROR_DETAILS_FIELD = CONFIG.ERROR_DETAILS_FIELD; 
+
+    if (FORM_URL.includes('YOUR_MICROSOFT_FORM_SUBMISSION_URL_HERE')) {
+        console.warn("Error Reporting Disabled: Please configure Microsoft Form URL/IDs.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append(USER_PROMPT_FIELD, userPrompt);
+    formData.append(ERROR_DETAILS_FIELD, errorMessage + " | Time: " + new Date().toISOString());
+
+    try {
+        await fetch(FORM_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors' // Use no-cors for silent submissions to external forms
+        });
+        console.log("Error report sent successfully (via Microsoft Form).");
+    } catch (error) {
+        console.error("Failed to send silent error report:", error);
+    }
+}
+
+/* ================== RENDER FUNCTIONS ================== */
+function addU(t){ 
+    const e = document.createElement('div'); 
+    e.className = 'bubble-wrapper user-bubble-wrapper'; 
+    e.innerHTML = `<div class="bubble user">${t}</div>`; 
+    chat.appendChild(e); 
+    safeScroll(); 
+    playSound('send'); 
+    vibrate('light'); 
+}
+
+function addB(html){
+    const sanitizedHTML = DOMPurify.sanitize(html);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+    const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+    const bubble = `<div class="bubble bot">${sanitizedHTML}</div>`;
+    wrapper.innerHTML = avatar + bubble;
+    chat.appendChild(wrapper);
+    safeScroll();
+    playSound('receive');
+    vibrate('light');
+}
+
+function typing(on){
+    const id = 'typing';
+    if(on){
+        const wrapper = document.createElement('div');
+        wrapper.id = id;
+        wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+        const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
+        const bubble = `<div class="bubble bot"><div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
+        wrapper.innerHTML = avatar + bubble;
+        chat.appendChild(wrapper);
+    } else { ce(id)?.remove(); }
+    safeScroll();
+}
+
+/** Clears old prompts and adds new quick-start buttons below the welcome message. */
+function showQuickStartPrompts() {
+    const promptsHTML = UI[lang].prompts.map(p => 
+        `<button class="suggestion-btn" data-query="${p.query}">
+            ${p.query.includes("Jobs") ? '💼' : '🎓'} ${p.text}
+        </button>`
+    ).join('');
+
+    const promptsWrapper = document.createElement('div');
+    promptsWrapper.className = 'suggestions-container';
+    promptsWrapper.innerHTML = promptsHTML;
+    chat.appendChild(promptsWrapper);
+    
+    promptsWrapper.querySelectorAll('.suggestion-btn').forEach(btn => {
+        btn.addEventListener('click', sendQuickQuery);
+    });
+    safeScroll();
+}
+
+function renderGoogleMapsCard(address) {
+    const mapUrl = `${CONFIG.GOOGLE_MAPS_BASE}${encodeURIComponent(address)}`;
+    const html = `
+        <div class="card-base">
+            <h3>TASK Location & Map</h3>
+            <p><strong>${address}</strong></p>
+            <div class="controls">
+                <a href="${mapUrl}" target="_blank" rel="noopener" class="ctrl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Open Google Maps
+                </a>
+            </div>
+            <a href="tel:${CONFIG.APPOINTMENT_NUMBER}" class="call-btn mt-2 inline-flex items-center gap-2">📞 Call for Appointments</a>
+        </div>`;
+    addB(html);
+}
+
+/* ================== AI CORE (GEMINI) - WITH BACKOFF ================== */
+async function exponentialBackoffFetch(url, options, retries = 0) {
+    try {
+        const response = await fetch(url, options);
+        if (response.status === 429 || response.status >= 500) {
+            if (retries < CONFIG.MAX_RETRIES) {
+                const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                console.warn(`API retry ${retries + 1} after ${delay}ms: Status ${response.status}`);
+                return exponentialBackoffFetch(url, options, retries + 1);
+            }
+            throw new Error(`API error after ${MAX_RETRIES} attempts: ${response.statusText || response.status}`);
+        }
+        if (!response.ok) {
+            const errorText = await response.text();
+             throw new Error(`Non-retryable API error: ${response.status} ${response.statusText || errorText}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Fetch attempt failed:", error.message);
+        throw error;
+    }
+}
+
+const systemPrompt = (currentLang) => `
+    You are the Employment Assistant for the Trenton Area Soup Kitchen (TASK). 
+    Your persona is friendly, empathetic, and extremely helpful. Your primary goal is to provide clear, actionable, and safe information related to employment services.
+    
+    The user's current language is ${currentLang}. **You MUST respond in this language.**
+
+    ***MANDATORY RULES & ACTIONS***
+    1.  **Format for Clarity:** When presenting lists, multiple steps, or diverse information, **you MUST use Markdown bullet points (* ) or numbered lists.** AVOID large, blocky paragraphs.
+    2.  **Safety First:** If discussing jobs or applications, always reinforce the need for caution against scams and identity theft. Advise applying directly on the official employer website whenever possible.
+    3.  **Hyperlinking:** Automatically convert the following official information into markdown links in your response. DO NOT add "Call" or "Text" buttons; the front-end handles that separately.
+        * **Appointment Line**: ${CONFIG.APPOINTMENT_NUMBER} (Link to tel:${CONFIG.APPOINTMENT_NUMBER})
+        * **Diani's Number**: ${CONFIG.DIANI_NUMBER} (Link to tel:${CONFIG.DIANI_NUMBER})
+        * **Sean's Number**: ${CONFIG.SEAN_NUMBER} (Link to tel:${CONFIG.SEAN_NUMBER})
+        * **Appointments/Scheduling**: Link to ${CONFIG.TASK_WEBSITE} or mention the phone number.
+        * **Training Application**: Link to [Application](${CONFIG.TRAINING_APPLY_LINK})
+        * **TASK Website**: Link to [TASK Website](${CONFIG.TASK_WEBSITE})
+        * **SORA License**: Link to [Official NJ Site](${CONFIG.SORA_LINK})
+    4.  **Handle Jobs:** If the user asks for "jobs" or "openings," ask for the job type (warehouse, retail, food service, specific company) first. Once they specify a type, respond **ONLY** with the tag: [SEARCH_JOBS: job_type_or_company].
+    5.  **Handle Location:** If the user asks for "address" or "location," respond **ONLY** with the tag: [TASK_ADDRESS].
+    6.  **Be Empathetic:** If the user expresses frustration, respond with empathy before providing resources.
+
+    ***YOUR KNOWLEDGE BASE***
+    - **Appointments**: To make an appointment, call **${CONFIG.APPOINTMENT_NUMBER}**. We do NOT take walk-ins.
+    - **TASK Address**: **${CONFIG.TASK_ADDRESS}**
+    - **Sean (Training Contact)**: **${CONFIG.SEAN_NUMBER}**
+    - **Diani (Appointment Contact)**: **${CONFIG.DIANI_NUMBER}**
+`;
+
+async function getAiResponse(prompt) {
+    const currentContents = [...chatHistory, { role: "user", parts: [{ text: prompt }] }];
+    let finalResponseText = '';
+    
+    try {
+        const payload = {
+            contents: currentContents,
+            systemInstruction: { parts: [{ text: systemPrompt(lang) }] },
+            tools: [{ "google_search": {} }]
+        };
+
+        const result = await exponentialBackoffFetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        finalResponseText = result.candidates?.[0]?.content?.parts?.[0]?.text || UI[lang].errorSoft;
+        
+        chatHistory.push({ role: "model", parts: [{ text: finalResponseText }] });
+        setErrorStatus(null); 
+        return finalResponseText;
+
+    } catch (error) {
+        console.error("Gemini API call failed:", error);
+        
+        const hardErrorMsg = UI[lang].errorHard;
+        const diagnosticMsg = `Prompt: "${prompt}" | Error: ${error.message}`;
+        sendErrorReport(prompt, diagnosticMsg);
+        
+        finalResponseText = hardErrorMsg;
+        setErrorStatus(finalResponseText); 
+        return finalResponseText;
+
+    } finally {
+        // NOTE: typing(false) and setLoadingState(false) are handled in handle(t)
+    }
+}
+
+/* ================== FLOW CONTROL ================== */
+/** Main function to handle user input and trigger AI response */
+async function handle(t){
+    if(!t) return;
+
+    // 1. Instant User Feedback/Loading Signal
+    addU(t); 
+    setLoadingState(true);
+    typing(true); 
+
+    // 2. Auto-detect language 
+    await detectAndSetLanguage(t); 
+
+    // 3. Process main AI response
+    const aiResponse = await getAiResponse(t);
+
+    if (aiResponse.startsWith('[SEARCH_JOBS:')) {
+        const jobMatch = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/);
+        if (jobMatch && jobMatch[1]) {
+            await getJobs(jobMatch[1]);
+        } else {
+            addB(UI[lang].errorSoft);
+        }
+    } else if (aiResponse.startsWith('[TASK_ADDRESS]')) {
+        renderGoogleMapsCard(CONFIG.TASK_ADDRESS);
+        
+    } else {
+        // Apply hyperlinking and rendering
+        const formattedResponse = applyHyperlinks(aiResponse);
+        addB(formattedResponse);
+    }
+    
+    // 4. Reset UI after all rendering is complete
+    typing(false); 
+    setLoadingState(false);
+}
+
+function applyHyperlinks(text) {
+    let result = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+        if (url.startsWith('tel:')) { return `<a href="${url}" class="font-bold">${linkText}</a>`; }
+        return `<a href="${url}" target="_blank" rel="noopener">${linkText}</a>`;
+    });
+
+    // 2. Convert Markdown lists (needed for bullet point formatting)
+    result = result.replace(/\* (.*)/g, '<li>$1</li>');
+    if (result.includes('<li>')) {
+        result = `<ul>${result}</ul>`;
+    }
+
+    // 3. Add hyperlinking for non-markdown instances of phone numbers and address
+    // (A) Phone Numbers 
+    const phoneRegex = /(\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})/g;
+    result = result.replace(phoneRegex, (match) => `<a href="tel:${match.replace(/[^0-9]/g, '')}" class="font-bold">${match}</a>`);
+    
+    // (B) Address 
+    const addressRegex = new RegExp(CONFIG.TASK_ADDRESS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    result = result.replace(addressRegex, (match) => `<a href="${CONFIG.GOOGLE_MAPS_BASE}${encodeURIComponent(CONFIG.TASK_ADDRESS)}" target="_blank" rel="noopener">${match}</a>`);
+
+    // (C) Appointment/Training mentions (contextual links)
+    result = result.replace(/training\s+application/gi, (match) => `<a href="${CONFIG.TRAINING_APPLY_LINK}" target="_blank" rel="noopener">${match}</a>`);
+    result = result.replace(/appointments?|scheduling/gi, (match) => `<a href="tel:${CONFIG.APPOINTMENT_NUMBER}" class="font-bold">${match}</a>`);
+    result = result.replace(/SORA\s+License/gi, (match) => `<a href="${CONFIG.SORA_LINK}" target="_blank" rel="noopener">${match}</a>`);
+    
+    // 4. Add Call/Text buttons for staff phone numbers if mentioned
+    if (result.includes(CONFIG.DIANI_NUMBER) || result.includes(CONFIG.SEAN_NUMBER)) {
+        const staffButtons = `
+            <div class="contact-buttons">
+                <a href="tel:${CONFIG.DIANI_NUMBER}" class="call-btn">📞 Call Diani</a>
+                <a href="sms:${CONFIG.DIANI_NUMBER}" class="text-btn">💬 Text Diani</a>
+                <a href="tel:${CONFIG.SEAN_NUMBER}" class="call-btn">📞 Call Sean</a>
+                <a href="sms:${CONFIG.SEAN_NUMBER}" class="text-btn">💬 Text Sean</a>
+            </div>
+        `;
+        result = result.replace(/<\/ul>$/, '') + staffButtons + (result.endsWith('</ul>') ? '</ul>' : '');
+    }
+
+    return result;
+}
+
+async function getJobs(query) {
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&ibp=htl;jobs`;
+    
+    let jobsHtml = `<p>Searching for the latest <strong>${query}</strong> jobs in Mercer County... Click the button below for the most up-to-date listings.</p>`;
+    
+    jobsHtml += `<div class="card-base job-card">
+        <h3>Live Job Search Results</h3>
+        <p><strong>Mercer County, NJ</strong></p>
+        <div class="controls">
+            <a href="${searchUrl}" target="_blank" rel="noopener" class="ctrl">
+                ⚠️ View Live Openings Safely
+            </a>
+        </div>
+    </div>`;
+    addB(jobsHtml);
+}
+
+function send(){ 
+    const t = (box.value||'').trim(); 
+    if(!t) return; 
+    handle(t); 
+    box.value = ''; 
+    box.blur(); 
+    setTimeout(() => box.focus(), 100); 
+}
+/* ================== LANGUAGE DETECTION ================== */
+async function detectAndSetLanguage(prompt) {
+    const langDetectionPrompt = `Detect the language of the following user message and return the corresponding two-letter ISO 639-1 language code (en, es, or ht). Do not provide any other text. User message: "${prompt}"`;
+    const targetLanguages = ['en', 'es', 'ht'];
+
+    try {
+        const payload = {
+            contents: [{ parts: [{ text: langDetectionPrompt }] }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: { "language": { "type": "STRING", "description": "The two-letter ISO 639-1 code (en, es, or ht)." } },
+                    propertyOrdering: ["language"]
+                }
+            },
+            systemInstruction: { parts: [{ text: "You are a language detection expert. Output only the requested JSON object." }] },
+        };
+
+        const result = await exponentialBackoffFetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }, 0); 
+
+        const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parsedJson = JSON.parse(jsonText);
+        const detectedLang = parsedJson.language.toLowerCase();
+        
+        if (targetLanguages.includes(detectedLang) && detectedLang !== lang) {
+            setLang(detectedLang);
+            console.log(`Language switched to: ${detectedLang}`);
+        }
+    } catch (e) {
+        console.warn("Language detection failed, proceeding with current language.", e);
+    }
+}
+
+/* ================== ADVANCED LLM TOOLS ================== */
+
+// Tool 1: Job Description Simplifier
+async function simplifyJobDescription(jargon, jobType) {
+    const prompt = `Act as an Employment Coach. Simplify the following complex job jargon or job description for someone with low literacy. Keep the language direct, use simple words, and summarize the key duties using bullet points: "${jargon}" for a job titled "${jobType}".`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Job Jargon Simplification:</strong><p>${response}</p>`;
+}
+
+// Tool 2: Resume Keyword Checker
+async function checkResumeKeywords(resumeText, jobType) {
+    const prompt = `Act as a Resume Analyst. Analyze the following resume skills section and suggest 3-5 keywords or phrases specific to a "${jobType}" job that the user should add or highlight. Resume Text: "${resumeText}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Resume Keyword Analysis for ${jobType}:</strong><p>${response}</p>`;
+}
+
+// Tool 3: Interview Prep Coach
+async function generateInterviewQuestions(jobDesc) {
+    const prompt = `Act as an Interview Coach. Based ONLY on the job description below, generate 3 clear, simple interview questions (2 behavioral, 1 technical) that a candidate with low literacy can easily understand and prepare for. Present them as a numbered list. Job Description: "${jobDesc}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Interview Questions:</strong><p>${response}</p>`;
+}
+
+// Tool 4: Cover Letter Drafter
+async function draftCoverLetter(jobTitle) {
+    const prompt = `Act as a professional writer. Draft a concise, 3-paragraph cover letter structure for a client applying for a "${jobTitle}" position. Use simple, direct language. The client will copy and fill in their name and details later.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Cover Letter Draft for ${jobTitle}:</strong><p>${response}</p>`;
+}
+
+// Tool 5: Document Explainer
+async function explainDocument(docText) {
+    const prompt = `Act as an Explainer. Analyze the following document text and provide a simple, 2-sentence summary of the document's purpose, and list the 3 most important actions the user must take. Document Text: "${docText}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Document Explanation:</strong><p>${response}</p>`;
+}
+
+// Tool 6: Follow-up Email Drafter
+async function draftFollowUpEmail(context) {
+    const prompt = `Act as a Communication Coach. Draft a short, professional thank-you email template based on the following context: "${context}". Use clear language and end with a call to action.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Follow-up Email Draft:</strong><p>${response}</p>`;
+}
+
+// Tool 7: Negotiation Planner
+async function planNegotiation(jobTitle, payRate) {
+    const prompt = `Act as a Financial Negotiator. Based on a job title of "${jobTitle}" and pay rate of "${payRate}", provide 3 simple, bulleted talking points for a client to use when discussing salary or asking for better benefits.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Negotiation Talking Points:</strong><p>${response}</p>`;
+}
+
+// Tool 8: Financial Goal Planner
+async function planFinancialGoals(jobPay) {
+    const prompt = `Act as a Financial Coach. Based on the income of "${jobPay}", create a simplified 4-category monthly budget framework (Housing, Food, Transport, Other). Then, list 3 clear, simple financial goals the client can achieve in 6 months.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Financial Plan:</strong><p>${response}</p>`;
+}
+
+// Tool 9: Local Resource Finder
+async function findLocalResources(query) {
+    const prompt = `Act as a Local Guide. Find and list 3 organizations in the Trenton/Mercer County area that provide assistance for the following need: "${query}". Include the organization name and one contact detail (phone or address) for each. Use Google Search grounding to find local results.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Local Resources for ${query}:</strong><p>${response}</p>`;
+}
+
+// Tool 10: Job Search Strategy Planner
+async function planJobSearchStrategy(tasks) {
+    const prompt = `Act as a Career Planner. Based on the following list of tasks, create a simple, prioritized 5-day job search strategy (Day 1, Day 2, etc.) for a client, ensuring no day is too overwhelming. Tasks: "${tasks}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Your 5-Day Action Plan:</strong><p>${response}</p>`;
+}
+
+// Tool 11: Emotional Support Check-In
+async function checkWorkLifeBalance(stressLevel) {
+    const prompt = `Act as a compassionate Wellness Coach. The user says: "${stressLevel}". Validate their feelings, then provide 3 simple, non-clinical, actionable stress-coping steps they can take today. Gently encourage them to seek human help if needed.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Wellness Check:</strong><p>${response}</p>`;
+}
+
+// Tool 12: Scam and Fraud Checker
+async function checkForScam(suspiciousText) {
+    const prompt = `Act as a Fraud Analyst. Analyze the text below for common job scam red flags (upfront fees, urgency, generic contact). Provide a clear verdict (Safe, Warning, High Risk) and a bulleted list of 3 specific reasons for the verdict. Text: "${suspiciousText}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Scam Check Result:</strong><p>${response}</p>`;
+}
+
+// Tool 13: Digital Form Assistant
+async function assistWithFormQuestion(formQuestion) {
+    const prompt = `Act as a Digital Form Coach. Analyze this application question: "${formQuestion}". Provide a simple, plain-language explanation of what the question is asking for, and suggest a simple template for the answer.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Form Question Assistance:</strong><p>${response}</p>`;
+}
+
+// Tool 14: Career Path Finder
+async function findCareerPath(interests) {
+    const prompt = `Act as a Vocational Counselor. Based on the user's interests: "${interests}", suggest 2 realistic, entry-level career paths in the Trenton area. For each path, list the single most important next action the user should take.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Suggested Career Paths:</strong><p>${response}</p>`;
+}
+
+// Tool 15: Search Task Prioritizer
+async function prioritizeTasks(dailyTasks) {
+    const prompt = `Act as a Productivity Expert. Take the user's list of tasks: "${dailyTasks}". Prioritize and simplify it into a bulleted list of the top 3 most important and achievable tasks for today only. Add a brief, motivational statement.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Your Priority Tasks for Today:</strong><p>${response}</p>`;
+}
+
+// Tool 16: Workplace Rights Explainer
+async function explainWorkplaceRight(rightsTerm) {
+    const prompt = `Act as a Rights Explainer. Provide a simple, short explanation of the following term: "${rightsTerm}". Explain what it is, and list 2 ways it benefits the worker.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Explanation of ${rightsTerm}:</strong><p>${response}</p>`;
+}
+
+// Tool 17: Food Service Skill Translator
+async function translateFoodServiceSkill(kitchenTask) {
+    const prompt = `Act as a Resume Expert. Translate the following informal food service task: "${kitchenTask}" into one high-impact, professional resume bullet point suitable for a server or kitchen assistant.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Professional Resume Bullet:</strong><p>${response}</p>`;
+}
+
+// Tool 18: Basic Digital Skill Coach
+async function coachDigitalSkill(digitalTask) {
+    const prompt = `Act as a Digital Literacy Coach. Provide simple, numbered, step-by-step instructions (no more than 5 steps) on how to perform the following task: "${digitalTask}". Use extremely basic language.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>How to: ${digitalTask}</strong><p>${response}</p>`;
+}
+
+// Tool 19: Benefits Explainer
+async function explainBenefit(benefitsTerm) {
+    const prompt = `Act as a Benefits Counselor. Explain the following employment benefit: "${benefitsTerm}". Provide a simple, two-sentence explanation of what it is and one sentence about how it primarily helps the employee.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Explaining ${benefitsTerm}:</strong><p>${response}</p>`;
+}
+
+// Tool 20: Resume Feedback and Scoring
+async function scoreResume(resumeDraft) {
+    const prompt = `Act as a Career Analyst. Analyze the following resume draft. Give a score from 1 to 5 (1 being poor, 5 being excellent) for clarity, and provide 2-3 specific, bulleted suggestions on how to improve the resume for local jobs. Resume: "${resumeDraft}"`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Resume Feedback:</strong><p>${response}</p>`;
+}
+
+// Tool 21: Skill Gap Analyzer
+async function analyzeSkillGap(jobGoal, knownSkill) {
+    const prompt = `Act as an Education Advisor. The user wants a job as a "${jobGoal}" and knows the skill "${knownSkill}". Analyze local job requirements and suggest 2 additional, prioritized skills they should learn. Then provide one simple, immediate action step for the user to learn each suggested skill.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Skill Gap Analysis:</strong><p>${response}</p>`;
+}
+
+// Tool 22: App Troubleshooter
+async function troubleshootAppError(appName, errorMsg) {
+    const prompt = `Act as a Digital Support Expert. The user is struggling with the app "${appName}" and got the error: "${errorMsg}". Provide 3 simple, numbered troubleshooting steps a client with low literacy can try to resolve the issue.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Troubleshooting ${appName}:</strong><p>${response}</p>`;
+}
+
+// Tool 23: Public Transportation Route Planner
+async function planPublicRoute(startAddress, destination) {
+    const prompt = `Act as a Route Planner. Provide simple, numbered directions for taking public transit from "${startAddress}" to "${destination}". Use Google Search grounding to find the route and simplify the steps into 3-5 easy-to-read instructions.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Public Transit Route:</strong><p>${response}</p>`;
+}
+
+// Tool 24: Workplace Rights Explainer
+async function explainWorkplaceRight(rightsTerm) {
+    const prompt = `Act as a Rights Explainer. Provide a simple, short explanation of the following term: "${rightsTerm}". Explain what it is, and list 2 ways it benefits the worker.`;
+    const response = await getAiResponse(prompt);
+    return `<strong>Explanation of ${rightsTerm}:</strong><p>${response}</p>`;
+}
+
+async function getAiToolResponse(toolId, inputs) {
+    const toolFunctions = {
+        simplify: simplifyJobDescription,
+        resume_keywords: checkResumeKeywords,
+        interview_prep: generateInterviewQuestions,
+        cover_letter: draftCoverLetter,
+        doc_explainer: explainDocument,
+        follow_up_email: draftFollowUpEmail,
+        negotiation_planner: planNegotiation,
+        financial_goals: planFinancialGoals,
+        resource_finder: findLocalResources,
+        search_strategy: planJobSearchStrategy,
+        balance_check: checkWorkLifeBalance,
+        scam_checker: checkForScam,
+        form_assistant: assistWithFormQuestion,
+        career_path: findCareerPath,
+        task_prioritizer: prioritizeTasks,
+        workplace_rights: explainWorkplaceRight,
+        skill_translator: translateFoodServiceSkill,
+        digital_coach: coachDigitalSkill,
+        benefits_explainer: explainBenefit,
+        resume_score: scoreResume,
+        skill_gap: analyzeSkillGap,
+        app_troubleshooter: troubleshootAppError,
+        public_route: planPublicRoute,
+    };
+
+    const func = toolFunctions[toolId];
