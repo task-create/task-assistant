@@ -4,40 +4,64 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <title>Employment Assistant</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+    
     <meta name="theme-color" content="#FFFFFF">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.0/purify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    
     <style>
-        /* =================== BRAND GUIDELINES & COLORS =================== */
+        /* ======================================================================== */
+        /* */
+        /* SECTION 1: BRAND GUIDELINES & COLORS                   */
+        /* */
+        /* ======================================================================== */
+
+        /* This root block defines all the color and style variables for the entire  */
+        /* application. It allows for easy theme changes and brand consistency.      */
+        /* Default theme is DARK MODE.                                               */
+        
         :root {
+            /* Sizing and Radius */
             --radius: 20px;
+
+            /* Dark Mode Colors */
             --bg: #0a0f1a;
             --surface: #111929;
             --surface-2: #0e1625;
             --text: #eaf2ff;
             --muted: #a7bad5;
-            --brand: #FF911F; /* TASK Logo Orange (New) */
-            --accent: #145078; /* TASK Logo Blue (New) */
+            --brand: #FF911F;      /* TASK Logo Orange */
+            --accent: #145078;     /* TASK Logo Blue */
             --border: #344b6b;
             --link: #ff8a6b;
+            
+            /* Shadows */
             --shadow: 0 20px 40px rgba(0,0,0,.6);
             --shadow-soft: 0 8px 20px rgba(0,0,0,.45);
-            --header-bg: rgba(17, 25, 41, 0.7);
-            --header-border: #344b6b;
+            
+            /* Component-Specific Colors */
             --bubble-bot-bg: #1e293b;
             --bubble-bot-text: #eaf2ff;
             --bubble-user-bg: var(--brand);
             --bubble-user-text: #fff;
             --typing: #aab4c3;
-            --error: #bc2f32; /* Red for errors (Required Red) */
-            --success: #13a10e;
-            --base-font-size: 17px;
+            
+            /* State Colors */
+            --error: #ff3b30;
+            --success: #34c759;
         }
-        /* LIGHT MODE */
+        
+        /* ----------------------- LIGHT MODE ------------------------ */
+        /* When the data-theme attribute on the HTML tag is set to "light", */
+        /* these variables will override the default dark mode variables.   */
+
         [data-theme="light"] {
+            /* Light Mode Colors */
             --bg: #f4f7fa;
             --surface: #ffffff;
             --surface-2: #f7fbff;
@@ -45,204 +69,662 @@
             --muted: #5a6b82;
             --border: #e2e8f0;
             --link: var(--brand);
+
+            /* Light Mode Shadows */
             --shadow: 0 20px 40px rgba(30, 50, 80, .1);
             --shadow-soft: 0 8px 20px rgba(30, 50, 80, .08);
-            --header-bg: rgba(255, 255, 255, 0.7);
-            --header-border: #d9e2ec;
+            
+            /* Light Mode Component Colors */
             --bubble-bot-bg: #e9eef3;
             --bubble-bot-text: #111827;
-            --bubble-user-bg: var(--brand);
-            --bubble-user-text: #fff;
-            --typing: #aab4c3;
         }
-        /* =================== BASE STYLES =================== */
-        * { box-sizing: border-box; margin: 0; padding: 0 }
-        html, body { height: 100% }
+
+        /* ======================================================================== */
+        /* */
+        /* SECTION 2: BASE & LAYOUT STYLES                    */
+        /* */
+        /* ======================================================================== */
+        
+        /* Universal reset for all elements to ensure consistent styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Ensure the html and body take up the full height of the viewport */
+        html, body {
+            height: 100%;
+        }
+        
         body {
+            /* Typography */
             font-family: "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center;
-            font-size: clamp(16px, 1.7vw, 18px);
-            min-height: 100vh;
-        }
-        a { color: var(--link); text-decoration: none; font-weight: 600 }
-        a:hover { text-decoration: underline }
+            font-size: clamp(16px, 1.7vw, 18px); /* Responsive font size */
 
-        /* Main App Container */
+            /* Colors */
+            background: var(--bg);
+            color: var(--text);
+            
+            /* Layout */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Fallback for older browsers */
+            -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit browsers */
+        }
+        
+        /* Default link styling */
+        a {
+            color: var(--link);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Main application container that holds everything */
         .main-container {
-            width: 100%; max-width: 600px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-            overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; height: 100vh; position: relative;
+            width: 100%;
+            max-width: 600px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full height on mobile */
+            position: relative;
         }
+        
+        /* On larger screens (desktops), the container is not full height */
         @media (min-width: 600px) {
-            .main-container { height: 95vh; }
+            .main-container {
+                height: 95vh;
+            }
         }
 
-        /* Header */
-        .header {
-            position: sticky; top: 0; left: 0; right: 0; z-index: 100;
-            background: var(--header-bg);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--header-border);
-            padding: 10px 15px; text-align: center;
-            display: flex; align-items: center; justify-content: space-between;
-            flex-shrink: 0;
-        }
-        .header-title { font: 800 1.2em/1 "Nunito", sans-serif; color: var(--accent); }
-        .header-actions { display: flex; align-items: center; gap: 5px; }
-        .icon-btn {
-            width: 38px; height: 38px; border: none; border-radius: 50%; background: transparent;
-            color: var(--accent); cursor: pointer; transition: all .2s ease; font-size: 20px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .icon-btn:hover { color: var(--brand); background: rgba(0,0,0,0.05); }
-        .icon-btn:active { transform: scale(.95); }
-
-        /* Chat Area */
+        /* ======================================================================== */
+        /* */
+        /* SECTION 3: CHAT AREA, BUBBLES, & MESSAGES              */
+        /* */
+        /* ======================================================================== */
+        
+        /* The main chat window where messages appear */
         .chat {
-            flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px;
+            flex: 1; /* This makes the chat area take up all available vertical space */
+            overflow-y: auto; /* Allow vertical scrolling */
+            overflow-x: hidden; /* Hide horizontal scrolling */
+            padding: 20px;
             background: var(--surface-2);
         }
+        
+        /* A wrapper for each individual message (avatar + bubble) */
         .bubble-wrapper {
-            display: flex; align-items: flex-start; gap: 10px;
-            margin: 16px 0; max-width: 95%;
-            animation: pop-in .3s ease-out;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 16px 0;
+            max-width: 95%;
+            animation: pop-in .3s ease-out; /* Add a subtle appearance animation */
             padding: 0 5px;
         }
-        .bot-bubble-wrapper { margin-right: 18%; }
-        .user-bubble-wrapper { margin-left: auto; flex-direction: row-reverse; }
-
-        .avatar {
-            width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
-            color: white; font-family: "Nunito", sans-serif; font-weight: 700; font-size: 14px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
+        
+        /* Aligns bot messages to the left */
+        .bot-bubble-wrapper {
+            margin-right: 18%; /* Prevents bot bubbles from being too wide */
         }
+        
+        /* Aligns user messages to the right */
+        .user-bubble-wrapper {
+            margin-left: auto;
+            flex-direction: row-reverse; /* Reverses order for avatar on the right */
+        }
+
+        /* Styling for the bot's circular avatar */
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            font-family: "Nunito", sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Prevents avatar from shrinking if the message is long */
+        }
+        
+        /* Base styling for all message bubbles */
         .bubble {
-            padding: 14px 18px; border-radius: 20px; line-height: 1.6;
+            padding: 14px 18px;
+            border-radius: 20px;
+            line-height: 1.6;
             box-shadow: var(--shadow-soft);
             font-size: 0.95em;
         }
+        
+        /* Specific styling for bot bubbles */
         .bubble.bot {
-            background: var(--bubble-bot-bg); color: var(--bubble-bot-text);
+            background: var(--bubble-bot-bg);
+            color: var(--bubble-bot-text);
             border: 1px solid var(--border);
-            border-radius: 20px 20px 20px 6px;
+            border-radius: 20px 20px 20px 6px; /* "Tail" effect on bottom-left */
         }
+        
+        /* Specific styling for user bubbles */
         .bubble.user {
-            color: var(--bubble-user-text); background: var(--bubble-user-bg);
-            border-radius: 20px 20px 6px 20px;
+            color: var(--bubble-user-text);
+            background: var(--bubble-user-bg);
+            border-radius: 20px 20px 6px 20px; /* "Tail" effect on bottom-right */
         }
-        .bubble.bot ul, .bubble.bot ol { margin: 0.5em 0 0.5em 20px; list-style: disc; }
-        .bubble.bot li { margin-bottom: 0.25em; }
-        @keyframes pop-in { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        /* Styling for bulleted or numbered lists inside bot bubbles */
+        .bubble.bot ul, .bubble.bot ol {
+            margin: 0.5em 0 0.5em 20px;
+            list-style: disc;
+        }
+        
+        .bubble.bot li {
+            margin-bottom: 0.25em;
+        }
+        
+        /* Animation keyframes for the bubble pop-in effect */
+        @keyframes pop-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
-        /* Quick Start Buttons */
-        .suggestions-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; padding: 10px 0; }
-        .suggestion-btn {
-            border: 2px solid var(--brand); background: var(--brand); color: white;
-            border-radius: 999px; padding: 12px 18px; font-weight: 700; cursor: pointer;
-            transition: all .2s ease; font-size: 0.9em; box-shadow: var(--shadow-soft);
+        /* Styling for the quick suggestion buttons that appear on greeting */
+        .suggestions-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px 0;
         }
+        
+        .suggestion-btn {
+            border: 2px solid var(--brand);
+            background: var(--brand);
+            color: white;
+            border-radius: 999px; /* Pill shape */
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s ease;
+            font-size: 0.9em;
+            box-shadow: var(--shadow-soft);
+        }
+        
         .suggestion-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
             background: var(--accent);
             border-color: var(--accent);
         }
-        .suggestion-btn:active { transform: scale(.95) }
-        .suggestion-btn.clicked { background: var(--accent) !important; border-color: var(--accent) !important; transform: scale(0.98); }
+        
+        .suggestion-btn:active {
+            transform: scale(.95);
+        }
+        
+        /* A class added via JavaScript to show a button has been clicked */
+        .suggestion-btn.clicked {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+            transform: scale(0.98);
+        }
 
-        /* Loading and Status */
-        .typing { display: inline-flex; gap: 6px; align-items: flex-end }
-        .typing .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--typing); animation: bounce 1s infinite ease-in-out }
+        /* "Bot is typing" indicator styles */
+        .typing {
+            display: inline-flex;
+            gap: 6px;
+            align-items: flex-end;
+        }
+        
+        .typing .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--typing);
+            animation: bounce 1s infinite ease-in-out;
+        }
+        
+        /* Staggered animation delay for the three dots */
         .typing .dot:nth-child(2) { animation-delay: .12s }
         .typing .dot:nth-child(3) { animation-delay: .24s }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
 
-        /* Footer and Input */
-        .input-area { padding: 12px; background: var(--surface-2); border-top: 1px solid var(--border); z-index: 100; flex-shrink: 0;}
-        .row { display: flex; gap: 10px; align-items: center }
-        #box { flex: 1; padding: 14px 18px; border: 2px solid var(--border); border-radius: 999px; font-size: 1em; background: var(--surface); color: var(--text); caret-color: var(--accent); }
-        #box:disabled { background: var(--surface-2); cursor: not-allowed; }
-        .send { width: 50px; height: 50px; border-radius: 50%; background: var(--brand); color: white; box-shadow: var(--shadow-soft); transition: transform .1s ease, background .1s ease; border: none; display:flex; align-items:center; justify-content:center; cursor:pointer;}
-        .send:hover { background: var(--accent); }
-        .send:active { transform: scale(.95) }
-        .send:disabled { background: var(--muted); cursor: not-allowed; }
+        /* ======================================================================== */
+        /* */
+        /* SECTION 4: FOOTER, INPUT, & BUTTONS                */
+        /* */
+        /* ======================================================================== */
 
-        /* Status & Disclaimer */
-        .status { margin-top: 6px; text-align: center; font-size: 0.75em; color: var(--muted); }
-        .status.error-status { color: var(--error); font-weight: 600; }
-        .legal-disclaimer { background: var(--accent); color: white; padding: 6px 10px; font-size: 0.7em; text-align: center; line-height: 1.3; z-index: 101; flex-shrink: 0;}
+        /* Container for the text input and send button */
+        .input-area {
+            padding: 12px;
+            background: var(--surface-2);
+            border-top: 1px solid var(--border);
+            z-index: 100;
+            flex-shrink: 0; /* Prevents this area from shrinking */
+        }
+        
+        /* The row containing the text box and send button */
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        /* The main text input field */
+        #box {
+            flex: 1; /* Take up all available horizontal space */
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 999px; /* Pill shape */
+            font-size: 1em;
+            background: var(--surface);
+            color: var(--text);
+            caret-color: var(--accent); /* Color of the typing cursor */
+        }
+        
+        #box:disabled {
+            background: var(--surface-2);
+            cursor: not-allowed;
+        }
+        
+        /* The main send button */
+        .send {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--brand);
+            color: white;
+            box-shadow: var(--shadow-soft);
+            transition: transform .1s ease, background .1s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .send:hover {
+            background: var(--accent);
+        }
+        
+        .send:active {
+            transform: scale(.95);
+        }
+        
+        .send:disabled {
+            background: var(--muted);
+            cursor: not-allowed;
+        }
 
-        /* Contact & Card Styles */
-        .contact-buttons { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .contact-buttons a { padding: 8px 12px; border-radius: 999px; font-weight: 700; transition: all 0.15s ease; text-decoration: none; display: flex; align-items: center; gap: 5px; }
-        .contact-buttons .call-btn { background: var(--success); color: white; border: 1px solid var(--success); }
-        .contact-buttons .text-btn { background: var(--surface); color: var(--accent); border: 1px solid var(--accent); }
-        .contact-buttons a:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-decoration: none; }
-        .contact-buttons .text-btn:hover { background: var(--accent); color: white; }
-        .card-base { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-soft); margin-top: 10px; }
-        .card-base h3 { font-family: "Nunito", sans-serif; font-size: 1.1em; color: var(--accent); margin-bottom: 8px; }
+        /* The small status text below the input bar */
+        .status {
+            margin-top: 6px;
+            text-align: center;
+            font-size: 0.75em;
+            color: var(--muted);
+        }
+        
+        .status.error-status {
+            color: var(--error);
+            font-weight: 600;
+        }
+        
+        /* The legal disclaimer bar at the very bottom */
+        .legal-disclaimer {
+            background: var(--accent);
+            color: white;
+            padding: 6px 10px;
+            font-size: 0.7em;
+            text-align: center;
+            line-height: 1.3;
+            z-index: 101;
+            flex-shrink: 0;
+        }
 
-        /* =================== SPLASH SCREEN =================== */
+        /* ======================================================================== */
+        /* */
+        /* SECTION 5: DYNAMIC COMPONENTS (CARDS, CONTACT BUTTONS)   */
+        /* */
+        /* ======================================================================== */
+
+        /* Container for the "Call" and "Text" buttons */
+        .contact-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .contact-buttons a {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .contact-buttons .call-btn {
+            background: var(--success);
+            color: white;
+            border: 1px solid var(--success);
+        }
+        
+        .contact-buttons .text-btn {
+            background: var(--surface);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        
+        .contact-buttons a:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-decoration: none;
+        }
+        
+        .contact-buttons .text-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+        
+        /* Base styling for special content cards (like maps or job searches) */
+        .card-base {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-soft);
+            margin-top: 10px;
+        }
+        
+        .card-base h3 {
+            font-family: "Nunito", sans-serif;
+            font-size: 1.1em;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        /* ======================================================================== */
+        /* */
+        /* SECTION 6: SPLASH SCREEN & OVERLAYS                */
+        /* */
+        /* ======================================================================== */
+
         #splash-screen {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--accent); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; transition: opacity 0.5s ease, visibility 0.5s; font-family: "Nunito", sans-serif; text-align: center;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--accent);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: opacity 0.5s ease, visibility 0.5s;
+            font-family: "Nunito", sans-serif;
+            text-align: center;
         }
-        .splash-content { animation: fadeIn 1.5s ease forwards; opacity: 0; max-width: 80%; }
+        
+        .splash-content {
+            animation: fadeIn 1.5s ease forwards;
+            opacity: 0;
+            max-width: 80%;
+        }
+        
         .splash-logo {
-            width: 250px; margin: 0 auto 30px; background: white; padding: 10px; border-radius: 10px;
+            width: 250px;
+            margin: 0 auto 30px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
         }
-        .splash-logo img { width: 100%; height: auto; display: block; }
-        .splash-text h1 { font-size: clamp(1.8em, 5vw, 3em); margin-bottom: 10px; }
-        .splash-text p { font-size: clamp(1em, 3vw, 1.3em); margin-bottom: 40px; line-height: 1.4; }
+        
+        .splash-logo img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .splash-text h1 {
+            font-size: clamp(1.8em, 5vw, 3em);
+            margin-bottom: 10px;
+        }
+        
+        .splash-text p {
+            font-size: clamp(1em, 3vw, 1.3em);
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+        
         .splash-button {
-            background: var(--brand); color: white; border: 2px solid white; padding: 15px 30px;
-            border-radius: 999px; font-size: 1.2em; font-weight: 800; cursor: pointer;
+            background: var(--brand);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 30px;
+            border-radius: 999px;
+            font-size: 1.2em;
+            font-weight: 800;
+            cursor: pointer;
             transition: background 0.2s ease, transform 0.1s ease;
         }
-        .splash-button:hover { background: #e0801a; transform: scale(1.05); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .splash-button:hover {
+            background: #e0801a;
+            transform: scale(1.05);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+ /* ======================================================================== */
+        /* */
+        /* SECTION 7: ADVANCED TOOLS OVERLAY (MODAL)          */
+        /* */
+        /* ======================================================================== */
 
-        /* =================== ADVANCED TOOLS OVERLAY =================== */
+        /* The full-screen overlay that appears when the 'magic' button is clicked */
         .tools-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
-            z-index: 1000; display: none; align-items: center; justify-content: center;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            animation: fadeInOverlay 0.3s ease;
         }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* The main panel inside the overlay */
         .tools-panel {
-            background: var(--surface); width: 95%; max-width: 500px; max-height: 90vh;
-            border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            display: flex; flex-direction: column; overflow: hidden; color: var(--text);
+            background: var(--surface);
+            width: 95%;
+            max-width: 500px;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: var(--text);
+            animation: slideInPanel 0.4s ease-out;
         }
+
+        @keyframes slideInPanel {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        /* Header section of the tools panel */
         .tools-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 15px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
-        .tools-header h2 { font-size: 1.2em; color: var(--accent); font-family: "Nunito", sans-serif; }
-        .tools-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        
+        .tools-header h2 {
+            font-size: 1.2em;
+            color: var(--accent);
+            font-family: "Nunito", sans-serif;
+        }
+        
+        /* Tab bar for switching between different tools */
+        .tools-tabs {
+            display: flex;
+            overflow-x: auto; /* Allows horizontal scrolling on mobile */
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .tools-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
         .tools-tabs button {
-            padding: 10px 15px; white-space: nowrap; border: none; background: transparent;
-            color: var(--muted); font-weight: 600; cursor: pointer; transition: color 0.1s; font-size: 0.85em;
+            padding: 10px 15px;
+            white-space: nowrap; /* Prevents tab names from wrapping */
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.1s;
+            font-size: 0.85em;
+            border-bottom: 2px solid transparent; /* Placeholder for active state */
         }
-        .tools-tabs button.active { border-bottom: 2px solid var(--brand); color: var(--brand); }
-        .tools-body { padding: 15px; overflow-y: auto; flex-grow: 1; }
-        .tool-content h3 { font-size: 1.1em; color: var(--accent); margin-bottom: 10px; font-family: "Nunito", sans-serif; }
-        .tool-content label { font-size: 0.8em; font-weight: 600; color: var(--muted); margin-bottom: 4px; display: block; }
-        .tool-content textarea, .tool-content input[type="text"] {
-            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px;
-            margin-bottom: 10px; resize: vertical; font-size: 1em; background: var(--surface-2); color: var(--text);
+        
+        .tools-tabs button.active {
+            border-bottom: 2px solid var(--brand);
+            color: var(--brand);
         }
+        
+        /* The main body of the tools panel where content is displayed */
+        .tools-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        
+        /* Styling for the content of a single tool */
+        .tool-content {
+            display: none; /* All tool contents are hidden by default */
+        }
+
+        .tool-content h3 {
+            font-size: 1.1em;
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-family: "Nunito", sans-serif;
+        }
+        
+        .tool-content label {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .tool-content textarea,
+        .tool-content input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 15px;
+            resize: vertical;
+            font-size: 1em;
+            background: var(--surface-2);
+            color: var(--text);
+            font-family: "Open Sans", sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .tool-content textarea:focus,
+        .tool-content input[type="text"]:focus {
+            outline: none;
+            border-color: var(--brand);
+            box-shadow: 0 0 0 2px rgba(255, 145, 31, 0.2);
+        }
+        
         .tool-content button {
-            background: var(--brand); color: white; padding: 10px 15px; border: none;
-            border-radius: 999px; font-weight: 700; cursor: pointer; transition: background 0.2s; margin-bottom: 15px;
+            background: var(--brand);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-bottom: 15px;
         }
+
+        .tool-content button:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* The output area where the AI's response for a tool is displayed */
         .tool-output {
-            min-height: 150px; border: 1px dashed var(--muted); padding: 10px;
-            border-radius: 6px; background: var(--surface-2); white-space: pre-wrap;
-            text-align: left; font-size: 0.95em; line-height: 1.6;
+            min-height: 150px;
+            border: 1px dashed var(--muted);
+            padding: 15px;
+            border-radius: 6px;
+            background: var(--surface-2);
+            white-space: pre-wrap; /* Preserves line breaks from the AI */
+            text-align: left;
+            font-size: 0.95em;
+            line-height: 1.6;
         }
-        .tool-output strong { color: var(--accent); display: block; margin-bottom: 8px; font-family: "Nunito", sans-serif;}
+        
+        .tool-output strong {
+            color: var(--accent);
+            display: block;
+            margin-bottom: 8px;
+            font-family: "Nunito", sans-serif;
+        }
+
     </style>
 </head>
 <body>
@@ -261,16 +743,7 @@
 </div>
 
 <div class="main-container" id="app-container" style="display: none;">
-    <header class="header">
-        <button class="icon-btn" id="resetBtn" aria-label="Clear chat">↺</button>
-        <div class="header-title">Employment Assistant</div>
-        <div class="header-actions">
-            <button class="icon-btn" id="micBtn" aria-label="Use Microphone" style="display: none;">🎙️</button>
-            <button class="icon-btn" id="themeToggle" aria-label="Toggle Theme">🌗</button>
-            <button class="icon-btn" id="magicBtn" aria-label="Advanced Tools">✨</button>
-        </div>
-    </header>
-
+    
     <section class="chat" id="chat" role="log" aria-live="polite"></section>
     
     <div class="legal-disclaimer">
@@ -300,190 +773,1432 @@
         <div class="tools-body" id="tools-body"></div>
     </div>
 </div>
-<script>
+ <script>
 'use strict';
 
-/* ================== CONFIGURATION & STATE ================== */
+/* ================================================================================================================== */
+/* ================================================================================================================== */
+/* */
+/* JAVASCRIPT APPLICATION LOGIC                                                 */
+/* */
+/* ================================================================================================================== */
+/* ================================================================================================================== */
+
+
+/* ======================================================================== */
+/* */
+/* SECTION 1: CONFIGURATION & GLOBAL STATE                                  */
+/* */
+/* This is the most important section for customization. All API keys,      */
+/* contact numbers, resource links, and tool definitions are stored here    */
+/* in a single, centralized object for easy maintenance and updates.        */
+/* */
+/* ======================================================================== */
+
+/**
+ * The main configuration object for the entire application.
+ * All critical settings are stored here.
+ * @const {object}
+ */
 const CONFIG = {
-    API_KEY: "AIzaSyBGCzk-xHAi4uZITtxGbsw_2uhK0asMhO8", // API Key from previous version
+    /**
+     * @property {string} API_KEY - Your Google Gemini API Key.
+     * IMPORTANT: This key was provided by you and should be considered compromised.
+     * Replace it with a new key for production to keep your account secure.
+     */
+    API_KEY: "AIzaSyBGCzk-xHAi4uZITtxGbsw_2uhK0asMhO8",
+
+    /**
+     * @property {string} API_URL_BASE - The base endpoint for the Gemini API.
+     */
     API_URL_BASE: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=",
+
+    /**
+     * @property {string} APPOINTMENT_NUMBER - The main phone number for scheduling appointments.
+     */
     APPOINTMENT_NUMBER: '6093371624',
+
+    /**
+     * @property {string} DIANI_NUMBER - The direct phone number for Diani.
+     */
     DIANI_NUMBER: '6096976166',
+
+    /**
+     * @property {string} SEAN_NUMBER - The direct phone number for Sean.
+     */
     SEAN_NUMBER: '6096976215',
+
+    /**
+     * @property {string} TASK_ADDRESS - The physical address of the organization.
+     */
     TASK_ADDRESS: '72 1/2 Escher Street, Trenton, NJ 08609',
+
+    /**
+     * @property {string} TASK_WEBSITE - The official website URL.
+     */
     TASK_WEBSITE: 'https://www.trentonsoupkitchen.org',
+
+    /**
+     * @property {string} TRAINING_APPLY_LINK - The direct URL for the training application.
+     */
     TRAINING_APPLY_LINK: 'https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659',
+
+    /**
+     * @property {string} SORA_LINK - The official URL for SORA license information.
+     */
     SORA_LINK: 'https://www.njsp.org/private-detective/sora.shtml',
+
+    /**
+     * @property {string} GOOGLE_MAPS_BASE - The base URL for creating Google Maps links.
+     */
     GOOGLE_MAPS_BASE: 'https://www.google.com/maps/search/?api=1&query=',
+
+    /**
+     * @property {number} MAX_RETRIES - The number of times the app will retry a failed API call.
+     */
     MAX_RETRIES: 3,
+
+    /**
+     * @property {Array<object>} ADVANCED_TOOLS - An array defining the structure for all specialized tools.
+     * Each object contains an ID, a user-facing title, and the input fields required.
+     */
     ADVANCED_TOOLS: [
-        { id: 'simplify', title: 'Job Simplifier', inputs: [{ id: 'jargon', label: 'Paste Job Jargon/Text Here', type: 'textarea' }] },
-        { id: 'resume_keywords', title: 'Keyword Checker', inputs: [{ id: 'resume_text', label: 'Paste your resume text', type: 'textarea' }, { id: 'job_type', label: 'Target Job (e.g., Warehouse)', type: 'text' }] },
-        { id: 'interview_prep', title: 'Interview Coach', inputs: [{ id: 'job_desc', label: 'Paste Job Description', type: 'textarea' }] },
-        { id: 'cover_letter', title: 'Cover Letter Drafter', inputs: [{ id: 'job_title', label: 'Job Title You Are Applying For', type: 'text' }] },
-        { id: 'doc_explainer', title: 'Document Explainer', inputs: [{ id: 'doc_text', label: 'Paste document text (Pay Stub, etc.)', type: 'textarea' }] },
-        { id: 'follow_up_email', title: 'Follow-up Email', inputs: [{ id: 'context', label: 'Interview Context', type: 'textarea' }] },
-        { id: 'scam_checker', title: 'Scam Checker', inputs: [{ id: 'suspicious_text', label: 'Paste suspicious email/text here', type: 'textarea' }] },
-        { id: 'career_path', title: 'Career Path Finder', inputs: [{ id: 'interests', label: 'Interests/Skills (e.g., driving)', type: 'textarea' }] },
-        { id: 'skill_translator', title: 'Skill Translator', inputs: [{ id: 'kitchen_task', label: 'Describe a task you did', type: 'textarea' }] },
-        { id: 'digital_coach', title: 'Digital Skill Coach', inputs: [{ id: 'digital_task', label: 'e.g., attach file to email, join Zoom', type: 'text' }] },
-        { id: 'benefits_explainer', title: 'Benefits Explainer', inputs: [{ id: 'benefits_term', label: 'e.g., 401k, Deductible, HSA', type: 'text' }] },
-        { id: 'public_route', title: 'Transit Route Planner', inputs: [{ id: 'start_address', label: 'Starting Address', type: 'text' }, { id: 'destination', label: 'Destination Address', type: 'text' }] },
+        {
+            id: 'simplify',
+            title: 'Job Simplifier',
+            inputs: [
+                { id: 'jargon', label: 'Paste Job Jargon/Text Here', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'resume_keywords',
+            title: 'Keyword Checker',
+            inputs: [
+                { id: 'resume_text', label: 'Paste your resume text', type: 'textarea' },
+                { id: 'job_type', label: 'Target Job (e.g., Warehouse)', type: 'text' }
+            ]
+        },
+        {
+            id: 'interview_prep',
+            title: 'Interview Coach',
+            inputs: [
+                { id: 'job_desc', label: 'Paste Job Description', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'cover_letter',
+            title: 'Cover Letter Drafter',
+            inputs: [
+                { id: 'job_title', label: 'Job Title You Are Applying For', type: 'text' }
+            ]
+        },
+        {
+            id: 'doc_explainer',
+            title: 'Document Explainer',
+            inputs: [
+                { id: 'doc_text', label: 'Paste document text (Pay Stub, etc.)', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'follow_up_email',
+            title: 'Follow-up Email',
+            inputs: [
+                { id: 'context', label: 'Interview Context', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'scam_checker',
+            title: 'Scam Checker',
+            inputs: [
+                { id: 'suspicious_text', label: 'Paste suspicious email/text here', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'career_path',
+            title: 'Career Path Finder',
+            inputs: [
+                { id: 'interests', label: 'Interests/Skills (e.g., driving)', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'skill_translator',
+            title: 'Skill Translator',
+            inputs: [
+                { id: 'kitchen_task', label: 'Describe a task you did', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'digital_coach',
+            title: 'Digital Skill Coach',
+            inputs: [
+                { id: 'digital_task', label: 'e.g., attach file to email, join Zoom', type: 'text' }
+            ]
+        },
+        {
+            id: 'benefits_explainer',
+            title: 'Benefits Explainer',
+            inputs: [
+                { id: 'benefits_term', label: 'e.g., 401k, Deductible, HSA', type: 'text' }
+            ]
+        },
+        {
+            id: 'public_route',
+            title: 'Transit Route Planner',
+            inputs: [
+                { id: 'start_address', label: 'Starting Address', type: 'text' },
+                { id: 'destination', label: 'Destination Address', type: 'text' }
+            ]
+        },
+        {
+            id: 'negotiation_planner',
+            title: 'Negotiation Planner',
+            inputs: [
+                { id: 'job_title_neg', label: 'Job Title', type: 'text' },
+                { id: 'pay_rate', label: 'Expected Pay Rate (e.g., $18/hr)', type: 'text' }
+            ]
+        },
+        {
+            id: 'financial_goals',
+            title: 'Financial Goal Planner',
+            inputs: [
+                { id: 'job_type_pay', label: 'Job/Pay Rate (e.g., $17/hr warehouse job)', type: 'text' }
+            ]
+        },
+        {
+            id: 'resource_finder',
+            title: 'Local Resource Finder',
+            inputs: [
+                { id: 'query', label: 'Resource Needed (e.g., Food assistance)', type: 'text' }
+            ]
+        },
+        {
+            id: 'search_strategy',
+            title: 'Search Strategy Planner',
+            inputs: [
+                { id: 'tasks', label: 'Current To-Do List (e.g., Write resume)', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'balance_check',
+            title: 'Emotional Support Check-In',
+            inputs: [
+                { id: 'stress_level', label: 'Describe your stress level', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'form_assistant',
+            title: 'Digital Form Assistant',
+            inputs: [
+                { id: 'form_question', label: 'Paste Confusing Form Question', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'task_prioritizer',
+            title: 'Search Task Prioritizer',
+            inputs: [
+                { id: 'daily_tasks', label: 'Paste all tasks you need to do today', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'workplace_rights',
+            title: 'Workplace Rights Explainer',
+            inputs: [
+                { id: 'rights_term', label: 'Confusing Term (e.g., FMLA, PTO)', type: 'text' }
+            ]
+        },
+        {
+            id: 'resume_score',
+            title: 'Resume Feedback & Scoring',
+            inputs: [
+                { id: 'resume_draft', label: 'Paste your current resume draft', type: 'textarea' }
+            ]
+        },
+        {
+            id: 'skill_gap',
+            title: 'Skill Gap Analyzer',
+            inputs: [
+                { id: 'job_goal', label: 'Desired Job Title', type: 'text' },
+                { id: 'known_skill', label: 'A skill you already have', type: 'text' }
+            ]
+        },
+        {
+            id: 'app_troubleshooter',
+            title: 'App Troubleshooter',
+            inputs: [
+                { id: 'app_name', label: 'App Name (e.g., Indeed)', type: 'text' },
+                { id: 'error_msg', label: 'Error Message/Problem', type: 'textarea' }
+            ]
+        },
     ]
 };
 
+// --------------------------------------------------------------------------
+// --- Global Application State Variables ---
+// --------------------------------------------------------------------------
+
+/**
+ * The full URL for the Gemini API, constructed from the config object.
+ * @const {string}
+ */
 const API_URL = CONFIG.API_URL_BASE + CONFIG.API_KEY;
+
+/**
+ * Stores the currently detected language for the conversation ('en', 'es', 'ht').
+ * @type {string}
+ */
 let lang = 'en';
+
+/**
+ * An array of objects that holds the complete history of the conversation.
+ * This is sent to the AI for context with each new message.
+ * @type {Array<object>}
+ */
 let chatHistory = [];
+
+/**
+ * A boolean flag to prevent multiple requests while the AI is processing.
+ * When true, all input buttons are disabled.
+ * @type {boolean}
+ */
 let isLoading = false;
+
+/**
+ * A variable to hold the Tone.js audio synthesizer instance once initialized.
+ * @type {object|null}
+ */
 let synth;
 
-const ce = id => document.getElementById(id);
-const chat = ce('chat'), box = ce('box'), sendBtn = ce('sendBtn'),
-      statusBar = ce('statusBar'), magicBtn = ce('magicBtn'),
-      resetBtn = ce('resetBtn'), themeToggle = ce('themeToggle'), micBtn = ce('micBtn'),
-      toolsOverlay = ce('tools-overlay'), toolsTabs = ce('tools-tabs'),
-      toolsBody = ce('tools-body'), closeToolsBtn = ce('closeToolsBtn');
+// --------------------------------------------------------------------------
+// --- DOM Element References ---
+// --------------------------------------------------------------------------
 
-/* ================== UI STRINGS (Multilingual) ================== */
+/**
+ * A helper function to get a DOM element by its ID. This is a shortcut
+ * for the longer `document.getElementById()` method.
+ * @param {string} id The ID of the HTML element to find.
+ * @returns {HTMLElement|null} The found element, or null if not found.
+ */
+const ce = id => document.getElementById(id);
+
+// Caching references to all frequently used elements for better performance.
+const chat = ce('chat');
+const box = ce('box');
+const sendBtn = ce('sendBtn');
+const statusBar = ce('statusBar');
+const magicBtn = ce('magicBtn');
+const resetBtn = ce('resetBtn');
+const themeToggle = ce('themeToggle');
+const micBtn = ce('micBtn');
+const toolsOverlay = ce('tools-overlay');
+const toolsTabs = ce('tools-tabs');
+const toolsBody = ce('tools-body');
+const closeToolsBtn = ce('closeToolsBtn');   
+ /* ======================================================================== */
+/* */
+/* SECTION 5: UI STRINGS (FOR MULTILINGUAL SUPPORT)                         */
+/* */
+/* This object stores all user-facing strings in different languages.       */
+/* The application will pull text from here based on the detected language, */
+/* allowing for easy translation and updates without changing the main code.*/
+/* */
+/* ======================================================================== */
+
+/**
+ * An object containing multilingual strings for the UI.
+ * @const {object}
+ */
 const UI = {
-    en: { welcome: '👋 Hi there! How can I help you today?', prompts: [{ text: "Find Jobs", query: "I need to search for jobs" }, { text: "Get Training Info", query: "How do I apply for job training?" }] },
-    es: { welcome: '👋 ¡Hola! ¿En qué te puedo ayudar hoy?', prompts: [{ text: "Buscar Empleos", query: "Necesito buscar empleos" }, { text: "Obtener Información de Capacitación", query: "¿Cómo solicito capacitación laboral?" }] },
-    ht: { welcome: '👋 Bonjou! Kijan mwen ka ede w jodi a?', prompts: [{ text: "Jwenn Travay", query: "Mwen bezwen chèche travay" }, { text: "Jwenn Enfòmasyon sou Fòmasyon", query: "Kijan pou mwen aplike pou fòmasyon travay?" }] }
+    /**
+     * @property {object} en - English strings.
+     * @property {string} en.welcome - The initial greeting message.
+     * @property {Array<object>} en.prompts - An array of suggestion button objects.
+     */
+    en: {
+        welcome: '👋 Hi there! How can I help you today?',
+        prompts: [
+            { text: "Find Jobs", query: "I need to search for jobs" },
+            { text: "Get Training Info", query: "How do I apply for job training?" }
+        ]
+    },
+
+    /**
+     * @property {object} es - Spanish strings.
+     * @property {string} es.welcome - The initial greeting message in Spanish.
+     * @property {Array<object>} es.prompts - An array of suggestion button objects in Spanish.
+     */
+    es: {
+        welcome: '👋 ¡Hola! ¿En qué te puedo ayudar hoy?',
+        prompts: [
+            { text: "Buscar Empleos", query: "Necesito buscar empleos" },
+            { text: "Obtener Información de Capacitación", query: "¿Cómo solicito capacitación laboral?" }
+        ]
+    },
+
+    /**
+     * @property {object} ht - Haitian Creole strings.
+     * @property {string} ht.welcome - The initial greeting message in Haitian Creole.
+     * @property {Array<object>} ht.prompts - An array of suggestion button objects in Haitian Creole.
+     */
+    ht: {
+        welcome: '👋 Bonjou! Kijan mwen ka ede w jodi a?',
+        prompts: [
+            { text: "Jwenn Travay", query: "Mwen bezwen chèche travay" },
+            { text: "Jwenn Enfòmasyon sou Fòmasyon", query: "Kijan pou mwen aplike pou fòmasyon travay?" }
+        ]
+    }
 };
 
-/* ================== SOUND & HAPTICS ================== */
+
+/* ======================================================================== */
+/* */
+/* SECTION 6: SOUND & HAPTICS                                               */
+/* */
+/* This section manages all audio feedback (using the Tone.js library) and  */
+/* vibration feedback (using the browser's native Vibrate API). These       */
+/* features provide a more tactile and responsive user experience.          */
+/* */
+/* ======================================================================== */
+
+/**
+ * Initializes the Tone.js audio synthesizer.
+ * This is called once after the user's first interaction (e.g., clicking the
+ * splash screen button) to comply with browser autoplay policies that prevent
+ * audio from starting without a user gesture.
+ *
+ * This function is wrapped in a try-catch block to prevent the entire
+ * application from crashing if the Tone.js library fails to load or initialize
+ * for any reason (e.g., network error, browser incompatibility).
+ *
+ * @returns {void}
+ */
 function initAudio() {
     try {
+        // Only create the synthesizer object if it doesn't already exist.
+        // This prevents re-creating it unnecessarily.
         if (!synth) {
             synth = new Tone.PolySynth(Tone.Synth, {
-                oscillator: { type: "marimba" },
-                envelope: { attack: 0.01, decay: 0.6, sustain: 0.1, release: 0.8 },
-            }).toDestination();
+                oscillator: { type: "marimba" }, // A pleasant, soft sound
+                envelope: {
+                    attack: 0.01,
+                    decay: 0.6,
+                    sustain: 0.1,
+                    release: 0.8
+                },
+            }).toDestination(); // Connect the synth to the computer's speakers
         }
-    } catch (e) { console.warn("Tone.js failed to initialize.", e); synth = null; }
+    } catch (e) {
+        // If an error occurs, log it to the console for debugging but don't crash.
+        console.warn("Tone.js failed to initialize.", e);
+        // Ensure the synth variable is null so other functions know it's not available.
+        synth = null;
+    }
 }
+
+/**
+ * Plays a specific sound effect based on the type of event (e.g., sending or
+ * receiving a message).
+ *
+ * @param {('send'|'receive')} type - The type of sound to play.
+ * @returns {void}
+ */
 function playSound(type) {
-    if (!synth) return;
-    if (Tone.context.state !== 'running') { Tone.start().catch(e => console.warn("Could not start audio context", e)); }
+    // Do nothing if the synthesizer isn't available (failed to initialize).
+    if (!synth) {
+        return;
+    }
+
+    // This is a crucial step. Modern browsers require the AudioContext to be
+    // "resumed" or started by a user gesture. This line handles starting it
+    // on the first sound playback attempt if it's not already running.
+    if (Tone.context.state !== 'running') {
+        Tone.start().catch(e => console.warn("Could not start audio context automatically.", e));
+    }
+
+    // Play the sound. This is also wrapped in a try-catch as a fallback.
     try {
-        const now = Tone.now();
-        if (type === 'send') synth.triggerAttackRelease("G4", "8n", now);
-        if (type === 'receive') synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now);
-    } catch (e) {}
+        const now = Tone.now(); // Get the current audio context time for precise scheduling
+        
+        if (type === 'send') {
+            // Play a single high note for sending a message
+            synth.triggerAttackRelease("G4", "8n", now);
+        } else if (type === 'receive') {
+            // Play a pleasant chord for receiving a message
+            synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now);
+        }
+    } catch (e) {
+        // Fail silently if there's a playback error.
+    }
 }
-function vibrate(style = 'light') { if (window.navigator?.vibrate) { try { if (style === 'light') navigator.vibrate(10); } catch (e) {} } }
 
-/* ================== UTILITY & RENDER FUNCTIONS ================== */
-const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
-function safeScroll() { if (isNearBottom()) requestAnimationFrame(() => chat.scrollTop = chat.scrollHeight); }
+/**
+ * Triggers a vibration on supported mobile devices to provide haptic feedback.
+ *
+ * @param {('light')} style - The intensity or style of the vibration. Currently, only 'light' is implemented.
+ * @returns {void}
+ */
+function vibrate(style = 'light') {
+    // Check if the browser's navigator object and the vibrate function exist.
+    // This is a safe way to check for browser support.
+    if (window.navigator?.vibrate) {
+        try {
+            if (style === 'light') {
+                // Trigger a short, 10-millisecond vibration.
+                navigator.vibrate(10);
+            }
+        } catch (e) {
+            // Fail silently if vibration is not supported or fails for any reason.
+        }
+    }
+}    
+/* ======================================================================== */
+/* */
+/* SECTION 7: UTILITY & DOM RENDER FUNCTIONS                                */
+/* */
+/* This section contains helper functions for managing the UI. These        */
+/* functions do not contain any core AI logic, but are essential for a      */
+/* smooth and responsive user experience. They handle everything from       */
+/* auto-scrolling the chat window to creating and displaying new HTML       */
+/* elements like message bubbles.                                           */
+/* */
+/* ======================================================================== */
 
+/**
+ * Checks if the user is currently scrolled near the bottom of the chat window.
+ * This is used to determine whether the app should automatically scroll down
+ * when a new message arrives.
+ *
+ * @returns {boolean} Returns true if the user's scroll position is within 80 pixels of the bottom.
+ */
+function isNearBottom() {
+    // Define the threshold in pixels from the bottom.
+    const scrollThreshold = 80;
+
+    // The calculation for the user's current scroll position from the bottom.
+    const positionFromBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight;
+
+    // Return true if the position is within our defined threshold.
+    return positionFromBottom < scrollThreshold;
+}
+
+/**
+ * Scrolls the chat window smoothly to the very bottom, but only if the user
+ * is already near the bottom. This is a crucial UX feature that prevents the
+ * view from jumping down if the user is actively scrolling up to read
+ * older messages in the history.
+ *
+ * @returns {void}
+ */
+function safeScroll() {
+    // First, check if the user is near the bottom.
+    if (isNearBottom()) {
+        // If they are, use requestAnimationFrame to schedule the scroll.
+        // This is more performant than direct manipulation as it syncs with
+        // the browser's own rendering cycle, resulting in a smoother animation.
+        requestAnimationFrame(() => {
+            chat.scrollTop = chat.scrollHeight;
+        });
+    }
+}
+
+/**
+ * Enables or disables all user input controls (buttons, text box) to prevent
+ * multiple submissions while the AI is processing a request. This provides
+ * clear visual feedback to the user that the app is busy.
+ *
+ * @param {boolean} loading - Pass true to disable all controls, or false to re-enable them.
+ * @returns {void}
+ */
 function setLoadingState(loading) {
-    [box, sendBtn, magicBtn, resetBtn, micBtn].forEach(el => { if(el) el.disabled = loading; });
+    // Update the global loading state variable.
+    isLoading = loading;
+
+    // Create an array of all interactive elements that should be disabled/enabled.
+    // It's important to include all clickable elements here.
+    const elementsToToggle = [box, sendBtn, magicBtn, resetBtn, micBtn];
+
+    // Loop through each element and set its 'disabled' property based on the 'loading' parameter.
+    elementsToToggle.forEach(element => {
+        // It's good practice to check if the element was successfully found in the DOM
+        // before trying to modify its properties.
+        if (element) {
+            element.disabled = loading;
+        }
+    });
 }
 
+/**
+ * Sets the text content and visual style of the persistent status bar, which is
+ * located at the very bottom of the main container. This is primarily used for
+ * displaying the default legal disclaimer or critical connection errors.
+ *
+ * @param {string|null} message - The message to display. If null or empty, it resets to the default disclaimer text.
+ * @param {boolean} isError - If true, the function will add a special CSS class to style the message as a red error.
+ * @returns {void}
+ */
 function setStatus(message, isError = false) {
-    statusBar.textContent = message || '⚠️ I can make mistakes — please double-check important info.';
+    // If a message is provided, update the status bar's text content.
+    if (message) {
+        statusBar.textContent = message;
+    } else {
+        // If no message is provided, reset to the default disclaimer.
+        statusBar.textContent = '⚠️ I can make mistakes — please double-check important info.';
+    }
+
+    // The classList.toggle() method is a clean and efficient way to add or remove a
+    // CSS class based on a boolean value. If isError is true, the class is added;
+    // if false, it's removed.
     statusBar.classList.toggle('error-status', isError);
 }
 
+/**
+ * Creates and appends a new message bubble to the chat interface. This is the
+ * primary function for displaying any new content (both from the user and the bot)
+ * in the chat window. It also handles sanitizing the HTML to prevent security risks.
+ *
+ * @param {string} html - The raw HTML content to be displayed inside the bubble.
+ * @param {('user'|'bot')} type - The type of bubble to create ('user' or 'bot'), which determines its styling and alignment.
+ * @returns {void}
+ */
 function addBubble(html, type) {
+    // 1. Create the main wrapper div for the bubble and (optional) avatar.
     const wrapper = document.createElement('div');
     wrapper.className = `bubble-wrapper ${type}-bubble-wrapper`;
-    const sanitizedHTML = DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
+
+    // 2. **CRITICAL SECURITY STEP**: Sanitize the incoming HTML content.
+    // This uses the DOMPurify library (loaded from a CDN) to parse the HTML string
+    // and remove any potentially malicious code, such as <script> tags or dangerous
+    // event attributes (e.g., onerror), thus preventing Cross-Site Scripting (XSS) attacks.
+    const sanitizedHTML = DOMPurify.sanitize(html, {
+        ADD_ATTR: ['target'] // We explicitly allow the 'target="_blank"' attribute so links can open in a new tab.
+    });
+
+    // 3. Construct the inner HTML of the wrapper based on the bubble type.
     if (type === 'bot') {
+        // Bot bubbles include the 'E' avatar.
         wrapper.innerHTML = `<div class="avatar" aria-hidden="true">E</div><div class="bubble bot">${sanitizedHTML}</div>`;
     } else {
+        // User bubbles do not have an avatar.
         wrapper.innerHTML = `<div class="bubble user">${sanitizedHTML}</div>`;
     }
+
+    // 4. Append the newly created bubble to the main chat window.
     chat.appendChild(wrapper);
-    safeScroll();
-    playSound(type === 'bot' ? 'receive' : 'send');
-    vibrate('light');
+
+    // 5. Perform follow-up actions after the bubble is added to the DOM.
+    safeScroll(); // Scroll the new message into view.
+    playSound(type === 'bot' ? 'receive' : 'send'); // Play the appropriate sound effect.
+    vibrate('light'); // Provide haptic feedback on mobile.
 }
 
+/**
+ * Shows or hides the animated "bot is typing" indicator. This provides important
+ * visual feedback to the user, letting them know that the AI is processing their
+* request and a response is forthcoming.
+ *
+ * @param {boolean} show - Pass true to display the indicator, or false to remove it.
+ * @returns {void}
+ */
 function showTypingIndicator(show) {
-    const existing = ce('typing-indicator');
-    if (show && !existing) {
+    // Find the typing indicator element by its unique ID.
+    const existingIndicator = document.getElementById('typing-indicator');
+
+    if (show && !existingIndicator) {
+        // --- Show the indicator ---
+        // If we need to show it and it doesn't already exist on the page:
+
+        // 1. Create the wrapper element.
         const wrapper = document.createElement('div');
-        wrapper.id = 'typing-indicator';
+        wrapper.id = 'typing-indicator'; // Assign the unique ID
         wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
-        wrapper.innerHTML = `<div class="avatar" aria-hidden="true">E</div><div class="bubble bot"><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
+
+        // 2. Construct the inner HTML for the indicator, which includes the avatar and the animated dots.
+        wrapper.innerHTML = `
+            <div class="avatar" aria-hidden="true">E</div>
+            <div class="bubble bot">
+                <div class="typing">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>`;
+            
+        // 3. Append the indicator to the chat window.
         chat.appendChild(wrapper);
+        
+        // 4. Scroll it into view.
         safeScroll();
-    } else if (!show && existing) {
-        existing.remove();
+
+    } else if (!show && existingIndicator) {
+        // --- Hide the indicator ---
+        // If we need to hide it and it currently exists on the page:
+
+        // Simply remove the element from the DOM.
+        existingIndicator.remove();
     }
 }
 
+/**
+ * Renders the initial "quick start" suggestion buttons in the chat window.
+ * This function clears any old buttons, generates new ones from the UI strings
+ * configuration, and attaches the necessary event listeners to make them clickable.
+ *
+ * @returns {void}
+ */
 function showQuickStartPrompts() {
-    const promptsContainer = document.querySelector('.suggestions-container');
-    if(promptsContainer) promptsContainer.remove(); // Clear old ones
+    // First, find and remove any old suggestion buttons that might still be present
+    // from a previous turn. This prevents button duplication.
+    const oldPromptsContainer = document.querySelector('.suggestions-container');
+    if (oldPromptsContainer) {
+        oldPromptsContainer.remove();
+    }
 
-    const promptsHTML = UI[lang].prompts.map(p =>
-        `<button class="suggestion-btn" data-query="${p.query}">${p.text}</button>`
-    ).join('');
+    // Retrieve the prompt objects for the current language from the UI config.
+    // Then, use the map() function to transform each object into an HTML button string.
+    const promptsHTML = UI[lang].prompts.map(promptObject =>
+        `<button class="suggestion-btn" data-query="${promptObject.query}">${promptObject.text}</button>`
+    ).join(''); // Join the array of button strings into a single HTML string.
+
+    // Create a new container div for the buttons.
     const promptsWrapper = document.createElement('div');
     promptsWrapper.className = 'suggestions-container';
-    promptsWrapper.innerHTML = promptsHTML;
+    promptsWrapper.innerHTML = promptsHTML; // Set the inner HTML to our string of buttons.
+
+    // Append the new container to the chat window.
     chat.appendChild(promptsWrapper);
-    promptsWrapper.querySelectorAll('.suggestion-btn').forEach(btn => {
-        btn.addEventListener('click', (event) => {
+
+    // Now that the buttons are in the DOM, we need to add event listeners to them.
+    promptsWrapper.querySelectorAll('.suggestion-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Get the query text from the button's 'data-query' attribute.
             const query = event.currentTarget.getAttribute('data-query');
-            if (!query) return;
+            
+            // If for some reason the query is missing, do nothing.
+            if (!query) {
+                return;
+            }
+
+            // Set the main input box's value to the button's query text.
             box.value = query;
+            
+            // Call the main send() function to submit the query as if the user had typed it.
             send();
         });
     });
+
+    // Scroll to make sure the new buttons are visible.
     safeScroll();
+}    
+   /* ======================================================================== */
+/* */
+/* SECTION 7: UTILITY & DOM RENDER FUNCTIONS                                */
+/* */
+/* This section contains helper functions for managing the UI. These        */
+/* functions do not contain any core AI logic, but are essential for a      */
+/* smooth and responsive user experience. They handle everything from       */
+/* auto-scrolling the chat window to creating and displaying new HTML       */
+/* elements like message bubbles.                                           */
+/* */
+/* ======================================================================== */
+
+/**
+ * Checks if the user is currently scrolled near the bottom of the chat window.
+ * This is used to determine whether the app should automatically scroll down
+ * when a new message arrives.
+ *
+ * @returns {boolean} Returns true if the user's scroll position is within 80 pixels of the bottom.
+ */
+function isNearBottom() {
+    // Define the threshold in pixels from the bottom.
+    const scrollThreshold = 80;
+
+    // The calculation for the user's current scroll position from the bottom.
+    const positionFromBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight;
+
+    // Return true if the position is within our defined threshold.
+    return positionFromBottom < scrollThreshold;
 }
 
-/* ================== AI CORE (GEMINI) ================== */
-const systemPrompt = (currentLang) => `You are the Employment Assistant for TASK. Be friendly, empathetic, and helpful. Respond ONLY in ${currentLang}.
-RULES: Use Markdown for lists. Warn about job scams. Use tools for jobs/locations.
-TOOLS: For jobs, respond ONLY with [SEARCH_JOBS: job_type]. For address, respond ONLY with [TASK_ADDRESS].
-KNOWLEDGE: Appointments ONLY by phone: ${CONFIG.APPOINTMENT_NUMBER}. No walk-ins. Staff: Diani (${CONFIG.DIANI_NUMBER}), Sean (${CONFIG.SEAN_NUMBER}).`;
-
-async function getAiResponse(prompt, history) {
-    const payload = { contents: history, systemInstruction: { parts: [{ text: systemPrompt(lang) }] }, tools: [{ "google_search": {} }] };
-    let lastError = null;
-    for (let i = 0; i < CONFIG.MAX_RETRIES; i++) {
-        try {
-            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) {
-                if (response.status === 429 || response.status >= 500) {
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                    await new Promise(res => setTimeout(res, delay));
-                    continue;
-                }
-                throw new Error(`API Error: ${response.status} ${await response.text()}`);
-            }
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error("Received empty response from API.");
-            setStatus(null);
-            return text;
-        } catch (error) { console.error(`Fetch attempt ${i + 1} failed:`, error); lastError = error; }
+/**
+ * Scrolls the chat window smoothly to the very bottom, but only if the user
+ * is already near the bottom. This is a crucial UX feature that prevents the
+ * view from jumping down if the user is actively scrolling up to read
+ * older messages in the history.
+ *
+ * @returns {void}
+ */
+function safeScroll() {
+    // First, check if the user is near the bottom.
+    if (isNearBottom()) {
+        // If they are, use requestAnimationFrame to schedule the scroll.
+        // This is more performant than direct manipulation as it syncs with
+        // the browser's own rendering cycle, resulting in a smoother animation.
+        requestAnimationFrame(() => {
+            chat.scrollTop = chat.scrollHeight;
+        });
     }
-    setStatus("We're having trouble connecting to our resources.", true);
-    return "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
 }
-  <script>
-/* ================== ADVANCED TOOLS LOGIC ================== */
+
+/**
+ * Enables or disables all user input controls (buttons, text box) to prevent
+ * multiple submissions while the AI is processing a request. This provides
+ * clear visual feedback to the user that the app is busy.
+ *
+ * @param {boolean} loading - Pass true to disable all controls, or false to re-enable them.
+ * @returns {void}
+ */
+function setLoadingState(loading) {
+    // Update the global loading state variable.
+    isLoading = loading;
+
+    // Create an array of all interactive elements that should be disabled/enabled.
+    // It's important to include all clickable elements here.
+    const elementsToToggle = [box, sendBtn, magicBtn, resetBtn, micBtn];
+
+    // Loop through each element and set its 'disabled' property based on the 'loading' parameter.
+    elementsToToggle.forEach(element => {
+        // It's good practice to check if the element was successfully found in the DOM
+        // before trying to modify its properties.
+        if (element) {
+            element.disabled = loading;
+        }
+    });
+}
+
+/**
+ * Sets the text content and visual style of the persistent status bar, which is
+ * located at the very bottom of the main container. This is primarily used for
+ * displaying the default legal disclaimer or critical connection errors.
+ *
+ * @param {string|null} message - The message to display. If null or empty, it resets to the default disclaimer text.
+ * @param {boolean} isError - If true, the function will add a special CSS class to style the message as a red error.
+ * @returns {void}
+ */
+function setStatus(message, isError = false) {
+    // If a message is provided, update the status bar's text content.
+    if (message) {
+        statusBar.textContent = message;
+    } else {
+        // If no message is provided, reset to the default disclaimer.
+        statusBar.textContent = '⚠️ I can make mistakes — please double-check important info.';
+    }
+
+    // The classList.toggle() method is a clean and efficient way to add or remove a
+    // CSS class based on a boolean value. If isError is true, the class is added;
+    // if false, it's removed.
+    statusBar.classList.toggle('error-status', isError);
+}
+
+/**
+ * Creates and appends a new message bubble to the chat interface. This is the
+ * primary function for displaying any new content (both from the user and the bot)
+ * in the chat window. It also handles sanitizing the HTML to prevent security risks.
+ *
+ * @param {string} html - The raw HTML content to be displayed inside the bubble.
+ * @param {('user'|'bot')} type - The type of bubble to create ('user' or 'bot'), which determines its styling and alignment.
+ * @returns {void}
+ */
+function addBubble(html, type) {
+    // 1. Create the main wrapper div for the bubble and (optional) avatar.
+    const wrapper = document.createElement('div');
+    wrapper.className = `bubble-wrapper ${type}-bubble-wrapper`;
+
+    // 2. **CRITICAL SECURITY STEP**: Sanitize the incoming HTML content.
+    // This uses the DOMPurify library (loaded from a CDN) to parse the HTML string
+    // and remove any potentially malicious code, such as <script> tags or dangerous
+    // event attributes (e.g., onerror), thus preventing Cross-Site Scripting (XSS) attacks.
+    const sanitizedHTML = DOMPurify.sanitize(html, {
+        ADD_ATTR: ['target'] // We explicitly allow the 'target="_blank"' attribute so links can open in a new tab.
+    });
+
+    // 3. Construct the inner HTML of the wrapper based on the bubble type.
+    if (type === 'bot') {
+        // Bot bubbles include the 'E' avatar.
+        wrapper.innerHTML = `<div class="avatar" aria-hidden="true">E</div><div class="bubble bot">${sanitizedHTML}</div>`;
+    } else {
+        // User bubbles do not have an avatar.
+        wrapper.innerHTML = `<div class="bubble user">${sanitizedHTML}</div>`;
+    }
+
+    // 4. Append the newly created bubble to the main chat window.
+    chat.appendChild(wrapper);
+
+    // 5. Perform follow-up actions after the bubble is added to the DOM.
+    safeScroll(); // Scroll the new message into view.
+    playSound(type === 'bot' ? 'receive' : 'send'); // Play the appropriate sound effect.
+    vibrate('light'); // Provide haptic feedback on mobile.
+}
+
+/**
+ * Shows or hides the animated "bot is typing" indicator. This provides important
+ * visual feedback to the user, letting them know that the AI is processing their
+* request and a response is forthcoming.
+ *
+ * @param {boolean} show - Pass true to display the indicator, or false to remove it.
+ * @returns {void}
+ */
+function showTypingIndicator(show) {
+    // Find the typing indicator element by its unique ID.
+    const existingIndicator = document.getElementById('typing-indicator');
+
+    if (show && !existingIndicator) {
+        // --- Show the indicator ---
+        // If we need to show it and it doesn't already exist on the page:
+
+        // 1. Create the wrapper element.
+        const wrapper = document.createElement('div');
+        wrapper.id = 'typing-indicator'; // Assign the unique ID
+        wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
+
+        // 2. Construct the inner HTML for the indicator, which includes the avatar and the animated dots.
+        wrapper.innerHTML = `
+            <div class="avatar" aria-hidden="true">E</div>
+            <div class="bubble bot">
+                <div class="typing">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>`;
+            
+        // 3. Append the indicator to the chat window.
+        chat.appendChild(wrapper);
+        
+        // 4. Scroll it into view.
+        safeScroll();
+
+    } else if (!show && existingIndicator) {
+        // --- Hide the indicator ---
+        // If we need to hide it and it currently exists on the page:
+
+        // Simply remove the element from the DOM.
+        existingIndicator.remove();
+    }
+}
+
+/**
+ * Renders the initial "quick start" suggestion buttons in the chat window.
+ * This function clears any old buttons, generates new ones from the UI strings
+ * configuration, and attaches the necessary event listeners to make them clickable.
+ *
+ * @returns {void}
+ */
+function showQuickStartPrompts() {
+    // First, find and remove any old suggestion buttons that might still be present
+    // from a previous turn. This prevents button duplication.
+    const oldPromptsContainer = document.querySelector('.suggestions-container');
+    if (oldPromptsContainer) {
+        oldPromptsContainer.remove();
+    }
+
+    // Retrieve the prompt objects for the current language from the UI config.
+    // Then, use the map() function to transform each object into an HTML button string.
+    const promptsHTML = UI[lang].prompts.map(promptObject =>
+        `<button class="suggestion-btn" data-query="${promptObject.query}">${promptObject.text}</button>`
+    ).join(''); // Join the array of button strings into a single HTML string.
+
+    // Create a new container div for the buttons.
+    const promptsWrapper = document.createElement('div');
+    promptsWrapper.className = 'suggestions-container';
+    promptsWrapper.innerHTML = promptsHTML; // Set the inner HTML to our string of buttons.
+
+    // Append the new container to the chat window.
+    chat.appendChild(promptsWrapper);
+
+    // Now that the buttons are in the DOM, we need to add event listeners to them.
+    promptsWrapper.querySelectorAll('.suggestion-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Get the query text from the button's 'data-query' attribute.
+            const query = event.currentTarget.getAttribute('data-query');
+            
+            // If for some reason the query is missing, do nothing.
+            if (!query) {
+                return;
+            }
+
+            // Set the main input box's value to the button's query text.
+            box.value = query;
+            
+            // Call the main send() function to submit the query as if the user had typed it.
+            send();
+        });
+    });
+
+    // Scroll to make sure the new buttons are visible.
+    safeScroll();
+}  
+     /* ======================================================================== */
+/* */
+/* SECTION 9: ADVANCED TOOLS LOGIC                                          */
+/* */
+/* This section contains the individual functions for each of the 23+       */
+/* specialized tools. Each function is responsible for constructing a       */
+/* unique, highly specific prompt tailored for its task (e.g., simplifying */
+/* jargon, checking a resume). It then calls the main getAiResponse         */
+/* function to get a result from the AI based on that specific prompt.      */
+/* */
+/* ======================================================================== */
+
+/**
+ * An object that acts as a dispatcher or a mapping. It holds all the individual
+ * functions for our advanced tools, allowing us to call them dynamically by
+ * using their string ID (e.g., toolFunctions['simplify'](...)).
+ *
+ * @const {object}
+ */
+const toolFunctions = {
+
+    /**
+     * Tool 1: Simplifies complex job description text into plain, easy-to-understand language.
+     * This is designed for users with low literacy.
+     *
+     * @async
+     * @param {string} jargon - The complex text or jargon from the job description.
+     * @returns {Promise<string>} A promise that resolves to the simplified explanation from the AI.
+     */
+    simplify: async function(jargon) {
+        // 1. Construct a highly specific prompt for this task.
+        const toolPrompt = `Act as an Employment Coach for a client with low literacy. Simplify the following complex job jargon. Use simple, direct words and summarize the key duties in a bulleted list. Jargon: "${jargon}"`;
+        
+        // 2. Create a temporary history for this one-off request.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // 3. Call the main AI function and return its response.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 2: Checks a user's resume for important keywords relevant to a specific job type.
+     *
+     * @async
+     * @param {string} resumeText - The text of the user's resume (or a portion of it).
+     * @param {string} jobType - The target job the user is applying for (e.g., "Warehouse", "Retail").
+     * @returns {Promise<string>} A promise that resolves to a list of suggested keywords from the AI.
+     */
+    resume_keywords: async function(resumeText, jobType) {
+        // 1. Construct the prompt with placeholders for the resume text and job type.
+        const toolPrompt = `Act as a Resume Analyst. Analyze the following resume text and suggest 3-5 important keywords or phrases specific to a "${jobType}" job that the user should add or highlight. Resume Text: "${resumeText}"`;
+        
+        // 2. Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // 3. Call the AI and return the response.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 3: Generates potential interview questions based on a job description,
+     * acting as a practice coach for the user.
+     *
+     * @async
+     * @param {string} jobDesc - The full text of the job description.
+     * @returns {Promise<string>} A promise that resolves to a list of practice interview questions.
+     */
+    interview_prep: async function(jobDesc) {
+        const toolPrompt = `Act as an Interview Coach. Based ONLY on the job description below, generate 3 clear, simple interview questions that a candidate can easily understand and prepare for. Present them as a numbered list. Job Description: "${jobDesc}"`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 4: Drafts a simple, structured cover letter template that the user can
+     * fill in with their own details.
+     *
+     * @async
+     * @param {string} jobTitle - The title of the job the user is applying for.
+     * @returns {Promise<string>} A promise that resolves to a fill-in-the-blank cover letter template.
+     */
+    cover_letter: async function(jobTitle) {
+        const toolPrompt = `Act as a professional writer. Draft a concise, 3-paragraph cover letter structure for a client applying for a "${jobTitle}" position. Use simple, direct language and placeholders like "[Your Name]".`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 5: Explains a confusing document (like a pay stub, utility bill, or form)
+     * in simple terms.
+     *
+     * @async
+     * @param {string} docText - The text pasted from the confusing document.
+     * @returns {Promise<string>} A promise that resolves to a simple explanation of the document's purpose and key actions.
+     */
+    doc_explainer: async function(docText) {
+        const toolPrompt = `Act as an Explainer. Analyze the following document text. Provide a simple, 2-sentence summary of the document's purpose, and then list the 3 most important actions the user must take in a bulleted list. Document Text: "${docText}"`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 6: Drafts a professional follow-up or thank-you email after an interview.
+     *
+     * @async
+     * @param {string} context - The user's description of the interview context (e.g., "Interviewed with John at Company X yesterday").
+     * @returns {Promise<string>} A promise that resolves to a ready-to-send follow-up email template.
+     */
+    follow_up_email: async function(context) {
+        const toolPrompt = `Act as a Communication Coach. Draft a short, professional thank-you email template based on the following context: "${context}". Use clear language and end with a polite closing.`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 7: Checks a piece of text (like an email or job post) for common red flags
+     * associated with job scams.
+     *
+     * @async
+     * @param {string} suspiciousText - The full text of the suspicious email, text message, or job post.
+     * @returns {Promise<string>} A promise that resolves to a scam analysis, including a verdict and reasons.
+     */
+    scam_checker: async function(suspiciousText) {
+        const toolPrompt = `Act as a Fraud Analyst. Analyze the text below for common job scam red flags (e.g., asking for money, gift cards, personal financial info, poor grammar, sense of urgency, generic contact info). Provide a clear verdict (e.g., "This looks safe," "This has some warnings," or "This is a High Risk scam") and a bulleted list of the specific reasons for your verdict. Text to analyze: "${suspiciousText}"`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 8: Suggests potential career paths that align with a user's stated interests or skills.
+     *
+     * @async
+     * @param {string} interests - A description of the user's interests, hobbies, or existing skills.
+     * @returns {Promise<string>} A promise that resolves to a list of 2-3 suggested career paths with next steps.
+     */
+    career_path: async function(interests) {
+        const toolPrompt = `Act as a Vocational Counselor. The user's interests are: "${interests}". Based on these, suggest 2 realistic, entry-level career paths available in the Trenton, NJ area. For each suggested path, list the single most important next action the user should take to pursue it.`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 9: Translates an informal, everyday task description into a professional-sounding
+     * bullet point suitable for a resume.
+     *
+     * @async
+     * @param {string} informalTask - The informal description of the task (e.g., "I wash dishes fast").
+     * @returns {Promise<string>} A promise that resolves to a polished, professional resume bullet point.
+     */
+    skill_translator: async function(informalTask) {
+        const toolPrompt = `Act as a Resume Expert. Translate the following informal task description: "${informalTask}" into one high-impact, professional resume bullet point. Use action verbs and focus on the value provided.`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 10: Provides simple, step-by-step instructions for a basic digital task,
+     * aimed at users with low digital literacy.
+     *
+     * @async
+     * @param {string} digitalTask - The task the user needs help with (e.g., "how to attach a file to an email").
+     * @returns {Promise<string>} A promise that resolves to a numbered list of simple, clear instructions.
+     */
+    digital_coach: async function(digitalTask) {
+        const toolPrompt = `Act as a Digital Literacy Coach. Provide simple, numbered, step-by-step instructions (no more than 5 clear steps) on how to perform the following digital task: "${digitalTask}". Use extremely basic, non-technical language.`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 11: Explains a confusing employment benefit term (like 401k or HSA) in very simple terms.
+     *
+     * @async
+     * @param {string} benefitsTerm - The benefit term the user is asking about (e.g., "401k", "Deductible").
+     * @returns {Promise<string>} A promise that resolves to a simple, easy-to-understand explanation of the term.
+     */
+    benefits_explainer: async function(benefitsTerm) {
+        const toolPrompt = `Act as a Benefits Counselor. Explain the following employment benefit in simple terms: "${benefitsTerm}". Provide a simple, two-sentence explanation of what it is and one sentence about how it primarily helps the employee.`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 12: Plans a public transit route between a start and end address using Google Search grounding.
+     *
+     * @async
+     * @param {string} start_address - The user's starting location.
+     * @param {string} destination - The user's destination.
+     * @returns {Promise<string>} A promise that resolves to simplified, step-by-step transit directions.
+     */
+    public_route: async function(start_address, destination) {
+        const toolPrompt = `Act as a Route Planner for someone who may not be familiar with the area. Provide simple, numbered directions for taking NJ Transit public transportation from "${start_address}" to "${destination}". Use Google Search grounding to find the most direct route and simplify the steps into 3-5 easy-to-read instructions, including bus numbers if available.`;
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        return await getAiResponse(toolPrompt, history);
+    },
+};
+ /**
+     * Tool 13: Provides simple, actionable talking points for a user to use when
+     * negotiating salary or benefits for a job offer.
+     *
+     * @async
+     * @param {string} job_title_neg - The job title for which the user is negotiating.
+     * @param {string} pay_rate - The expected or offered pay rate.
+     * @returns {Promise<string>} A promise that resolves to a list of 3 simple negotiation points.
+     */
+    negotiation_planner: async function(job_title_neg, pay_rate) {
+        // Construct the prompt for the negotiation tool.
+        const toolPrompt = `Act as a Financial Negotiator. The user is preparing for a negotiation for a "${job_title_neg}" position with an expected pay of "${pay_rate}". Provide 3 simple, bulleted talking points that a client with low literacy can use to confidently ask for a better salary or benefits.`;
+        
+        // Create the temporary history object for this specific tool call.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the response.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 14: Creates a simplified monthly budget framework and suggests achievable
+     * financial goals based on a given income.
+     *
+     * @async
+     * @param {string} job_type_pay - A string describing the job and pay rate (e.g., "$17/hr warehouse job").
+     * @returns {Promise<string>} A promise that resolves to a simplified financial plan with goals.
+     */
+    financial_goals: async function(job_type_pay) {
+        // Construct the prompt for the financial planning tool.
+        const toolPrompt = `Act as a Financial Coach. A client has a new job: "${job_type_pay}". Create a simplified 4-category monthly budget framework (e.g., Housing, Food, Transport, Other). Then, list 3 clear, simple financial goals they can realistically achieve in the next 6 months.`;
+        
+        // Create the temporary history for this tool.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the generated financial plan.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 15: Finds local resources (e.g., food banks, shelters) in the Trenton/Mercer County area
+     * for a specific need, using Google Search grounding.
+     *
+     * @async
+     * @param {string} query - The specific resource or assistance the user is looking for (e.g., "Food assistance").
+     * @returns {Promise<string>} A promise that resolves to a list of local organizations with contact details.
+     */
+    resource_finder: async function(query) {
+        // Construct the prompt for the local resource finder.
+        const toolPrompt = `Act as a Local Guide. Find and list 3 organizations in the Trenton/Mercer County, NJ area that provide assistance for the following need: "${query}". You MUST include the organization name and one contact detail (a phone number or physical address) for each. Use Google Search grounding to ensure the results are local and relevant.`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the list of resources.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 16: Creates a simple, multi-day job search strategy from a user's list of tasks,
+     * designed to be manageable and not overwhelming.
+     *
+     * @async
+     * @param {string} tasks - The user's unstructured list of job search-related tasks.
+     * @returns {Promise<string>} A promise that resolves to a prioritized 5-day action plan.
+     */
+    search_strategy: async function(tasks) {
+        // Construct the prompt for the strategy planner.
+        const toolPrompt = `Act as a Career Planner. A client is feeling overwhelmed. Take their list of tasks: "${tasks}". Organize these into a simple, prioritized 5-day job search strategy (Day 1, Day 2, etc.), ensuring no single day has too many tasks.`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the generated plan.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 17: Provides empathetic feedback and simple, non-clinical stress-coping steps
+     * for users who express frustration or stress.
+     *
+     * @async
+     * @param {string} stress_level - The user's description of their stress or feelings.
+     * @returns {Promise<string>} A promise that resolves to a supportive and actionable wellness check message.
+     */
+    balance_check: async function(stress_level) {
+        // Construct the prompt for the emotional support tool.
+        const toolPrompt = `Act as a compassionate Wellness Coach. A user has expressed that they are feeling: "${stress_level}". First, validate their feelings in one sentence. Then, provide 3 simple, non-clinical, actionable stress-coping steps they can take today (e.g., taking a short walk, deep breathing). Gently encourage them to talk to a human staff member if their feelings persist.`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the supportive response.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 18: Helps a user with low digital literacy understand a confusing question on a
+     * digital form or application.
+     *
+     * @async
+     * @param {string} form_question - The text of the confusing form question.
+     * @returns {Promise<string>} A promise that resolves to a simplified explanation of the question and an answer template.
+     */
+    form_assistant: async function(form_question) {
+        // Construct the prompt for the form assistant tool.
+        const toolPrompt = `Act as a Digital Form Coach. A user is confused by the following application question: "${form_question}". Provide a simple, plain-language explanation of what the question is asking for, and suggest a simple template for how to answer it.`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the explanation.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 19: Takes a user's long, unstructured to-do list and prioritizes it into
+     * a short, achievable list of the top 3 tasks for the day.
+     *
+     * @async
+     * @param {string} daily_tasks - The user's full list of tasks for the day.
+     * @returns {Promise<string>} A promise that resolves to a short, prioritized list of the top 3 tasks with a motivational message.
+     */
+    task_prioritizer: async function(daily_tasks) {
+        // Construct the prompt for the task prioritizer tool.
+        const toolPrompt = `Act as a Productivity Expert. A user has the following to-do list for their job search today: "${daily_tasks}". To prevent them from feeling overwhelmed, prioritize this list and present only the top 3 most important and achievable tasks for today. Format it as a simple, bulleted list and add a brief, motivational statement at the end.`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the prioritized list.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 20: Explains a confusing workplace rights term (e.g., FMLA, PTO, OSHA) in simple,
+     * easy-to-understand language.
+     *
+     * @async
+     * @param {string} rights_term - The workplace rights term to be explained.
+     * @returns {Promise<string>} A promise that resolves to a simple explanation of the term and its benefits.
+     */
+    workplace_rights: async function(rights_term) {
+        // Construct the prompt for the rights explainer tool.
+        const toolPrompt = `Act as a Workplace Rights Explainer. Provide a simple, short explanation of the following workplace term: "${rights_term}". Explain what it is in one sentence, and then use a bulleted list to show 2 ways it directly benefits a worker.`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the explanation.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 21: Provides feedback and a simple score on a user's resume draft to help them improve it.
+     *
+     * @async
+     * @param {string} resume_draft - The full text of the user's resume draft.
+     * @returns {Promise<string>} A promise that resolves to a score and a list of actionable feedback points.
+     */
+    resume_score: async function(resume_draft) {
+        // Construct the prompt for the resume scoring tool.
+        const toolPrompt = `Act as a Career Analyst. Analyze the following resume draft. Give it a score from 1 to 5 (where 1 is poor and 5 is excellent) for its overall clarity and impact. Then, provide 2-3 specific, bulleted suggestions on how the user can improve the resume for local job applications. Resume Draft: "${resume_draft}"`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the feedback.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 22: Analyzes the gap between a user's existing skills and their desired job goal,
+     * suggesting skills to learn.
+     *
+     * @async
+     * @param {string} job_goal - The user's desired job title (e.g., "Forklift Operator").
+     * @param {string} known_skill - A skill the user already possesses (e.g., "Good driver").
+     * @returns {Promise<string>} A promise that resolves to a list of skills to learn and concrete action steps.
+     */
+    skill_gap: async function(job_goal, known_skill) {
+        // Construct the prompt for the skill gap analyzer.
+        const toolPrompt = `Act as an Education Advisor. A user wants a job as a "${job_goal}" and already has the skill: "${known_skill}". Analyze local job requirements for that role and suggest 2 additional, prioritized skills they should learn to become a strong candidate. For each suggested skill, provide one simple, immediate action step the user can take to start learning it.`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the analysis.
+        return await getAiResponse(toolPrompt, history);
+    },
+
+    /**
+     * Tool 23: Provides simple, non-technical troubleshooting steps for a common application
+     * error or problem.
+     *
+     * @async
+     * @param {string} app_name - The name of the application causing trouble (e.g., "Indeed", "LinkedIn").
+     * @param {string} error_msg - The error message or a description of the problem.
+     * @returns {Promise<string>} A promise that resolves to a numbered list of simple troubleshooting steps.
+     */
+    app_troubleshooter: async function(app_name, error_msg) {
+        // Construct the prompt for the app troubleshooter.
+        const toolPrompt = `Act as a Digital Support Expert for a user with low technical skills. The user is struggling with the app "${app_name}" and is seeing the following error or problem: "${error_msg}". Provide 3 simple, numbered troubleshooting steps the user can try to resolve the issue (e.g., "1. Close and reopen the app.", "2. Check your internet connection.").`;
+        
+        // Create the temporary history.
+        const history = [{ role: "user", parts: [{ text: toolPrompt }] }];
+        
+        // Call the AI and return the troubleshooting steps.
+        return await getAiResponse(toolPrompt, history);
+    },
+}; // End of the toolFunctions object   
+     /* ======================================================================== */
+/* */
+/* SECTION 10: ADVANCED TOOLS PANEL LOGIC                                   */
+/* */
+/* This section contains the functions that control the interactive tools   */
+/* panel (the "magic button" overlay). It handles rendering the tabs for    */
+/* each tool, switching between them, collecting user input from the        */
+/* forms, calling the appropriate tool function, and displaying the         */
+/* final output within the panel.                                           */
+/* */
+/* ======================================================================== */
+
+/**
+ * A state variable that stores the ID of the currently active/visible tool
+ * in the advanced tools panel. It defaults to the ID of the first tool
+ * defined in the CONFIG.ADVANCED_TOOLS array.
+ *
+ * @type {string}
+ */
 let currentToolId = CONFIG.ADVANCED_TOOLS[0].id;
 
+/**
+ * Renders the entire HTML content for the advanced tools panel, including the
+ * scrollable tabs for each tool and the input fields for the currently active
+ * tool. This function is called every time the tools overlay is opened to
+ * ensure it's always up-to-date.
+ *
+ * @returns {void}
+ */
 function renderToolsPanel() {
+    // Initialize empty strings to build the HTML into.
     let tabsHtml = '';
     let bodyHtml = '';
+
+    // Loop through each tool defined in the CONFIG.ADVANCED_TOOLS array.
     CONFIG.ADVANCED_TOOLS.forEach(tool => {
-        const isActive = tool.id === currentToolId;
-        tabsHtml += `<button class="${isActive ? 'active' : ''}" data-tool-id="${tool.id}">${tool.title}</button>`;
+        // Check if the current tool in the loop is the active one.
+        const isActive = (tool.id === currentToolId);
+
+        // --- Build the HTML for the tab button ---
+        tabsHtml += `
+            <button 
+                class="${isActive ? 'active' : ''}" 
+                data-tool-id="${tool.id}"
+            >
+                ${tool.title}
+            </button>
+        `;
+
+        // --- Build the HTML for the input fields for this specific tool ---
         let inputFieldsHtml = tool.inputs.map(input => `
             <label for="tool-input-${input.id}">${input.label}:</label>
-            <${input.type === 'textarea' ? 'textarea' : 'input'} id="tool-input-${input.id}" placeholder="${input.label}" ${input.type === 'text' ? 'type="text"' : ''}></${input.type === 'textarea' ? 'textarea' : 'input'}>
-        `).join('');
+            <${input.type === 'textarea' ? 'textarea' : 'input'} 
+                id="tool-input-${input.id}" 
+                placeholder="${input.label}" 
+                ${input.type === 'text' ? 'type="text"' : ''}
+            ></${input.type === 'textarea' ? 'textarea' : 'input'}>
+        `).join(''); // Join the array of fields into a single string.
+
+        // --- Build the HTML for the main content area of this tool ---
         bodyHtml += `
-            <div class="tool-content" id="tool-content-${tool.id}" style="display: ${isActive ? 'block' : 'none'};">
+            <div 
+                class="tool-content" 
+                id="tool-content-${tool.id}" 
+                style="display: ${isActive ? 'block' : 'none'};"
+            >
                 <h3>${tool.title}</h3>
                 ${inputFieldsHtml}
                 <button data-tool-id="${tool.id}">Generate Assistant Output</button>
@@ -491,166 +2206,695 @@ function renderToolsPanel() {
             </div>
         `;
     });
+
+    // --- Inject the generated HTML into the DOM ---
+    // Place the generated tab buttons into the tabs container.
     toolsTabs.innerHTML = tabsHtml;
+    // Place the generated tool content into the body container.
     toolsBody.innerHTML = bodyHtml;
     
-    toolsTabs.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => switchTool(btn.dataset.toolId)));
-    toolsBody.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => runTool(btn.dataset.toolId)));
+    // --- Add Event Listeners ---
+    // After rendering the new elements, we must attach event listeners to them.
+    // Add a 'click' listener to each tab button that calls the switchTool function.
+    toolsTabs.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => switchTool(btn.dataset.toolId));
+    });
+    // Add a 'click' listener to each "Generate" button that calls the runTool function.
+    toolsBody.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => runTool(btn.dataset.toolId));
+    });
 }
 
+/**
+ * Switches the visible tab in the advanced tools panel when a user clicks a tab.
+ *
+ * @param {string} toolId - The unique ID of the tool to switch to.
+ * @returns {void}
+ */
 function switchTool(toolId) {
+    // Update the global state variable to the newly selected tool ID.
     currentToolId = toolId;
-    toolsTabs.querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn.dataset.toolId === toolId));
-    toolsBody.querySelectorAll('.tool-content').forEach(div => div.style.display = (div.id === `tool-content-${toolId}` ? 'block' : 'none'));
-    toolsTabs.querySelector(`button[data-tool-id="${toolId}"]`).scrollIntoView({ behavior: 'smooth', inline: 'center' });
+
+    // 1. Update the 'active' class on all tab buttons.
+    // The .toggle() method's second argument makes this a one-line operation:
+    // the class is added if the condition is true, and removed if false.
+    toolsTabs.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.toolId === toolId);
+    });
+
+    // 2. Show the content for the selected tool and hide all other tool content divs.
+    toolsBody.querySelectorAll('.tool-content').forEach(div => {
+        if (div.id === `tool-content-${toolId}`) {
+            div.style.display = 'block';
+        } else {
+            div.style.display = 'none';
+        }
+    });
+
+    // 3. For mobile devices where tabs might overflow, scroll the active tab into the center of the view.
+    const activeTab = toolsTabs.querySelector(`button[data-tool-id="${toolId}"]`);
+    if (activeTab) {
+        activeTab.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center'
+        });
+    }
 }
 
+/**
+ * Executes an advanced tool when the "Generate Assistant Output" button is clicked.
+ * This function is responsible for collecting input values from the form, validating
+ * them, showing a loading state, calling the appropriate AI tool function, and
+ * displaying the final output within the panel.
+ *
+ * @async
+ * @param {string} toolId - The unique ID of the tool to run.
+ * @returns {Promise<void>}
+ */
 async function runTool(toolId) {
+    // 1. Find the tool's configuration object from the main CONFIG array.
     const tool = CONFIG.ADVANCED_TOOLS.find(t => t.id === toolId);
-    if (!tool) return;
-    const outputElement = ce(`tool-output-${toolId}`);
+    if (!tool) {
+        console.error("Invalid tool ID passed to runTool:", toolId);
+        return;
+    }
+    
+    // Get a reference to the specific output area for this tool.
+    const outputElement = document.getElementById(`tool-output-${toolId}`);
+    if (!outputElement) {
+        console.error("Could not find output element for tool:", toolId);
+        return;
+    }
+
     const inputValues = {};
     let allInputsValid = true;
 
+    // 2. --- Collect and Validate All Input Fields ---
     tool.inputs.forEach(input => {
-        const inputElement = ce(`tool-input-${input.id}`);
+        const inputElement = document.getElementById(`tool-input-${input.id}`);
+        // Get the trimmed value from the input/textarea.
         inputValues[input.id] = inputElement.value.trim();
+
+        // If an input is empty, mark it as invalid and show a red border for user feedback.
         if (inputValues[input.id] === '') {
             inputElement.style.border = '2px solid var(--error)';
             allInputsValid = false;
         } else {
+            // If the input is valid, reset its border to the default style.
             inputElement.style.border = '1px solid var(--border)';
         }
     });
 
+    // If any input was invalid, show an error message in the output area and stop.
     if (!allInputsValid) {
         outputElement.innerHTML = `<strong style="color: var(--error);">Please fill out all required fields.</strong>`;
         return;
     }
+
+    // 3. --- Show Loading State ---
+    // Indicate to the user that the tool is working.
     outputElement.innerHTML = 'Analyzing... <div class="typing" style="display: inline-flex;"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
     
-    // This is a placeholder for running a specific tool prompt. In a real scenario, you'd construct a detailed prompt.
-    const genericToolPrompt = `Using the '${tool.title}' tool, analyze the following user inputs: ${JSON.stringify(inputValues)}`;
-    const toolHistory = [{ role: "user", parts: [{ text: genericToolPrompt }] }];
-
+    // 4. --- Call the Correct Tool Function ---
     try {
-        const result = await getAiResponse(genericToolPrompt, toolHistory);
+        // This dynamically calls the correct async tool function from the `toolFunctions`
+        // object based on the toolId. The spread operator (...) passes the collected
+        // input values as arguments to the function.
+        const result = await toolFunctions[toolId](...Object.values(inputValues));
+
+        // Sanitize the AI's response for security and display it in the output area.
+        // We also replace newline characters with <br> tags for proper formatting.
         outputElement.innerHTML = DOMPurify.sanitize(`<strong>Assistant Result:</strong><p>${result.replace(/\n/g, '<br>')}</p>`);
+
     } catch (e) {
-        outputElement.innerHTML = `<strong style="color: var(--error);">Error generating response.</strong>`;
+        // If the tool function fails for any reason (e.g., API error), display an error message.
+        outputElement.innerHTML = `<strong style="color: var(--error);">Error generating response. Please check your connection and API Key.</strong>`;
         console.error(`Tool ${toolId} failed:`, e);
     }
 }
 
+
+/**
+ * Shows the advanced tools overlay panel.
+ * It calls renderToolsPanel to ensure the content is fresh.
+ *
+ * @returns {void}
+ */
 function showToolsOverlay() {
-    renderToolsPanel();
-    toolsOverlay.style.display = 'flex';
+    renderToolsPanel(); // Re-render the panel each time it's opened to reflect any state changes.
+    toolsOverlay.style.display = 'flex'; // Change display from 'none' to 'flex' to show it.
 }
+
+/**
+ * Hides the advanced tools overlay panel.
+ *
+ * @returns {void}
+ */
 function closeToolsOverlay() {
-    toolsOverlay.style.display = 'none';
+    toolsOverlay.style.display = 'none'; // Change display back to 'none' to hide it.
 }
+     /* ======================================================================== */
+/* */
+/* SECTION 11: MAIN FLOW CONTROL & EVENT HANDLING                           */
+/* */
+/* This section is the "brain" of the user interface. It choreographs       */
+/* everything that happens when a user sends a message. It captures the     */
+/* input, calls the AI, and then, based on the AI's response, decides       */
+/* whether to display simple text, render a special card (like a map),      */
+/* or call an advanced tool.                                                */
+/* */
+/* ======================================================================== */
 
-
-/* ================== FLOW CONTROL ================== */
+/**
+ * The main controller function that orchestrates the entire process of handling
+ * a user's typed input. It manages the UI state (disabling buttons), calls the
+ * AI, and then routes the response to the correct rendering function or tool.
+ *
+ * @async
+ * @param {string} text - The user's sanitized input text, taken from the input box.
+ * @returns {Promise<void>} A promise that resolves when the entire conversation turn is complete.
+ */
 async function handleUserInput(text) {
-    if (!text || isLoading) return;
+
+    // --- Step 1: Pre-flight Check ---
+    // First, we check if the input text is empty or if the AI is already loading a response.
+    // This is a safeguard to prevent sending empty messages or multiple requests at once.
+    if (!text || isLoading) {
+        return; // Exit the function early if there's nothing to do.
+    }
+
+    // --- Step 2: Set the Application to a Loading State ---
+    // We immediately disable all input fields and buttons. This provides clear visual
+    // feedback to the user and prevents them from sending another message while the
+    // current one is being processed.
     setLoadingState(true);
+
+    // --- Step 3: Render the User's Message ---
+    // For a fast, responsive feel, we instantly display the user's own message in the
+    // chat window. We don't wait for the AI's response to do this.
     addBubble(text, 'user');
+
+    // --- Step 4: Show the "Bot is Typing" Indicator ---
+    // We show the animated "bot is typing" bubble. This is another crucial piece of
+    // user feedback, letting them know that their message has been received and is
+    // being processed by the system.
     showTypingIndicator(true);
 
-    const currentHistory = [...chatHistory, { role: "user", parts: [{ text }] }];
-    const aiResponseText = await getAiResponse(text, currentHistory);
-    chatHistory.push({ role: "user", parts: [{ text }] }, { role: "model", parts: [{ text: aiResponseText }] });
+    // --- Step 5: Construct the Conversation History for the AI ---
+    // The AI needs the previous messages to understand the context of the conversation.
+    // We create a new array containing the entire existing chat history, plus the
+    // user's brand new message. This is what we will send to the Gemini API.
+    const currentHistoryForAI = [...chatHistory, {
+        role: "user",
+        parts: [{
+            text: text
+        }]
+    }];
 
+    // --- Step 6: Call the AI Core Function ---
+    // We 'await' the response from our main getAiResponse function. The 'await' keyword
+    // pauses the execution of this function until the AI has responded or the request has timed out.
+    const aiResponseText = await getAiResponse(text, currentHistoryForAI);
+
+    // --- Step 7: Update the Official Chat History ---
+    // Once we have successfully received a response from the AI, we can officially add
+    // both the user's turn and the AI's turn to the master `chatHistory` array. This
+    // ensures it will be included as context for the *next* message the user sends.
+    chatHistory.push({
+        role: "user",
+        parts: [{
+            text: text
+        }]
+    });
+    chatHistory.push({
+        role: "model",
+        parts: [{
+            text: aiResponseText
+        }]
+    });
+
+    // --- Step 8: Hide the "Bot is Typing" Indicator ---
+    // Now that we have a response, we can safely remove the typing bubble.
     showTypingIndicator(false);
-    
-    if (aiResponseText.startsWith('[SEARCH_JOBS:')) {
-        const query = aiResponseText.match(/\[SEARCH_JOBS:\s*(.+)\]/)?.[1] || "local";
-        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + ' jobs in Mercer County NJ')}&ibp=htl;jobs`;
-        addBubble(`<div class="card-base"><h3>Live Job Search: ${query}</h3><p>Click below for the latest job listings. Be cautious of scams!</p><a href="${searchUrl}" target="_blank" rel="noopener">⚠️ View Live Job Openings</a></div>`, 'bot');
-    } else if (aiResponseText.startsWith('[TASK_ADDRESS]')) {
-        const mapUrl = `${CONFIG.GOOGLE_MAPS_BASE}${encodeURIComponent(CONFIG.TASK_ADDRESS)}`;
-        addBubble(`<div class="card-base"><h3>TASK Location & Map</h3><p><strong>${CONFIG.TASK_ADDRESS}</strong></p><a href="${mapUrl}" target="_blank" rel="noopener">Open in Google Maps</a></div>`, 'bot');
-    } else {
-        addBubble(aiResponseText.replace(/\* (.*)/g, '<li>$1</li>').replace(/(\r\n|\n|\r)/gm, "<br>"), 'bot');
-    }
-    setLoadingState(false);
-}
 
+    // --- Step 9: The "Tool Dispatcher" ---
+    // This is where we analyze the AI's response text. We check if the response is
+    // a special command (a "tool" call) indicated by the bracketed tags like
+    // [SEARCH_JOBS:...] or [TASK_ADDRESS].
+
+    if (aiResponseText.startsWith('[SEARCH_JOBS:')) {
+        // --- Tool Execution: Job Search ---
+
+        // 1. Extract the job query (e.g., "warehouse") from the tag using a regular expression.
+        // If the regex fails, we default to a generic "local jobs" query.
+        const query = aiResponseText.match(/\[SEARCH_JOBS:\s*(.+)\]/)?.[1] || "local jobs";
+        
+        // 2. Construct the specific URL for a Google Jobs search.
+        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + ' jobs in Mercer County NJ')}&ibp=htl;jobs`;
+        
+        // 3. Render the special job search "card" in the chat window, which contains the link.
+        addBubble(
+            `<div class="card-base">
+                <h3>Live Job Search: ${query}</h3>
+                <p>Click the button below for the latest job listings. Always be cautious of potential scams!</p>
+                <a href="${searchUrl}" target="_blank" rel="noopener">⚠️ View Live Job Openings</a>
+            </div>`,
+            'bot'
+        );
+
+    } else if (aiResponseText.startsWith('[TASK_ADDRESS]')) {
+        // --- Tool Execution: Show Address on Map ---
+
+        // 1. Construct the specific URL for a Google Maps search using the address from our CONFIG.
+        const mapUrl = `${CONFIG.GOOGLE_MAPS_BASE}${encodeURIComponent(CONFIG.TASK_ADDRESS)}`;
+
+        // 2. Render the special map "card" in the chat window.
+        addBubble(
+            `<div class="card-base">
+                <h3>TASK Location & Map</h3>
+                <p><strong>${CONFIG.TASK_ADDRESS}</strong></p>
+                <a href="${mapUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
+            </div>`,
+            'bot'
+        );
+
+    } else {
+        // --- Default Case: Regular Text Response ---
+        // If the response is not a special tool command, we process it as a standard text message.
+
+        // 1. Format the response: convert Markdown bullets to HTML lists, and newlines to <br> tags.
+        let formattedResponse = aiResponseText
+            .replace(/\* (.*)/g, '<li>$1</li>')
+            .replace(/(\r\n|\n|\r)/gm, "<br>");
+
+        // 2. Check if the response text mentions any of the staff phone numbers.
+        if (formattedResponse.includes(CONFIG.DIANI_NUMBER) || formattedResponse.includes(CONFIG.SEAN_NUMBER)) {
+            // If it does, append the special "Call" and "Text" buttons to the message.
+            formattedResponse += `
+                <div class="contact-buttons">
+                    ${formattedResponse.includes(CONFIG.DIANI_NUMBER) ? `<a href="tel:${CONFIG.DIANI_NUMBER}" class="call-btn">📞 Call Diani</a><a href="sms:${CONFIG.DIANI_NUMBER}" class="text-btn">💬 Text Diani</a>` : ''}
+                    ${formattedResponse.includes(CONFIG.SEAN_NUMBER) ? `<a href="tel:${CONFIG.SEAN_NUMBER}" class="call-btn">📞 Call Sean</a><a href="sms:${CONFIG.SEAN_NUMBER}" class="text-btn">💬 Text Sean</a>` : ''}
+                </div>`;
+        }
+
+        // 3. Render the final formatted response as a standard bot bubble.
+        addBubble(formattedResponse, 'bot');
+    }
+
+    // --- Step 10: Reset the Loading State ---
+    // The conversation turn is now complete. We re-enable all the input fields and
+    // buttons so the user can send their next message.
+    setLoadingState(false);
+    
+    // Set the keyboard focus back to the input box for a smoother user experience.
+    box.focus();
+}
+     /**
+ * Handles the primary user action of sending a message. This function is
+ * triggered by either clicking the send button or pressing the 'Enter' key.
+ *
+ * Its primary responsibilities are:
+ * 1. Retrieve the current text from the main input box ('box').
+ * 2. Trim any leading or trailing whitespace from the text to ensure empty messages are not sent.
+ * 3. Check if the resulting, trimmed text is not empty.
+ * 4. If the text is valid, it calls the main `handleUserInput()` function, which orchestrates the entire AI response flow.
+ * 5. Finally, it clears the input box to ready it for the user's next message.
+ *
+ * @returns {void} This function does not return a value.
+ */
 function send() {
-    const text = box.value.trim();
-    if (text) {
-        handleUserInput(text);
+    // --- Step 1: Retrieve Text ---
+    // Get the raw value from the global 'box' variable, which holds a reference
+    // to the main HTML input field.
+    const textFromInput = box.value;
+
+    // --- Step 2: Sanitize and Trim ---
+    // The .trim() method is a standard JavaScript function that removes any
+    // whitespace (spaces, tabs, newlines) from both the beginning and the
+    // end of a string. This is a crucial step to prevent users from sending
+    // messages that contain only whitespace.
+    const trimmedText = textFromInput.trim();
+
+    // --- Step 3: Validate ---
+    // Check if the trimmed text string is not empty. An empty string is a "falsy"
+    // value in JavaScript, so this condition is a concise way to check for content.
+    if (trimmedText) {
+        // --- Step 4: Handle Input ---
+        // If we have valid, non-empty text, we pass it to the main controller function,
+        // `handleUserInput`, which will take over from here.
+        handleUserInput(trimmedText);
+
+        // --- Step 5: Clear Input Box ---
+        // After the message has been sent for processing, we clear the input box
+        // so the user can immediately start typing their next message.
         box.value = '';
     }
 }
 
+
+/**
+ * Resets the entire conversation to its initial state. This function is
+ * triggered by clicking the 'Reset' button in the header.
+ *
+ * This function performs the following actions:
+ * 1. Provides haptic feedback (vibration) on mobile devices.
+ * 2. Clears all existing message bubbles from the chat window.
+ * 3. Resets the internal `chatHistory` array to an empty state.
+ * 4. Resets the status bar to its default, non-error state.
+ * 5. Calls the `greet()` function to display the initial welcome message and suggestion buttons again.
+ *
+ * @returns {void} This function does not return a value.
+ */
 function resetConversation() {
+    // Provide a light vibration to confirm the action on mobile.
     vibrate('light');
+
+    // Completely clear all child elements (the message bubbles) from the chat window.
     chat.innerHTML = '';
+
+    // Reset the global chat history array. This is critical, as it ensures the
+    // AI does not have context from the previous conversation.
     chatHistory = [];
+
+    // Reset the status bar to remove any error messages and show the default disclaimer.
     setStatus(null);
+
+    // Call the greet function to re-initialize the chat with a welcome message.
     greet();
 }
 
+
+/**
+ * Displays the initial greeting message and the "quick start" suggestion buttons
+ * to help the user begin a conversation.
+ *
+ * @returns {void} This function does not return a value.
+ */
 function greet() {
+    // Add the welcome message bubble to the chat window. The text is pulled from
+    // the multilingual UI object based on the currently detected language.
     addBubble(UI[lang].welcome, 'bot');
+
+    // Call the function that renders the clickable suggestion buttons.
     showQuickStartPrompts();
 }
 
-/* ================== INITIALIZATION & EVENTS ================== */
+
+/* ======================================================================== */
+/* */
+/* SECTION 12: INITIALIZATION & EVENT LISTENERS                             */
+/* */
+/* This is the final major section of the script. It contains the functions */
+/* that run when the application first starts (after the splash screen).    */
+/* It is responsible for initializing the theme, microphone, and most       */
+/* importantly, wiring up all the event listeners for the buttons to make   */
+/* the application interactive and responsive to user actions.              */
+/* */
+/* ======================================================================== */
+
+/**
+ * Initializes the visual theme (light or dark mode) of the application.
+ *
+ * The logic is as follows:
+ * 1. First, it tries to find a theme preference saved in the browser's localStorage
+ * from a previous session. If found, it applies that theme.
+ * 2. If no saved theme is found, it checks the user's operating system preference
+ * using a CSS media query (`prefers-color-scheme: dark`). If the OS is in dark mode,
+ * it applies the dark theme.
+ * 3. If neither of the above conditions is met, the application defaults to the
+ * standard theme defined in the CSS (which is light mode in this setup).
+ *
+ * @returns {void} This function does not return a value.
+ */
 function initTheme() {
-    const saved = localStorage.getItem('task_theme');
-    if (saved) {
-        document.documentElement.setAttribute('data-theme', saved);
-    } else if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.setAttribute('data-theme', 'dark');
+    try {
+        // Attempt to get the saved theme from the browser's local storage.
+        const savedTheme = localStorage.getItem('task_theme');
+
+        if (savedTheme) {
+            // If a theme was found in storage (e.g., 'light' or 'dark'),
+            // set the 'data-theme' attribute on the root <html> element.
+            // The CSS is designed to automatically apply the correct colors
+            // based on this attribute.
+            document.documentElement.setAttribute('data-theme', savedTheme);
+
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            // If no theme was saved, check if the browser and OS support the
+            // 'prefers-color-scheme' media query and if its value is 'dark'.
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    } catch (e) {
+        // If localStorage is disabled or inaccessible (e.g., in private browsing),
+        // a security error can be thrown. We catch it and log a warning to the
+        // console, but we don't crash the application.
+        console.warn("Could not access localStorage to set theme.", e);
     }
 }
 
-function initMic() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
-    micBtn.style.display = 'flex';
-    const rec = new SR();
-    rec.lang = { en: 'en-US', es: 'es-ES', ht: 'ht-HT' }[lang] || 'en-US';
-    micBtn.addEventListener('click', () => rec.start());
-    rec.onstart = () => { micBtn.style.color = 'var(--brand)'; micBtn.style.transform = 'scale(1.1)'; };
-    rec.onend = () => { micBtn.style.color = 'var(--accent)'; micBtn.style.transform = 'scale(1)'; };
-    rec.onresult = e => { box.value = e.results[0][0].transcript; send(); };
-}
 
+/**
+ * Initializes the microphone functionality for voice-to-text input.
+ *
+ * This function performs the following steps:
+ * 1. Checks if the browser supports the Web Speech API (`SpeechRecognition`).
+ * 2. If supported, it makes the microphone button visible.
+ * 3. It creates a new SpeechRecognition instance.
+ * 4. It sets up event listeners for the microphone button to start listening.
+ * 5. It provides visual feedback (changing the button color) when listening starts and stops.
+ * 6. When the API successfully recognizes speech, it takes the resulting text,
+ * places it in the input box, and automatically calls the `send()` function.
+ *
+ * @returns {void} This function does not return a value.
+ */
+function initMic() {
+    // The SpeechRecognition API is vendor-prefixed in some browsers (like Chrome),
+    // so we check for both the standard and the `webkit` prefixed version.
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    // If neither version is found in the `window` object, the browser does not
+    // support this feature. We log a warning and exit the function.
+    if (!SpeechRecognitionAPI) {
+        console.warn("Speech Recognition not supported in this browser.");
+        return;
+    }
+
+    // If the API is supported, we can now safely show the microphone button,
+    // which is hidden by default via CSS (`display: none`).
+    if(micBtn) {
+        micBtn.style.display = 'flex';
+    }
+
+    // Create a new instance of the SpeechRecognition object.
+    const recognition = new SpeechRecognitionAPI();
+
+    // Configure the recognition language based on the current app language.
+    const langMap = {
+        en: 'en-US',
+        es: 'es-ES',
+        ht: 'ht-HT'
+    };
+    recognition.lang = langMap[lang] || 'en-US'; // Default to English if language not mapped.
+
+    // --- Wire up recognition events ---
+
+    // When the mic button is clicked, start the speech recognition service.
+    // This will typically trigger a browser permission prompt for the user the first time.
+    if (micBtn) {
+        micBtn.addEventListener('click', () => {
+            recognition.start();
+        });
+    }
+
+
+    // The 'onstart' event fires when the service has begun listening.
+    // We provide visual feedback by changing the button's color to the brand color.
+    recognition.onstart = () => {
+        if(micBtn) {
+            micBtn.style.color = 'var(--brand)';
+            micBtn.style.transform = 'scale(1.1)';
+        }
+    };
+
+    // The 'onend' event fires when the service has stopped listening.
+    // We revert the button's color back to the default accent color.
+    recognition.onend = () => {
+        if(micBtn) {
+            micBtn.style.color = 'var(--accent)';
+            micBtn.style.transform = 'scale(1)';
+        }
+    };
+
+    // The 'onresult' event is the most important one. It fires when the
+    // speech recognition service has a result.
+    recognition.onresult = (event) => {
+        // The recognized text is located in a nested structure within the event object.
+        const transcript = event.results[0][0].transcript;
+
+        // Set the value of the main input box to the recognized text.
+        box.value = transcript;
+
+        // Automatically call the send() function to submit the message.
+        send();
+    };
+}
+    /* ======================================================================== */
+/* */
+/* SECTION 13: INITIALIZATION & APP ENTRY POINT                             */
+/* */
+/* This is the final and most crucial section for making the app work.      */
+/* It contains the main `initApp` function that wires up all the event      */
+/* listeners for the buttons, and the entry point that starts the entire    */
+/* application after the user dismisses the splash screen.                  */
+/* */
+/* ======================================================================== */
+
+/**
+ * The main initialization function for the entire chat application.
+ * This function is called ONLY ONCE, after the splash screen is dismissed.
+ *
+ * Its job is to run all the necessary setup functions and to attach all the
+ * main event listeners to the buttons and input fields, making the application
+ * interactive.
+ *
+ * @returns {void} This function does not return a value.
+ */
 function initApp() {
+
+    // --- Step 1: Run Initializer Functions ---
+
+    // Initialize the audio synthesizer. This must be done after a user
+    // gesture (like clicking the splash screen button) to work in modern browsers.
     initAudio();
+
+    // Set the initial color theme based on saved preference or OS setting.
     initTheme();
+
+    // Set up the microphone and Speech Recognition API if the browser supports it.
     initMic();
-    resetBtn.addEventListener('click', resetConversation);
-    sendBtn.addEventListener('click', send);
-    box.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
-    themeToggle.addEventListener('click', () => {
-        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('task_theme', next);
-    });
-    magicBtn.addEventListener('click', showToolsOverlay);
-    closeToolsBtn.addEventListener('click', closeToolsOverlay);
+
+
+    // --- Step 2: Wire Up All Main Event Listeners ---
+
+    // Find the 'Reset' button and attach a 'click' event listener to it.
+    // When clicked, it will call the `resetConversation` function.
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetConversation);
+    }
+
+    // Find the 'Send' button and attach a 'click' event listener to it.
+    // When clicked, it will call the `send` function.
+    if (sendBtn) {
+        sendBtn.addEventListener('click', send);
+    }
+
+    // Find the main text input box.
+    if (box) {
+        // Attach a 'keydown' event listener to the text box.
+        box.addEventListener('keydown', (event) => {
+            // Check if the key that was pressed was the 'Enter' key,
+            // and that the 'Shift' key was NOT also being held down.
+            if (event.key === 'Enter' && !event.shiftKey) {
+                // Prevent the default action (which would be to add a new line).
+                event.preventDefault();
+                // Call the send() function, just as if the send button were clicked.
+                send();
+            }
+        });
+    }
+
+    // Find the 'Theme Toggle' button.
+    if (themeToggle) {
+        // Attach a 'click' event listener.
+        themeToggle.addEventListener('click', () => {
+            // Check the current theme by reading the 'data-theme' attribute from the <html> tag.
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            
+            // Determine the next theme. If it's currently dark, switch to light, and vice versa.
+            const nextTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            
+            // Apply the new theme by setting the attribute.
+            document.documentElement.setAttribute('data-theme', nextTheme);
+            
+            // Save the user's preference in localStorage for their next visit.
+            try {
+                localStorage.setItem('task_theme', nextTheme);
+            } catch (e) {
+                // Log a warning if localStorage is not accessible, but don't crash.
+                console.warn("Could not access localStorage to save theme.", e);
+            }
+        });
+    }
+
+    // Find the 'Magic' button for the advanced tools panel.
+    if (magicBtn) {
+        // Attach a 'click' event listener that calls the function to show the tools overlay.
+        magicBtn.addEventListener('click', showToolsOverlay);
+    }
     
+    // Find the 'Close' button inside the tools panel.
+    if (closeToolsBtn) {
+        // Attach a 'click' event listener that calls the function to hide the tools overlay.
+        closeToolsBtn.addEventListener('click', closeToolsOverlay);
+    }
+    
+    // --- Step 3: Final UI Actions ---
+    
+    // Display the initial welcome message and suggestion buttons.
     greet();
+    
+    // Set the keyboard focus to the input box so the user can start typing immediately.
     box.focus();
 }
 
-// Splash Screen Control - The single point of entry
-ce('start-chat-btn').addEventListener('click', () => {
-    const splash = ce('splash-screen');
-    const mainApp = ce('app-container');
-    splash.style.opacity = '0';
-    splash.style.visibility = 'hidden';
-    setTimeout(() => {
-        splash.style.display = 'none';
-        mainApp.style.display = 'flex';
-        initApp();
-    }, 500); // Wait for fade out transition
-});
+// ========================================================================
+// --- SPLASH SCREEN CONTROL (The Application's True Entry Point) ---
+// ========================================================================
+
+// This is the very first piece of interactive code that runs.
+// It finds the "Start Chatting" button on the splash screen.
+const startButton = document.getElementById('start-chat-btn');
+
+// We check if the button was successfully found to prevent errors.
+if (startButton) {
+    // We attach a 'click' event listener to the button.
+    startButton.addEventListener('click', () => {
+
+        // Get references to the splash screen and the main app container.
+        const splash = document.getElementById('splash-screen');
+        const mainApp = document.getElementById('app-container');
+
+        // --- Start the transition ---
+
+        // 1. Fade out the splash screen by setting its opacity to 0.
+        // The CSS transition rule (`transition: opacity 0.5s ease`) handles the animation.
+        splash.style.opacity = '0';
+        
+        // Also set visibility to hidden to prevent it from capturing mouse clicks during the fade.
+        splash.style.visibility = 'hidden';
+
+        // 2. Use `setTimeout` to wait for the fade-out animation (500ms) to complete.
+        setTimeout(() => {
+            // 3. After the animation, hide the splash screen completely.
+            splash.style.display = 'none';
+
+            // 4. Show the main application container.
+            mainApp.style.display = 'flex';
+            
+            // 5. **CRITICAL STEP**: Now that the main app is visible, call the `initApp()`
+            // function to initialize all of its components and event listeners.
+            initApp();
+
+        }, 500); // The timeout duration must match the CSS transition duration.
+    });
+} else {
+    // This is a fallback case for development. If for some reason the splash
+    // screen HTML is removed, this will log a warning and attempt to start the
+    // app as soon as the DOM is loaded.
+    console.warn("Start button not found. The splash screen might be missing.");
+    document.addEventListener('DOMContentLoaded', initApp);
+}
+
 </script>
 </body>
-</html>
+</html> 
