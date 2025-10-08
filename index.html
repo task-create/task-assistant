@@ -340,7 +340,6 @@
 
 // ================== CONFIGURATION ================== //
 // Centralized control panel for the chatbot.
-// All key information should be stored here for easy maintenance.
 const CONFIG = {
     API_KEY: 'YOUR_GEMINI_API_KEY_HERE', // <-- IMPORTANT: Replace with your actual Gemini API key
     
@@ -353,13 +352,12 @@ const CONFIG = {
     TASK_WEBSITE: 'https://www.trentonsoupkitchen.org/',
     TRAINING_APPLY_LINK: 'https://example.com/training-application', // Replace with the real application link
     SORA_LINK: 'https://www.njsp.org/private-detective/sora.shtml',
-    GOOGLE_MAPS_BASE: 'https://www.google.com/maps/search/?api=1&query=',
+    GOOGLE_MAPS_BASE: 'https://maps.google.com/?q=',
     
     // Location Information
     TASK_ADDRESS: '72 1/2 Escher Street, Trenton, NJ 08609',
 
-    // Error Reporting (Microsoft Forms)
-    // Create a form with two text fields and get the post-submission URL and field IDs.
+    // Error Reporting (Microsoft Forms) - OPTIONAL
     MS_FORM_URL: 'YOUR_MICROSOFT_FORM_SUBMISSION_URL_HERE',
     USER_PROMPT_FIELD: 'entry.xxxxxxxxxx', // Field ID for "User Prompt"
     ERROR_DETAILS_FIELD: 'entry.yyyyyyyyyy', // Field ID for "Error Details"
@@ -381,11 +379,11 @@ const chatWindow = ce('chat-window');
 const userInput = ce('user-input');
 const sendBtn = ce('send-btn');
 const magicBtn = ce('magic-btn');
-const resetBtn = ce('resetBtn');
+const resetBtn = ce('reset-btn');
 const statusBar = ce('status-bar');
 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CONFIG.API_KEY}`;
-  // ================== SOUND & HAPTICS ================== //
+    // ================== SOUND & HAPTICS ================== //
 try {
   synth = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: "sine" },
@@ -519,7 +517,7 @@ function showTypingIndicator(show) {
         existing.remove();
     }
 }
-  // ================== DYNAMIC CONTENT & "TOOLS" ================== //
+    // ================== DYNAMIC CONTENT & "TOOLS" ================== //
 
 /** Renders a set of clickable suggestion buttons. */
 function showSuggestionButtons(suggestions) {
@@ -548,7 +546,7 @@ function showSuggestionButtons(suggestions) {
 
 /** Renders an interactive Google Maps card for the TASK address. */
 function renderGoogleMapsCard() {
-    const { TASK_ADDRESS, GOOGLE_MAPS_BASE, APPOINTMENT_NUMBER } = CONFIG;
+    const { TASK_ADDRESS, GOOGLE_MAPS_BASE } = CONFIG;
     const mapUrl = `${GOOGLE_MAPS_BASE}${encodeURIComponent(TASK_ADDRESS)}`;
     const html = `
         <div class="card-base">
@@ -587,8 +585,8 @@ const systemPrompt = (currentLang) => `
     1.  **Safety First:** When discussing jobs, ALWAYS include a warning about scams, like "Be cautious of scams and never provide personal financial details early in an application."
     2.  **Formatting:** Use Markdown lists (* item) for clarity when presenting multiple options or steps. DO NOT use blocky paragraphs.
     3.  **Tool Usage:** To perform specific actions, respond ONLY with the designated tag. Do not add any other text.
-        * To show the map/address: `[TASK_ADDRESS]`
-        * To search for jobs: `[SEARCH_JOBS: job_type_or_company]` (e.g., `[SEARCH_JOBS: Amazon warehouse]`)
+        * To show the map/address: \`[TASK_ADDRESS]\`
+        * To search for jobs: \`[SEARCH_JOBS: job_type_or_company]\` (e.g., \`[SEARCH_JOBS: Amazon warehouse]\`)
     4.  **No Outside Knowledge:** Only use the information provided below. Do not invent programs, contacts, or phone numbers. If you don't know, state that and provide the main appointment number.
 
     ***YOUR KNOWLEDGE BASE***
@@ -633,14 +631,14 @@ async function getAiResponse(prompt) {
 
             if (response.status === 429 || response.status >= 500) { // Retry on rate limit or server error
                 const delay = Math.pow(2, i) * 1000 + (Math.random() * 1000);
-                console.warn(`API retry ${i + 1} after ${delay}ms: Status ${response.status}`);
+                console.warn(\`API retry \${i + 1} after \${delay}ms: Status \${response.status}\`);
                 await new Promise(resolve => setTimeout(resolve, delay));
                 continue;
             }
 
             if (!response.ok) {
                  const errorText = await response.text();
-                 throw new Error(`API Error: ${response.status} ${errorText}`);
+                 throw new Error(\`API Error: \${response.status} \${errorText}\`);
             }
             
             const data = await response.json();
@@ -657,7 +655,7 @@ async function getAiResponse(prompt) {
             return text;
 
         } catch (error) {
-            console.error(`Fetch attempt ${i + 1} failed:`, error);
+            console.error(\`Fetch attempt \${i + 1} failed:\`, error);
             lastError = error;
         }
     }
@@ -689,7 +687,7 @@ async function handleUserInput(text) {
     
     // Tool Dispatcher
     if (aiResponse.startsWith('[SEARCH_JOBS:')) {
-        const query = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/)?.[1];
+        const query = aiResponse.match(/\\[SEARCH_JOBS:\\s*(.+)\\]/)?.[1];
         if (query) renderJobSearchCard(query);
         else addBotBubble(UI_STRINGS[lang].errorSoft);
     } else if (aiResponse.startsWith('[TASK_ADDRESS]')) {
@@ -708,19 +706,19 @@ async function handleUserInput(text) {
 function formatBotResponse(text) {
     // 1. Convert Markdown links and lists
     let html = text
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-        .replace(/^\* (.*$)/gm, '<li>$1</li>');
+        .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+        .replace(/^\\* (.*$)/gm, '<li>$1</li>');
     if (html.includes('<li>')) {
-        html = `<ul>${html.replace(/<\/li>\n/g, '</li>')}</ul>`;
+        html = \`<ul>\${html.replace(/<\\/li>\\n/g, '</li>')}</ul>\`;
     }
 
     // 2. Add contact buttons if staff numbers are mentioned
     if (html.includes(CONFIG.DIANI_NUMBER) || html.includes(CONFIG.SEAN_NUMBER)) {
-         html += `
+         html += \`
             <div class="contact-buttons">
-                ${html.includes(CONFIG.DIANI_NUMBER) ? `<a href="tel:${CONFIG.DIANI_NUMBER}" class="call-btn">📞 Call Diani</a><a href="sms:${CONFIG.DIANI_NUMBER}" class="text-btn">💬 Text Diani</a>` : ''}
-                ${html.includes(CONFIG.SEAN_NUMBER) ? `<a href="tel:${CONFIG.SEAN_NUMBER}" class="call-btn">📞 Call Sean</a><a href="sms:${CONFIG.SEAN_NUMBER}" class="text-btn">💬 Text Sean</a>` : ''}
-            </div>`;
+                \${html.includes(CONFIG.DIANI_NUMBER) ? \`<a href="tel:\${CONFIG.DIANI_NUMBER}" class="call-btn">📞 Call Diani</a><a href="sms:\${CONFIG.DIANI_NUMBER}" class="text-btn">💬 Text Diani</a>\` : ''}
+                \${html.includes(CONFIG.SEAN_NUMBER) ? \`<a href="tel:\${CONFIG.SEAN_NUMBER}" class="call-btn">📞 Call Sean</a><a href="sms:\${CONFIG.SEAN_NUMBER}" class="text-btn">💬 Text Sean</a>\` : ''}
+            </div>\`;
     }
     return html;
 }
@@ -730,7 +728,7 @@ function send() {
     const text = userInput.value.trim();
     if (text) {
         // Show checkmark icon on send button briefly
-        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M10.75 16.75l-4.5-4.5 1.06-1.06 3.44 3.44 6.94-6.94 1.06 1.06-8 8z"/></svg>`;
+        sendBtn.innerHTML = \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M10.75 16.75l-4.5-4.5 1.06-1.06 3.44 3.44 6.94-6.94 1.06 1.06-8 8z"/></svg>\`;
         handleUserInput(text);
         userInput.value = '';
     }
@@ -788,19 +786,18 @@ const UI_STRINGS = {
     }
 };
 
-/** Detects language from text and sets the global `lang` variable. */
+/** Detects language from text and sets the global \`lang\` variable. */
 async function detectAndSetLanguage(text) {
     // This is a simplified, keyword-based detection for this environment.
-    // A real implementation might use a more robust library or API call.
     const lowerText = text.toLowerCase();
-    if (/\b(hola|gracias|cita|trabajo|ayuda)\b/.test(lowerText)) {
+    if (/\\b(hola|gracias|cita|trabajo|ayuda)\\b/.test(lowerText)) {
         lang = 'es';
-    } else if (/\b(bonjou|mwen|ede|kòman|travay)\b/.test(lowerText)) {
+    } else if (/\\b(bonjou|mwen|ede|kòman|travay)\\b/.test(lowerText)) {
         lang = 'ht';
     } else {
         lang = 'en';
     }
-    console.log(`Language detected: ${lang}`);
+    console.log(\`Language detected: \${lang}\`);
 }
 
 /** Displays the initial greeting message and suggestion buttons. */
@@ -819,7 +816,10 @@ document.addEventListener('DOMContentLoaded', () => {
     resetBtn.addEventListener('click', resetConversation);
     magicBtn.addEventListener('click', () => {
         if(isLoading) return;
-        showSuggestionButtons(UI_STRINGS[lang].suggestions);
+        const existingSuggestions = document.querySelector('.suggestions-container');
+        if (!existingSuggestions) {
+            showSuggestionButtons(UI_STRINGS[lang].suggestions);
+        }
     });
     userInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
