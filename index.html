@@ -1,811 +1,839 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Employment Assistant</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
-<meta name="theme-color" content="#FFFFFF">
-<script src="https://unpkg.com/tone"></script>
-<style>
-:root{
-  --radius: 20px;
-  --bg: #0a0f1a;
-  --surface: #111929;
-  --surface-2: #0e1625;
-  --text: #eaf2ff;
-  --muted: #a7bad5;
-  --brand: #E34A27; /* TASK Red-Orange */
-  --accent: #003B5C; /* TASK Dark Blue */
-  --border: #344b6b;
-  --link: #ff8a6b;
-  --shadow: 0 20px 40px rgba(0,0,0,.6);
-  --shadow-soft: 0 8px 20px rgba(0,0,0,.45);
-  --header-bg: rgba(17, 25, 41, 0.7);
-  --header-border: #344b6b;
-  --bubble-bot-bg: #1e293b;
-  --bubble-bot-text: #eaf2ff;
-  --bubble-user-bg: var(--brand);
-  --bubble-user-text: #fff;
-  --typing: #aab4c3;
-  --error: #E53935; /* Red for errors */
-  --legal-bg: #1a2a40; /* Darker blue for footer */
-  --legal-text: #8c9bb4;
-}
-/* LIGHT MODE */
-[data-theme="light"]{
-  --bg: #f4f7fa;
-  --surface: #ffffff;
-  --surface-2: #f7fbff;
-  --text: #0a121e;
-  --muted: #5a6b82;
-  --border: #e2e8f0;
-  --link: var(--brand);
-  --shadow: 0 20px 40px rgba(30, 50, 80, .1);
-  --shadow-soft: 0 8px 20px rgba(30, 50, 80, .08);
-  --header-bg: rgba(255, 255, 255, 0.7);
-  --header-border: #d9e2ec;
-  --bubble-bot-bg: #e9eef3;
-  --bubble-bot-text: #111827;
-  --bubble-user-bg: var(--brand);
-  --bubble-user-text: #fff;
-  --typing: #aab4c3;
-  --legal-bg: #e9eef3; 
-  --legal-text: #5a6b82;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{
-  font-family:"Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background:var(--bg); color:var(--text); display:flex; align-items:center; justify-content:center;
-  font-size:clamp(15px, 1.6vw, 17px); min-height:100vh;
-}
-a{color:var(--link);text-decoration:none;font-weight:600} a:hover{text-decoration:underline}
-.app{
-  width:100%; max-width:560px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-  overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; height:100vh; position:relative;
-}
-.header{
-  position: absolute; top: 0; left: 0; right: 0; z-index: 100;
-  background: var(--header-bg);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom:1px solid var(--header-border); 
-  padding:12px 56px; text-align:center;
-}
-.badge{
-  display:inline-block; background: var(--surface); color:var(--text); padding:8px 20px; border-radius:999px;
-  font:800 16px/1 "Nunito", sans-serif; cursor:pointer;
-  border: 1px solid var(--border); box-shadow: var(--shadow-soft);
-}
-.icon-btn {
-  position:absolute; top:10px; width:44px; height:44px; border:none; border-radius:50%; background:transparent;
-  color:var(--muted); cursor:pointer; transition:all .2s ease; font-size: 20px;
-  display: flex; align-items: center; justify-content: center;
-}
-.icon-btn:hover { color: var(--text); background: rgba(0,0,0,0.05); }
-.icon-btn:active { transform: scale(.95); }
-.reset{left:10px;}
-.settings-btn {right:10px;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Employment Assistant</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        :root {
+            --bg-color-light: #f7f8fa;
+            --bg-color-dark: #121212;
+            --text-color-light: #1d1d1f;
+            --text-color-dark: #e1e1e1;
+            --bubble-user-bg-light: #007aff;
+            --bubble-user-bg-dark: #0a84ff;
+            --bubble-bot-bg-light: #e5e5ea;
+            --bubble-bot-bg-dark: #2c2c2e;
+            --bubble-bot-text-light: #000;
+            --bubble-bot-text-dark: #fff;
+            --border-color-light: #d1d1d6;
+            --border-color-dark: #3a3a3c;
+            --header-bg-light: rgba(255, 255, 255, 0.7);
+            --header-bg-dark: rgba(28, 28, 30, 0.7);
+            --input-bg-light: #fff;
+            --input-bg-dark: #1c1c1e;
+            --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-size-base: 16px;
+            --border-radius: 18px;
+            --max-width: 720px;
+        }
 
-.settings-menu{position:absolute;top:60px;right:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-soft);display:none;min-width:180px;z-index:200}
-.settings-menu[aria-hidden="false"]{display:block}
-.settings-menu button{display:flex; gap: 8px; align-items: center; width:100%;text-align:left;padding:10px 12px;background:transparent;border:none;cursor:pointer; color: var(--text);}
-.settings-menu button:hover{background:var(--surface-2)}
+        /* Auto-detection for dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: var(--bg-color-dark);
+                --text-color: var(--text-color-dark);
+                --bubble-user-bg: var(--bubble-user-bg-dark);
+                --bubble-bot-bg: var(--bubble-bot-bg-dark);
+                --bubble-bot-text: var(--bubble-bot-text-dark);
+                --border-color: var(--border-color-dark);
+                --header-bg: var(--header-bg-dark);
+                --input-bg: var(--input-bg-dark);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: var(--bg-color-light);
+                --text-color: var(--text-color-light);
+                --bubble-user-bg: var(--bubble-user-bg-light);
+                --bubble-bot-bg: var(--bubble-bot-bg-light);
+                --bubble-bot-text: var(--bubble-bot-text-light);
+                --border-color: var(--border-color-light);
+                --header-bg: var(--header-bg-light);
+                --input-bg: var(--input-bg-light);
+            }
+        }
 
-.chat{
-  flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; padding-top: 80px; 
-  /* Adjusted padding-bottom to account for the footer and the legal disclaimer */
-  padding-bottom:120px; 
-  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
-  background: var(--surface-2);
-}
-.bubble-wrapper { display: flex; align-items: flex-end; gap: 8px; margin: 20px 0; max-width: 92%; animation: pop-in .3s cubic-bezier(0.25, 1, 0.5, 1); }
-.bot-bubble-wrapper { margin-right: 18%; }
-.user-bubble-wrapper { margin-left: 18%; flex-direction: row-reverse; }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: var(--font-family-sans);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: var(--font-size-base);
+        }
 
-.avatar { width: 36px; height: 36px; border-radius: 50%; background:var(--accent); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-family: "Nunito", sans-serif; font-weight: 700; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.bubble{padding:14px 18px;border-radius:18px;line-height:1.5;box-shadow:var(--shadow-soft); transition:box-shadow .15s ease,transform .08s ease}
-.bubble.bot{background:var(--bubble-bot-bg); color: var(--bubble-bot-text); border:1px solid var(--border); border-radius: 18px 18px 18px 4px;}
-.bubble.user{color:var(--bubble-user-text); background:var(--bubble-user-bg); border:none; border-radius:18px 18px 4px 18px; box-shadow: 0 4px 14px rgba(227, 74, 39, 0.3);}
-.bubble:hover{box-shadow:0 10px 22px rgba(20,80,120,.14); transform: translateY(-1px);}
-@keyframes pop-in { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.ctrl{
-  display: inline-flex; align-items: center; gap: 8px;
-  border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:12px 18px;
-  font-weight:600; cursor:pointer; transition:all .12s ease;
-  color:var(--text); font-size: 15px;
-}
-.ctrl:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--accent); box-shadow: var(--shadow-soft); }
-.ctrl:active{transform:scale(.98)}
-.ctrl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.typing{display:inline-flex;gap:6px;align-items:flex-end}
-.typing .dot{width:6px;height:6px;border-radius:50%;background:var(--typing);animation:bounce 1s infinite ease-in-out}
-.typing .dot:nth-child(2){animation-delay:.12s}.typing .dot:nth-child(3){animation-delay:.24s}
-@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.6}40%{transform:translateY(-6px);opacity:1}}
-@media (prefers-reduced-motion: reduce){.typing .dot{animation:none}}
-/* Adjusted bottom position to sit just above the legal disclaimer (32px tall) */
-.footer{position:absolute;bottom:32px;left:0;right:0;padding:12px;background:var(--surface-2);border-top:1px solid var(--border);z-index:100}
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        
+        #header, #status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 16px;
+            background-color: var(--header-bg);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.legal-footer {
-    position: fixed; bottom: 0; left: 0; right: 0; width: 100%; z-index: 99;
-    padding: 8px 12px; font-size: 10px; text-align: center; color: var(--legal-text);
-    background: var(--legal-bg); border-top: 1px solid var(--border);
-    max-height: 32px;
-    line-height: 1.2;
-}
-.row{display:flex;gap:10px;align-items:center}
-#box{flex:1;padding:14px 50px 14px 18px;border:2px solid var(--border);border-radius:999px;font-size:16px;background:var(--surface);color:var(--text);caret-color:var(--accent); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);}
-#box:disabled { background: var(--surface-2); cursor: not-allowed; }
-.magic-btn { position: absolute; right: 75px; top: 18px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); transition: transform 0.2s ease, color 0.2s ease; }
-.magic-btn:hover { transform: scale(1.2); color: var(--accent); }
+        #header {
+            height: 40px;
+        }
 
-.send{width:52px;height:52px;border:none;border-radius:50%;cursor:pointer;color:white;font-size:18px;background:var(--brand);box-shadow:var(--shadow-soft);transition:transform .1s ease, background .1s ease, opacity 0.1s ease;}
-.send:hover { background: var(--accent); }
-.send:active{transform:scale(.95)}
-.send:disabled { background: var(--muted); cursor: not allowed; }
-.status{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
-.error-status { color: var(--error); font-weight: 600; }
-/* --- Cards --- */
-.card-base {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 16px; box-shadow: var(--shadow-soft); margin-bottom: 16px;
-  animation: pop-in .5s cubic-bezier(0.25, 1, 0.5, 1) backwards;
-}
-.card-base h3 { font-family: "Nunito", sans-serif; font-size: 18px; color: var(--accent); margin-bottom: 8px; }
-.card-base p { margin-bottom: 12px; line-height: 1.5; }
-.card-base .ctrl { 
-    background: var(--surface-2);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-    border-color: var(--border);
-    font-size: 14px;
-    padding: 8px 14px;
-    font-weight: 700;
-}
-.job-card { margin-top: 10px; }
-.job-card strong { display: block; font-family: "Nunito", sans-serif; }
-.job-card span { color: var(--muted); font-size: 14px; }
-/* Contact Buttons */
-.contact-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.contact-btn {
-    padding: 10px 16px; border-radius: 999px; font-weight: 700; cursor: pointer;
-    transition: all .12s ease; font-size: 14px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-.contact-btn.call { background: #34D399; color: #064E3B; border: 1px solid #10B981; } /* Green */
-.contact-btn.call:hover { background: #10B981; }
-.contact-btn.text { background: #60A5FA; color: #1E40AF; border: 1px solid #3B82F6; } /* Blue */
-.contact-btn.text:hover { background: #3B82F6; }
+        #status-bar {
+            top: 61px; /* Position below the header */
+            height: 25px;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 500;
+            border-bottom: none;
+            border-top: 1px solid var(--border-color);
+        }
 
-/* Quick-Start Prompt Suggestions */
-.suggestions-container {
-    display: flex; flex-direction: column; gap: 12px; margin: 16px 0;
-    padding: 16px; border: 1px solid var(--border); border-radius: var(--radius);
-    background: var(--surface);
-    box-shadow: var(--shadow-soft);
-}
-.suggestion-btn {
-    display: flex; align-items: center; justify-content: center;
-    width: 100%; padding: 14px 18px;
-    background: var(--surface-2);
-    color: var(--accent); 
-    font-size: 16px; font-weight: 700;
-    border: 1px solid var(--border); border-radius: 12px;
-    cursor: pointer;
-    transition: all .15s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.suggestion-btn:hover {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transform: translateY(-1px);
-}
-</style>
+        #header h1 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .header-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        #chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 110px 16px 16px;
+            scrollbar-width: thin;
+            scroll-behavior: smooth;
+        }
+
+        .bubble-wrapper {
+            display: flex;
+            margin-bottom: 12px;
+            max-width: 85%;
+            align-items: flex-end;
+        }
+        .user-bubble-wrapper {
+            margin-left: auto;
+            justify-content: flex-end;
+        }
+        .bot-bubble-wrapper {
+            margin-right: auto;
+            justify-content: flex-start;
+        }
+
+        .avatar {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background-color: var(--bubble-bot-bg);
+            color: var(--bubble-bot-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .bubble {
+            padding: 10px 14px;
+            border-radius: var(--border-radius);
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-size: 15px;
+        }
+        .user {
+            background-color: var(--bubble-user-bg);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .bot {
+            background-color: var(--bubble-bot-bg);
+            color: var(--bubble-bot-text);
+            border-bottom-left-radius: 4px;
+        }
+        .bot a {
+            color: var(--bubble-user-bg);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .bot a:hover { text-decoration: underline; }
+        .bot ul { margin: 8px 0; padding-left: 20px; }
+        .bot li { margin-bottom: 4px; }
+
+        .typing { display: flex; align-items: center; }
+        .typing .dot {
+            width: 6px; height: 6px;
+            margin: 0 2px;
+            background-color: currentColor;
+            opacity: 0.5;
+            border-radius: 50%;
+            animation: typing-anim 1.2s infinite ease-in-out;
+        }
+        .typing .dot:nth-child(2) { animation-delay: 0.15s; }
+        .typing .dot:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes typing-anim {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        #input-area {
+            display: flex;
+            align-items: flex-end;
+            padding: 8px 12px;
+            background-color: var(--header-bg);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border-top: 1px solid var(--border-color);
+        }
+
+        #user-input {
+            flex-grow: 1;
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 15px;
+            line-height: 1.3;
+            max-height: 100px;
+            resize: none;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+        }
+        #user-input:focus {
+            outline: none;
+            border-color: var(--bubble-user-bg);
+        }
+
+        #send-btn, #magic-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            margin-left: 8px;
+            flex-shrink: 0;
+            color: var(--bubble-user-bg);
+        }
+        #send-btn:disabled, #magic-btn:disabled {
+            color: var(--border-color);
+            cursor: not-allowed;
+        }
+        #send-btn svg, #magic-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        
+        /* Suggestions & Cards */
+        .suggestions-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            padding: 10px 0;
+        }
+        .suggestion-btn {
+            background-color: var(--bubble-bot-bg);
+            color: var(--bubble-bot-text);
+            border: none;
+            border-radius: 16px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.2s;
+        }
+        .suggestion-btn.clicked {
+            transform: scale(0.95);
+            background-color: var(--border-color);
+        }
+        
+        .card-base {
+            background-color: var(--bubble-bot-bg);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .card-base h3 { margin: 0 0 8px 0; font-size: 16px; }
+        .card-base p { margin: 0 0 12px 0; font-size: 14px; }
+        .card-base .controls a {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            background-color: var(--input-bg);
+            color: var(--bubble-user-bg);
+            font-weight: 600;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        
+        .contact-buttons { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .call-btn, .text-btn {
+            flex-grow: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .call-btn { background-color: #34c759; color: white; }
+        .text-btn { background-color: var(--bubble-user-bg); color: white; }
+
+    </style>
 </head>
-<body data-theme="dark">
-<main class="app">
-<header class="header">
-  <button class="reset icon-btn" id="resetBtn" aria-label="Clear chat">↺</button>
-  <div class="badge" id="scrollTopBtn" tabindex="0" role="button" aria-label="Scroll to top">Employment Assistant</div>
-  <button class="settings-btn icon-btn" id="settingsBtn" aria-label="Settings menu" aria-haspopup="menu" aria-expanded="false">...</button>
-  <div class="settings-menu" id="settingsMenu" role="menu" aria-hidden="true">
-    <button role="menuitem" id="micBtn">🎙️ Voice Input</button>
-    <button role="menuitem" id="themeToggle">🌗 Theme</button>
-  </div>
-</header>
-
-<section class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat transcript"></section>
-
-<footer class="footer">
-  <div class="row" style="position: relative;">
-    <label class="visually-hidden" for="box">Type a message</label>
-    <input id="box" type="text" placeholder="Ask me anything..." autocomplete="off"/>
-    <button class="magic-btn" id="magicBtn" aria-label="Show suggestions">✨</button>
-    <button class="send" id="send" aria-label="Send">
-      <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
-    </button>
-  </div>
-  <div class="status" id="status-bar">⚠️ I can make mistakes — please double-check important info.</div>
-</footer>
-</main>
-
-<div class="legal-footer">
-    Disclaimer: This AI is for information and referrals only and **does not** provide legal, financial, or medical advice. Always verify crucial information.
-</div>
-
+<body>
+    <div id="chat-container">
+        <header id="header">
+            <h1>Employment Assistant</h1>
+            <button id="resetBtn" class="header-btn" title="Reset Conversation">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                    <path d="M12 4c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 14c-3.313 0-6-2.687-6-6s2.687-6 6-6 6 2.687 6 6-2.687 6-6 6zm-1-8H9v2h2v2h2v-2h2V9h-2V7h-2v2z"/>
+                </svg>
+            </button>
+        </header>
+        <div id="status-bar">⚠️ I can make mistakes — please double-check important info.</div>
+        <div id="chat-window"></div>
+        <div id="input-area">
+             <button id="magic-btn" title="Quick Suggestions">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                  <path d="M12 2.25a.75.75 0 01.75.75v.516a8.966 8.966 0 015.632 2.632l.365-.365a.75.75 0 111.06 1.06l-.365.365a8.966 8.966 0 012.632 5.632h.516a.75.75 0 010 1.5h-.516a8.966 8.966 0 01-2.632 5.632l.365.365a.75.75 0 11-1.06 1.06l-.365-.365a8.966 8.966 0 01-5.632 2.632v.516a.75.75 0 01-1.5 0v-.516a8.966 8.966 0 01-5.632-2.632l-.365.365a.75.75 0 11-1.06-1.06l.365-.365a8.966 8.966 0 01-2.632-5.632H2.25a.75.75 0 010-1.5h.516a8.966 8.966 0 012.632-5.632L5.033 5.033a.75.75 0 011.06-1.06l.365.365A8.966 8.966 0 0111.25 2.766V2.25A.75.75 0 0112 2.25zM4.5 12a7.5 7.5 0 1015 0 7.5 7.5 0 00-15 0zM12 7.5a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3A.75.75 0 0112 7.5zM11.25 15a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5h-1.5z"/>
+                </svg>
+             </button>
+            <textarea id="user-input" placeholder="Type a message..." rows="1"></textarea>
+            <button id="send-btn" title="Send Message">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 <script>
-'use strict';
+// --- START OF JAVASCRIPT ---
 
-/* ================= CONFIGURATION & DATA ================= */
-
+// ================== CONFIGURATION ================== //
+// Centralized control panel for the chatbot.
+// All key information should be stored here for easy maintenance.
 const CONFIG = {
-    // API and Keys
-    API_KEY: "AIzaSyBGCzk-xHAi4uZITtxGbsw_2uhK0asMhO8",
-    MODEL_URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=",
-    MAX_RETRIES: 3,
-
-    // Staff Contacts
-    DIANI_NUMBER: '6096976166',
-    SEAN_NUMBER: '6096976215',
-    APPOINTMENT_LINE: '6093371624',
-
-    // Essential Links
-    TASK_WEBSITE: 'https://www.trentonsoupkitchen.org',
-    TRAINING_APP_LINK: 'https://bycell.mobi/wap/default/item.jsp?entryid=ECNDE0Mg==&itemid=170659',
+    API_KEY: 'YOUR_GEMINI_API_KEY_HERE', // <-- IMPORTANT: Replace with your actual Gemini API key
+    
+    // Contact Information
+    DIANI_NUMBER: '6091234567', // Replace with Diani's actual number
+    SEAN_NUMBER: '6097654321', // Replace with Sean's actual number
+    APPOINTMENT_NUMBER: '6099876543', // Replace with the main appointment line
+    
+    // URLs and Links
+    TASK_WEBSITE: 'https://www.trentonsoupkitchen.org/',
+    TRAINING_APPLY_LINK: 'https://example.com/training-application', // Replace with the real application link
     SORA_LINK: 'https://www.njsp.org/private-detective/sora.shtml',
-    CAREER_TIPS_LINK: 'https://bycell.co/ddmnx',
-    NJ_TRANSIT_LINK: 'https://www.njtransit.com/trip-planner',
+    GOOGLE_MAPS_BASE: 'https://www.google.com/maps/search/?api=1&query=',
+    
+    // Location Information
+    TASK_ADDRESS: '72 1/2 Escher Street, Trenton, NJ 08609',
 
-    // Microsoft Forms for Silent Error Reporting
-    FORM_URL: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ow8z6jKllki1K9QxRGz9cM5ktnuJ8wNItOJyCNgnAy9UREpHV0lQTVdNV0c1VTYzOUg2WjlZUVc4Qi4u&action=Submit', 
-    USER_PROMPT_FIELD: 'q1_q1', 
-    ERROR_DETAILS_FIELD: 'q2_q2', 
+    // Error Reporting (Microsoft Forms)
+    // Create a form with two text fields and get the post-submission URL and field IDs.
+    MS_FORM_URL: 'YOUR_MICROSOFT_FORM_SUBMISSION_URL_HERE',
+    USER_PROMPT_FIELD: 'entry.xxxxxxxxxx', // Field ID for "User Prompt"
+    ERROR_DETAILS_FIELD: 'entry.yyyyyyyyyy', // Field ID for "Error Details"
+
+    // Technical Settings
+    MAX_RETRIES: 3, // Number of times to retry the API call on failure
+    INITIAL_GREETING_DELAY: 500, // ms
 };
 
-// Full API URL
-const API_URL = CONFIG.MODEL_URL + CONFIG.API_KEY;
-
-/* ================= UI STRINGS (Multilingual) ================= */
-const UI = {
-  en:{
-      welcome:'👋 Hi there! How can I help you today? This chat does not record conversations or identify you.', 
-      hello:'Hi! 👋 How can I help today?', 
-      thanks:"You're welcome! 😊 Is there anything else?", 
-      bye:`Take care! If you need to schedule, call (${CONFIG.APPOINTMENT_LINE.substring(0, 3)}) ${CONFIG.APPOINTMENT_LINE.substring(3, 6)}-${CONFIG.APPOINTMENT_LINE.substring(6)}.`, 
-      noWalk:'We do <strong>not</strong> take walk-ins. Please call to schedule. Same-day may be possible if you call first.', 
-      frust:'I understand this can be frustrating, and I\'m sorry you\'re having trouble. Let\'s try something else. Here are our main phone numbers for direct help:',
-      prompts: [
-          { text: "Find Jobs", query: "I need to search for jobs" },
-          { text: "Get Training Info", query: "How do I apply for job training?" },
-          { text: "Talk to Diani", query: "I need Diani's contact info for an appointment" },
-      ]
-  },
-  es:{
-      welcome:'👋 ¡Hola! ¿En qué te puedo ayudar hoy? Este chat no graba conversaciones ni te identifica.', 
-      hello:'¡Hola! 👋 ¿En qué te puedo ayudar hoy?', 
-      thanks:'¡Con gusto! 😊 ¿Algo más?',
-      bye:`¡Cuídate! Si necesitas una cita, llama al (${CONFIG.APPOINTMENT_LINE.substring(0, 3)}) ${CONFIG.APPOINTMENT_LINE.substring(3, 6)}-${CONFIG.APPOINTMENT_LINE.substring(6)}.`, 
-      noWalk:'No atendemos <strong>sin cita</strong>. Por favor llama para programar.', 
-      frust:'Entiendo que esto puede ser frustrante y lamento que tengas problemas. Probemos otra cosa. Aquí están nuestros números de teléfono principales para obtener ayuda directa:',
-      prompts: [
-          { text: "Buscar Empleos", query: "Necesito buscar empleos" },
-          { text: "Obtener Información de Capacitación", query: "¿Cómo solicito capacitación laboral?" },
-          { text: "Hablar con Diani", query: "Necesito la información de contacto de Diani para una cita" },
-      ]
-  },
-  ht:{
-      welcome:'👋 Bonjou! Kijan mwen ka ede w jodi a? Chat sa a pa anrejistre konvèsasyon ni idantifye w.', 
-      hello:'Bonjou! 👋 Kijan mwen ka ede w jodi a?', 
-      thanks:'Avèk plezi! 😊 Gen lòt bagay?',
-      bye:`Si ou bezwen randevou, rele (${CONFIG.APPOINTMENT_LINE.substring(0, 3)}) ${CONFIG.APPOINTMENT_LINE.substring(3, 6)}-${CONFIG.APPOINTMENT_LINE.substring(6)}.`, 
-      noWalk:'Nou pa pran <strong>san randevou</strong>. Tanpri rele pou pran randevou.', 
-      frust:'Mwen konprann sa ka fwistre, e mwen regrèt ou gen pwoblèm. Ann eseye yon lòt bagay. Men nimewo telefòn prensipal nou yo pou jwenn èd dirèk:',
-      prompts: [
-          { text: "Jwenn Travay", query: "Mwen bezwen chèche travay" },
-          { text: "Jwenn Enfòmasyon sou Fòmasyon", query: "Kijan pou mwen aplike pou fòmasyon travay?" },
-          { text: "Pale ak Diani", query: "Mwen bezwen enfòmasyon kontak Diani pou yon randevou" },
-      ]
-  }
-};
-
-
-/* ================= DOM ELEMENTS & STATE ================= */
-let lang = 'en';
+// ================== GLOBAL STATE & REFERENCES ================== //
 let chatHistory = [];
+let lang = 'en';
+let isLoading = false;
+let synth; // For Tone.js sound synthesis
 
-const ce = id => document.getElementById(id);
-const chat = ce('chat');
-const box = ce('box');
-const sendBtn = ce('send');
-const sendIcon = ce('send-icon');
-const statusDiv = ce('status-bar');
+// DOM Element References for performance
+const ce = (id) => document.getElementById(id);
+const chatWindow = ce('chat-window');
+const userInput = ce('user-input');
+const sendBtn = ce('send-btn');
+const magicBtn = ce('magic-btn');
+const resetBtn = ce('resetBtn');
+const statusBar = ce('status-bar');
 
-const settingsBtn = ce('settingsBtn');
-const settingsMenu = ce('settingsMenu');
-const micBtn = ce('micBtn');
-
-/* ================= SOUND & HAPTICS ================= */
-let synth;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CONFIG.API_KEY}`;
+  // ================== SOUND & HAPTICS ================== //
 try {
-  // Sound is a soft, pleasant chime/bell tone (Marimba or metallic tone)
   synth = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: "marimba" }, 
-    envelope: { attack: 0.01, decay: 0.6, sustain: 0.1, release: 0.8 }, 
+    oscillator: { type: "sine" },
+    envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
   }).toDestination();
 } catch (e) { console.warn("Tone.js failed to initialize."); synth = null; }
 
 function playSound(type) {
-  if (synth && Tone.context.state !== 'running') { Tone.start(); }
-  if (synth) {
-    try { 
-      // Chime tone configuration
-      if (type === 'send') synth.triggerAttackRelease("G4", "8n", Tone.now());
-      if (type === 'receive') synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", Tone.now()); 
-    } catch(e) {}
-  }
+    if (!synth) return;
+    if (Tone.context.state !== 'running') { Tone.start(); }
+    try {
+        const now = Tone.now();
+        if (type === 'send') synth.triggerAttackRelease("C5", "8n", now);
+        if (type === 'receive') synth.triggerAttackRelease(["C4", "G4"], "8n", now);
+        if (type === 'reset') synth.triggerAttackRelease("G3", "8n", now);
+    } catch(e) { console.warn("Sound playback failed", e); }
 }
+
 function vibrate(style = 'light') {
   if (window.navigator?.vibrate) {
     try { 
       if (style === 'light') navigator.vibrate(10);
-      if (style === 'medium') navigator.vibrate([30, 50, 30]);
-    } catch(e) {}
+      if (style === 'medium') navigator.vibrate([40, 60, 40]);
+    } catch(e) { console.warn("Vibration failed", e); }
   }
 }
 
-/* ================= UTILITY FUNCTIONS ================= */
+// ================== UTILITY FUNCTIONS ================== //
 
-/** Toggles loading/interaction state for the input box and send button. */
-function setLoadingState(isLoading) {
-    box.disabled = isLoading;
-    sendBtn.disabled = isLoading;
-    ce('magicBtn').disabled = isLoading;
-    ce('resetBtn').disabled = isLoading;
-}
+/** Checks if the chat is scrolled near the bottom. */
+const isNearBottom = () => (chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight) < 100;
 
-/** Updates the status bar with an optional error message. */
-function setErrorStatus(message) {
-    if (message) {
-        statusDiv.innerHTML = `🚨 **Error**: ${message}`;
-        statusDiv.classList.add('error-status');
-    } else {
-        statusDiv.innerHTML = '⚠️ I can make mistakes — please double-check important info.';
-        statusDiv.classList.remove('error-status');
+/** Smoothly scrolls to the bottom of the chat window if the user is already near the bottom. */
+function safeScroll() { 
+    if (isNearBottom()) {
+        chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
     }
 }
 
-const isNearBottom = () => (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 80;
-function safeScroll() { if (isNearBottom()) requestAnimationFrame(() => chat.scrollTop = chat.scrollHeight ); }
-function setLang(l, persist = true) { 
-    lang = (['en', 'es', 'ht'].includes(l) ? l : 'en'); 
-    if (persist) { try { localStorage.setItem('task_lang', lang); } catch(e) {} } 
-}
-// Functions for one-click calling/texting
-window.callPhone = (number) => { window.location.href = `tel:${number}`; vibrate('light'); };
-window.textPhone = (number) => { window.location.href = `sms:${number}`; vibrate('light'); };
-
-/**
- * Sends a silent diagnostic report to a Microsoft Form endpoint.
- */
-function sendErrorReport(userPrompt, errorMessage) {
-    const FORM_URL = CONFIG.FORM_URL;
-    const USER_PROMPT_FIELD = CONFIG.USER_PROMPT_FIELD; 
-    const ERROR_DETAILS_FIELD = CONFIG.ERROR_DETAILS_FIELD; 
+/** Toggles the loading/interaction state for all input controls. */
+function setLoadingState(loading) {
+    isLoading = loading;
+    userInput.disabled = loading;
+    sendBtn.disabled = loading;
+    magicBtn.disabled = loading;
+    resetBtn.disabled = loading;
     
+    if (loading) {
+        userInput.placeholder = "Assistant is typing...";
+    } else {
+        userInput.placeholder = "Type a message...";
+        userInput.focus();
+        // Re-enable send button icon
+        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>`;
+    }
+}
+
+/** Updates the status bar with a message. Pass null to reset to default. */
+function setStatus(message, isError = false) {
+    if (message) {
+        statusBar.textContent = message;
+        if (isError) statusBar.style.color = '#ff453a';
+        else statusBar.style.color = 'inherit';
+    } else {
+        statusBar.textContent = '⚠️ I can make mistakes — please double-check important info.';
+        statusBar.style.color = 'inherit';
+    }
+}
+
+/** Silently sends an error report to a configured Microsoft Form. */
+async function sendErrorReport(userPrompt, errorMessage) {
+    const { MS_FORM_URL, USER_PROMPT_FIELD, ERROR_DETAILS_FIELD } = CONFIG;
+    if (MS_FORM_URL.includes('YOUR_MICROSOFT_FORM_SUBMISSION_URL_HERE')) {
+        console.warn("Error Reporting Disabled: Please configure Microsoft Form URL/IDs in CONFIG.");
+        return;
+    }
     const formData = new FormData();
     formData.append(USER_PROMPT_FIELD, userPrompt);
-    formData.append(ERROR_DETAILS_FIELD, errorMessage);
-
-    // Attempt a silent, non-blocking submission
-    fetch(FORM_URL, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors' 
-    }).then(() => {
-        console.log("Error report sent successfully to Microsoft Forms.");
-    }).catch(error => {
-        console.warn("Failed to send silent error report:", error);
-    });
-}
-
-
-/* ================= RENDER FUNCTIONS ================= */
-function addU(t){ 
-    const e = document.createElement('div'); 
-    e.className = 'bubble-wrapper user-bubble-wrapper'; 
-    e.innerHTML = `<div class="bubble user">${t}</div>`; 
-    chat.appendChild(e); 
-    safeScroll(); 
-    playSound('send'); 
-    vibrate('light'); 
-}
-
-/**
- * Adds a bot bubble, handling special content like contact buttons.
- */
-function addB(html){
-    const wrapper = document.createElement('div');
-    wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
-    const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
-    
-    // Contact information mapping
-    const contactMap = {};
-    contactMap[CONFIG.SEAN_NUMBER.replace(/-/g, '')] = 'Sean (Training)';
-    contactMap[CONFIG.DIANI_NUMBER.replace(/-/g, '')] = 'Diani (Appointments)';
-    
-    let bubbleContent = html;
-    
-    for (const [cleanNumber, label] of Object.entries(contactMap)) {
-        // Regex to find both formatted (609-697-6215) and unformatted (6096976215) versions
-        const numberRegex = new RegExp(`(<strong>)?${cleanNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}|${cleanNumber}(</strong>)?`, 'g');
-        
-        if (html.match(numberRegex)) {
-            const buttonHtml = `
-                <div class="contact-controls">
-                    <button class="contact-btn call" onclick="callPhone('${cleanNumber}')" role="button">📞 Call ${label}</button>
-                    <button class="contact-btn text" onclick="textPhone('${cleanNumber}')" role="button">💬 Text ${label}</button>
-                </div>
-            `;
-            // Replace the number text (formatted or unformatted) with the button block
-            bubbleContent = bubbleContent.replace(numberRegex, `<strong>${cleanNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}</strong>${buttonHtml}`);
-        }
+    formData.append(ERROR_DETAILS_FIELD, `${errorMessage} | Lang: ${lang} | Time: ${new Date().toISOString()}`);
+    try {
+        await fetch(MS_FORM_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+        console.log("Error report sent successfully.");
+    } catch (error) {
+        console.error("Failed to send error report:", error);
     }
+}
 
-    const bubble = `<div class="bubble bot">${bubbleContent}</div>`;
-    wrapper.innerHTML = avatar + bubble;
-    chat.appendChild(wrapper);
+// ================== RENDER FUNCTIONS ================== //
+
+/** Adds a user message bubble to the chat window. */
+function addUserBubble(text) { 
+    const wrapper = document.createElement('div');
+    wrapper.className = 'bubble-wrapper user-bubble-wrapper';
+    wrapper.innerHTML = `<div class="bubble user">${text}</div>`;
+    chatWindow.appendChild(wrapper);
     safeScroll();
-    playSound('receive');
+    playSound('send');
     vibrate('light');
 }
 
-/**
- * Adds a bot bubble containing clickable quick-start prompts.
- */
-function addQuickStartPrompts() {
-    const prompts = UI[lang].prompts || UI['en'].prompts;
-
+/** Adds a bot message bubble to the chat window, sanitizing the HTML content. */
+function addBotBubble(html) {
+    const sanitizedHTML = DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
     const wrapper = document.createElement('div');
     wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
-    
     const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
-    let content = `<div class="bubble bot">`;
-    content += `<div class="suggestions-container">`;
-    
-    prompts.forEach((p) => {
-        content += `<button class="suggestion-btn" onclick="sendQuickQuery('${p.query}')">${p.text}</button>`;
-    });
-
-    content += `</div></div>`;
-    wrapper.innerHTML = avatar + content;
-    chat.appendChild(wrapper);
+    const bubble = `<div class="bubble bot">${sanitizedHTML}</div>`;
+    wrapper.innerHTML = avatar + bubble;
+    chatWindow.appendChild(wrapper);
     safeScroll();
+    playSound('receive');
 }
 
-// Global function to be called by the quick-start buttons
-window.sendQuickQuery = (query) => {
-    box.value = query;
-    send();
-    // Remove the button menu after a selection is made (optional, but cleaner)
-    // Attempt to remove the last bot bubble if it was the quick-start menu
-    const lastBubble = ce('chat').lastElementChild;
-    if (lastBubble && lastBubble.querySelector('.suggestions-container')) {
-        lastBubble.remove();
-    }
-};
-
-
-function typing(on){
-    const id = 'typing';
-    if(on){
+/** Adds or removes the typing indicator bubble. */
+function showTypingIndicator(show) {
+    const existing = ce('typing-indicator');
+    if (show && !existing) {
         const wrapper = document.createElement('div');
-        wrapper.id = id;
+        wrapper.id = 'typing-indicator';
         wrapper.className = 'bubble-wrapper bot-bubble-wrapper';
-        const avatar = `<div class="avatar" aria-hidden="true">E</div>`;
-        const bubble = `<div class="bubble bot"><div class="typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
-        wrapper.innerHTML = avatar + bubble;
-        chat.appendChild(wrapper);
-    } else { ce(id)?.remove(); }
+        wrapper.innerHTML = `
+            <div class="avatar" aria-hidden="true">E</div>
+            <div class="bubble bot">
+                <div class="typing" aria-hidden="true">
+                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                </div>
+            </div>`;
+        chatWindow.appendChild(wrapper);
+        safeScroll();
+    } else if (!show && existing) {
+        existing.remove();
+    }
+}
+  // ================== DYNAMIC CONTENT & "TOOLS" ================== //
+
+/** Renders a set of clickable suggestion buttons. */
+function showSuggestionButtons(suggestions) {
+    const container = document.createElement('div');
+    container.className = 'suggestions-container';
+    container.innerHTML = suggestions.map(s => 
+        `<button class="suggestion-btn" data-query="${s.query}">${s.text}</button>`
+    ).join('');
+    
+    container.querySelectorAll('.suggestion-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            vibrate('light');
+            const query = e.currentTarget.getAttribute('data-query');
+            if (!query) return;
+            e.currentTarget.classList.add('clicked');
+            userInput.value = query;
+            setTimeout(() => {
+                send();
+                container.remove();
+            }, 200);
+        });
+    });
+    chatWindow.appendChild(container);
     safeScroll();
 }
 
-/* ================= AI CORE (GEMINI) ================= */
-const systemPrompt = `
-  You are the Employment Assistant for the Trenton Area Soup Kitchen (TASK). 
-  Your persona is friendly, empathetic, and extremely helpful. Your goal is to provide clear, actionable information.
-  Keep responses concise, using Markdown for links.
-  
-  ***IMPORTANT RULES***
-  1.  **DETECT INTENT**: Analyze the user's message to determine their core need. Handle typos gracefully (e.g., "apointmetn" is "appointment", "tarinign" is "training").
-  2.  **HANDLE STAFF**: If the user mentions "Sean", provide his info for training, including his direct number: ${CONFIG.SEAN_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}. If they mention "Diani", provide her info for appointments, including her direct number: ${CONFIG.DIANI_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}.
-  3.  **HANDLE JOBS**: If the user asks for "jobs", ALWAYS ask for the job type first (warehouse, retail, food service). Once they specify a type, respond ONLY with the tag: [SEARCH_JOBS: job_type]. For specific company names (Amazon, UPS, Sodexo, Trane, Aramark, P.F. Chang's, Red Lobster, Cheesecake Factory, Cooper's Riverview, Longhorn Steakhouse), respond ONLY with the tag: [SEARCH_JOBS: company_name].
-  4.  **HANDLE TRAINING**: If the user asks for "training", provide the direct application link: [Training Application Link](${CONFIG.TRAINING_APP_LINK}).
-  5.  **PROVIDE INFO**: For all other topics (hours, address, SORA, etc.), provide the information directly.
-  6.  **BE CONVERSATIONAL**: Don't just list facts. If a user says "hi", say hi back. If they are frustrated, be empathetic before providing help.
-  7.  **MATCH LANGUAGE**: Always respond in the same language as the user's last message (English, Spanish, or Haitian Creole).
-  8.  **JOB SAFETY**: When providing job search links, always include a brief, firm safety warning, such as: "Remember to **NEVER** share sensitive information like bank or SSN details during the initial application process."
+/** Renders an interactive Google Maps card for the TASK address. */
+function renderGoogleMapsCard() {
+    const { TASK_ADDRESS, GOOGLE_MAPS_BASE, APPOINTMENT_NUMBER } = CONFIG;
+    const mapUrl = `${GOOGLE_MAPS_BASE}${encodeURIComponent(TASK_ADDRESS)}`;
+    const html = `
+        <div class="card-base">
+            <h3>TASK Location & Map</h3>
+            <p><strong>${TASK_ADDRESS}</strong></p>
+            <div class="controls">
+                <a href="${mapUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
+            </div>
+        </div>`;
+    addBotBubble(html);
+}
 
-  ***YOUR KNOWLEDGE BASE***
-  - **TASK Website**: [TASK Website](${CONFIG.TASK_WEBSITE})
-  - **Appointments**: To make an appointment, call **${CONFIG.APPOINTMENT_LINE.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}**. We do NOT take walk-ins.
-  - **Sean (Training Contact)**: **${CONFIG.SEAN_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}**
-  - **Diani (Appointment Contact)**: **${CONFIG.DIANI_NUMBER.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}**
-  - **Training Application Link**: [Apply for Training](${CONFIG.TRAINING_APP_LINK})
-  - **SORA License Info**: Official NJ site is [SORA License Site](${CONFIG.SORA_LINK})
-  - **Career Tips**: Based on [Career Tips Link](${CONFIG.CAREER_TIPS_LINK})
+/** Renders an interactive card for live job searches. */
+function renderJobSearchCard(query) {
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + ' jobs in Mercer County NJ')}&ibp=htl;jobs`;
+    const html = `
+        <div class="card-base">
+            <h3>Live Job Search</h3>
+            <p>Here are the latest <strong>${query}</strong> job listings in our area. Remember to be cautious of scams!</p>
+            <div class="controls">
+                <a href="${searchUrl}" target="_blank" rel="noopener">⚠️ View Live Job Openings Safely</a>
+            </div>
+        </div>`;
+    addBotBubble(html);
+}
+
+
+// ================== AI CORE (GEMINI) ================== //
+
+/** Defines the master prompt that guides the AI's behavior. */
+const systemPrompt = (currentLang) => `
+    You are the "Employment Assistant" for the Trenton Area Soup Kitchen (TASK).
+    Your persona is professional, empathetic, clear, and very helpful. You MUST respond ONLY in the user's specified language: ${currentLang}.
+
+    ***MANDATORY RULES***
+    1.  **Safety First:** When discussing jobs, ALWAYS include a warning about scams, like "Be cautious of scams and never provide personal financial details early in an application."
+    2.  **Formatting:** Use Markdown lists (* item) for clarity when presenting multiple options or steps. DO NOT use blocky paragraphs.
+    3.  **Tool Usage:** To perform specific actions, respond ONLY with the designated tag. Do not add any other text.
+        * To show the map/address: `[TASK_ADDRESS]`
+        * To search for jobs: `[SEARCH_JOBS: job_type_or_company]` (e.g., `[SEARCH_JOBS: Amazon warehouse]`)
+    4.  **No Outside Knowledge:** Only use the information provided below. Do not invent programs, contacts, or phone numbers. If you don't know, state that and provide the main appointment number.
+
+    ***YOUR KNOWLEDGE BASE***
+    - **Primary Goal:** Help users find employment resources and training.
+    - **Main Contact Method:** For all appointments and general inquiries, users MUST call the appointment line at **${CONFIG.APPOINTMENT_NUMBER}**. We DO NOT take walk-ins.
+    - **Staff Contacts:**
+        - **Diani:** Handles general inquiries and appointments. Her number is **${CONFIG.DIANI_NUMBER}**.
+        - **Sean:** The main contact for training programs. His number is **${CONFIG.SEAN_NUMBER}**.
+    - **Services Offered:**
+        - Job search assistance.
+        - Resume building.
+        - Interview skills coaching.
+        - Access to training programs.
+    - **Links:**
+        - **Official TASK Website:** ${CONFIG.TASK_WEBSITE}
+        - **Training Program Application:** ${CONFIG.TRAINING_APPLY_LINK}
+        - **NJ SORA License Info:** ${CONFIG.SORA_LINK}
 `;
 
 /**
- * Handles API fetch with exponential backoff for transient errors.
+ * Fetches a response from the Gemini API with exponential backoff for retries.
+ * @param {string} prompt The user's text prompt.
+ * @returns {Promise<string>} The AI's response text.
  */
-async function exponentialBackoffFetch(url, options, retries = 0) {
-    try {
-        const response = await fetch(url, options);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`Attempt ${retries + 1} failed. Status: ${response.status}. Error: ${errorText.substring(0, 100)}...`);
-            
-            if (response.status === 429 || response.status >= 500) {
-                if (retries < CONFIG.MAX_RETRIES - 1) {
-                    const delay = Math.pow(2, retries) * 1000 + (Math.random() * 1000); 
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    return exponentialBackoffFetch(url, options, retries + 1);
-                }
-                throw new Error(`Critical API error after ${CONFIG.MAX_RETRIES} attempts. Status: ${response.status}.`);
-            }
-            throw new Error(`Non-retryable API error. Status: ${response.status}. Details: ${errorText.substring(0, 100)}...`);
-        }
-        return response.json();
-
-    } catch (error) {
-        throw error; 
-    }
-}
-
-/**
- * Uses Gemini in structured output mode to detect the language of the user's prompt.
- */
-async function detectAndSetLanguage(prompt) {
-    const langDetectionPrompt = `Detect the language of the following user message and return the corresponding two-letter ISO 639-1 language code (en, es, or ht). Do not provide any other text. User message: "${prompt}"`;
-    const targetLanguages = ['en', 'es', 'ht']; 
-
-    try {
-        const payload = {
-            contents: [{ parts: [{ text: langDetectionPrompt }] }],
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: "OBJECT",
-                    properties: { "language": { "type": "STRING", "description": "The two-letter ISO 639-1 code (en, es, or ht)." } },
-                    propertyOrdering: ["language"]
-                }
-            },
-            systemInstruction: { parts: [{ text: "You are a language detection expert. Output only the requested JSON object." }] },
-        };
-
-        const result = await exponentialBackoffFetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-        const parsedJson = JSON.parse(jsonText);
-        const detectedLang = parsedJson.language.toLowerCase();
-        
-        if (targetLanguages.includes(detectedLang) && detectedLang !== lang) {
-            setLang(detectedLang);
-        }
-    } catch (e) {
-        // Silent failure is okay for non-critical features like language detection
-        console.warn("Language detection failed, proceeding with current language.", e);
-    }
-}
-
-
 async function getAiResponse(prompt) {
-    typing(true);
-    setLoadingState(true);
-
-    // Show message sent indicator
-    sendIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9.5 13.5a.75.75 0 0 1-1.127.073l-4.75-4.75a.75.75 0 0 1 1.06-1.06l4.283 4.283 9.043-12.875a.75.75 0 0 1 1.04-.208Z" clip-rule="evenodd" /></svg>`;
-    sendIcon.style.opacity = 1;
-    
     const currentContents = [...chatHistory, { role: "user", parts: [{ text: prompt }] }];
-    let aiResponse = "";
+    
+    const payload = {
+        contents: currentContents,
+        systemInstruction: { parts: [{ text: systemPrompt(lang) }] },
+        tools: [{ "google_search": {} }]
+    };
 
-    try {
-        const payload = {
-            contents: currentContents,
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            tools: [{ "google_search": {} }]
-        };
+    let lastError = null;
+    for (let i = 0; i < CONFIG.MAX_RETRIES; i++) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-        const result = await exponentialBackoffFetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, the AI did not return a valid response.";
-        
-        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-        chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
-        setErrorStatus(null); 
+            if (response.status === 429 || response.status >= 500) { // Retry on rate limit or server error
+                const delay = Math.pow(2, i) * 1000 + (Math.random() * 1000);
+                console.warn(`API retry ${i + 1} after ${delay}ms: Status ${response.status}`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
 
-    } catch (error) {
-        console.error("Gemini API call failed:", error.message);
-        
-        // Trigger silent error report
-        sendErrorReport(prompt, error.message);
+            if (!response.ok) {
+                 const errorText = await response.text();
+                 throw new Error(`API Error: ${response.status} ${errorText}`);
+            }
+            
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (!text) {
+                throw new Error("Received empty response from API.");
+            }
 
-        // Fallback error message for the user
-        aiResponse = "I'm sorry, I encountered a critical connection error. An administrator has been notified. Please try again in a moment.";
-        
-        // Update UI status
-        setErrorStatus("The AI service is temporarily unavailable. An administrator has been notified. Please try again in a moment.");
-    } finally {
-        typing(false);
-        setLoadingState(false);
-        // Restore send icon after response or failure
-        sendIcon.innerHTML = `<path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />`;
+            // Success: update chat history and return
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            chatHistory.push({ role: "model", parts: [{ text }] });
+            setStatus(null); // Clear any previous error status
+            return text;
+
+        } catch (error) {
+            console.error(`Fetch attempt ${i + 1} failed:`, error);
+            lastError = error;
+        }
     }
-    return aiResponse;
+
+    // If all retries fail
+    const hardErrorMsg = UI_STRINGS[lang].errorHard;
+    setStatus(hardErrorMsg, true);
+    sendErrorReport(prompt, lastError.message);
+    return hardErrorMsg;
 }
 
+// ================== FLOW CONTROL & EVENT HANDLING ================== //
 
-/* ================= APPLICATION FLOW ================= */
-async function handle(t){
-  if(!t) return;
-  
-  await detectAndSetLanguage(t); 
+/** The main function to process user input and orchestrate the chatbot's response. */
+async function handleUserInput(text) {
+    if (!text || isLoading) return;
 
-  addU(t);
-  
-  const aiResponse = await getAiResponse(t);
+    setLoadingState(true);
+    addUserBubble(text);
+    showTypingIndicator(true);
 
-  if (aiResponse.startsWith('[SEARCH_JOBS:')) {
-    const jobMatch = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/);
-    if (jobMatch && jobMatch[1]) {
-        await getJobs(jobMatch[1]);
+    // Auto-detect language on first user message if history is empty
+    if (chatHistory.length === 0) {
+        await detectAndSetLanguage(text);
+    }
+    
+    const aiResponse = await getAiResponse(text);
+    showTypingIndicator(false);
+    
+    // Tool Dispatcher
+    if (aiResponse.startsWith('[SEARCH_JOBS:')) {
+        const query = aiResponse.match(/\[SEARCH_JOBS:\s*(.+)\]/)?.[1];
+        if (query) renderJobSearchCard(query);
+        else addBotBubble(UI_STRINGS[lang].errorSoft);
+    } else if (aiResponse.startsWith('[TASK_ADDRESS]')) {
+        renderGoogleMapsCard();
     } else {
-        addB("I received a job search request but couldn't parse the type. Please try again.");
+        // Standard text response
+        const formattedResponse = formatBotResponse(aiResponse);
+        addBotBubble(formattedResponse);
     }
-  } else if (aiResponse) {
-    // Convert Markdown links to standard HTML anchor tags for rendering
-    const formattedResponse = aiResponse.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    addB(formattedResponse);
-  }
+    
+    setLoadingState(false);
+    adjustTextareaHeight();
 }
 
-async function getJobs(query) {
-    addB(`Searching for the latest <strong>${query}</strong> jobs in Mercer County...`);
-    
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`entry level ${query} jobs in Mercer County NJ`)}&ibp=htl;jobs`;
-    
-    let jobsHtml = `Here are some recent <strong>${query}</strong> openings. Click the button to view the full, live list on **Google Jobs**. (Links generally take you directly to the employer's website).`;
-    
-    jobsHtml += `<div class="card-base job-card">
-        <h3>🚨 Job Search Safety Warning</h3>
-        <p>Before applying or submitting any information, **always check the URL** to ensure you are on a legitimate employer website. **NEVER** give sensitive data like your Social Security Number, bank details, or credit card information during the initial application process.</p>
-        <strong>Live Job Search Results</strong>
-        <span>Mercer County, NJ</span>
-        <div class="controls"><a href="${searchUrl}" target="_blank" rel="noopener" class="ctrl">View Live Jobs</a></div>
-    </div>`;
-    addB(jobsHtml);
-}
-
-function send(){ 
-    const t = (box.value||'').trim(); 
-    if(!t || box.disabled) return; 
-    handle(t); 
-    box.value = ''; 
-    box.blur(); 
-    setTimeout(() => box.focus(), 100); 
-}
-
-
-/* ================= INITIALIZATION & EVENTS ================= */
-
-// --- Theme Initialization ---
-(function initTheme(){
-  let saved = null; try{saved = localStorage.getItem('task_theme');}catch(e){}
-  if(!saved || saved === 'dark'){
-    document.documentElement.setAttribute('data-theme','dark');
-  } else {
-    document.documentElement.setAttribute('data-theme','light');
-  }
-})();
-ce('themeToggle').addEventListener('click',()=>{
-  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const next = dark ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  try{ localStorage.setItem('task_theme', next); }catch(e){}
-});
-
-// --- Settings Menu ---
-settingsBtn.addEventListener('click', () => {
-    const open = settingsMenu.getAttribute('aria-hidden') === 'false';
-    settingsMenu.setAttribute('aria-hidden', open ? 'true' : 'false');
-    settingsBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
-});
-document.addEventListener('click', (e) => {
-    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
-        settingsMenu.setAttribute('aria-hidden', 'true');
+/** Formats the raw AI text response into safe, interactive HTML. */
+function formatBotResponse(text) {
+    // 1. Convert Markdown links and lists
+    let html = text
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+        .replace(/^\* (.*$)/gm, '<li>$1</li>');
+    if (html.includes('<li>')) {
+        html = `<ul>${html.replace(/<\/li>\n/g, '</li>')}</ul>`;
     }
-});
 
-
-// --- Voice Input ---
-(function initMic(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ micBtn.style.display = 'none'; return; }
-  const rec = new SR(); 
-  const langMap = {en:'en-US', es:'es-ES', ht:'ht-HT'};
-  micBtn.addEventListener('click', () => { 
-      rec.lang = langMap[lang] || 'en-US'; 
-      rec.start(); 
-  });
-  rec.onresult = e => { box.value = e.results[0][0].transcript; send(); };
-})();
-
-// --- Main Chat Events ---
-ce('resetBtn').addEventListener('click', () => { chat.innerHTML = ''; chatHistory = []; setErrorStatus(null); greet(true); });
-ce('send').addEventListener('click', send);
-box.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); send(); }});
-box.addEventListener('focus', () => setTimeout(() => safeScroll(), 300));
-ce('scrollTopBtn').addEventListener('click', () => chat.scrollTo({top:0,behavior:'smooth'}));
-
-/* ================= GREETING & OPPORTUNITY ENGINE ================= */
-async function fetchOpportunities() {
-    const mockData = [
-      { title: 'New Career Tips', message: 'Ready for your next step? Find tailored advice and resources to help you prepare.', link: CONFIG.CAREER_TIPS_LINK, linkText: 'Read Career Tips' },
-      { title: 'Local Bus Route Update', message: 'Check for schedule changes and plan your trip to potential employer locations.', link: CONFIG.NJ_TRANSIT_LINK, linkText: 'Trip Planner' },
-      { title: '🔥 Regional Job Fair Alert', message: 'Multiple regional employers are currently hiring warehouse and logistics associates near Trenton.', link: `https://search.google.com/local/jobs?q=${encodeURIComponent('entry level warehouse jobs in Mercer County NJ')}&ibp=htl;jobs`, linkText: 'View Openings' },
-    ];
-    return mockData;
-}
-
-ce('magicBtn').addEventListener('click', async () => {
-  vibrate('light');
-  addB('✨ Here are today\'s top opportunities and helpful resources:');
-  
-  setLoadingState(true);
-  
-  const opportunities = await fetchOpportunities();
-  let oppsHTML = '';
-  opportunities.forEach((item, i) => {
-    let cardHTML = `<div class="card-base opportunity-card" style="animation-delay: ${i*100}ms"><h3>${item.title}</h3><p>${item.message}</p>`;
-    if (item.linkText && item.link) {
-      cardHTML += `<div class="controls"><a class="ctrl" href="${item.link}" target="_blank" rel="noopener">${item.linkText}</a></div>`;
+    // 2. Add contact buttons if staff numbers are mentioned
+    if (html.includes(CONFIG.DIANI_NUMBER) || html.includes(CONFIG.SEAN_NUMBER)) {
+         html += `
+            <div class="contact-buttons">
+                ${html.includes(CONFIG.DIANI_NUMBER) ? `<a href="tel:${CONFIG.DIANI_NUMBER}" class="call-btn">📞 Call Diani</a><a href="sms:${CONFIG.DIANI_NUMBER}" class="text-btn">💬 Text Diani</a>` : ''}
+                ${html.includes(CONFIG.SEAN_NUMBER) ? `<a href="tel:${CONFIG.SEAN_NUMBER}" class="call-btn">📞 Call Sean</a><a href="sms:${CONFIG.SEAN_NUMBER}" class="text-btn">💬 Text Sean</a>` : ''}
+            </div>`;
     }
-    cardHTML += `</div>`;
-    oppsHTML += cardHTML;
-  });
-  addB(oppsHTML);
-  
-  setLoadingState(false);
-});
-
-
-function greet(fromReset = false){
-  if(fromReset){
-    let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){}
-    setLang(saved || 'en');
-  }
-  const welcomeMessage = UI[lang] ? UI[lang].welcome : UI['en'].welcome;
-  addB(`<strong>${welcomeMessage}</strong>`);
-  
-  // Add quick-start buttons on greeting
-  addQuickStartPrompts();
+    return html;
 }
 
-(function initLang(){ let saved = null; try{ saved = localStorage.getItem('task_lang'); }catch(e){} setLang(saved || 'en'); })();
-greet();
+/** Function to handle the send action. */
+function send() {
+    const text = userInput.value.trim();
+    if (text) {
+        // Show checkmark icon on send button briefly
+        sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M10.75 16.75l-4.5-4.5 1.06-1.06 3.44 3.44 6.94-6.94 1.06 1.06-8 8z"/></svg>`;
+        handleUserInput(text);
+        userInput.value = '';
+    }
+    adjustTextareaHeight();
+}
+
+/** Resets the conversation to its initial state. */
+function resetConversation() {
+    vibrate('medium');
+    playSound('reset');
+    chatWindow.innerHTML = '';
+    chatHistory = [];
+    lang = 'en'; // Reset language to default
+    greet();
+}
+
+/** Dynamically adjusts the height of the textarea based on content. */
+function adjustTextareaHeight() {
+    userInput.style.height = 'auto';
+    userInput.style.height = (userInput.scrollHeight) + 'px';
+}
+
+// ================== MULTILINGUAL SUPPORT ================== //
+
+const UI_STRINGS = {
+    en: {
+        greeting: "Hello! I'm the TASK Employment Assistant. How can I help you today?",
+        suggestions: [
+            { query: "Find jobs near me", text: "💼 Find Jobs" },
+            { query: "Tell me about training programs", text: "🎓 Get Training" },
+            { query: "How do I make an appointment?", text: "🗓️ Make an Appointment" }
+        ],
+        errorHard: "I'm having trouble connecting to my resources right now. Please try again later or call the appointment line directly.",
+        errorSoft: "I'm sorry, I had a little trouble with that request. Could you please try rephrasing it?"
+    },
+    es: {
+        greeting: "¡Hola! Soy el Asistente de Empleo de TASK. ¿Cómo puedo ayudarte hoy?",
+        suggestions: [
+            { query: "Encontrar trabajos cerca de mí", text: "💼 Buscar Trabajos" },
+            { query: "Infórmame sobre los programas de capacitación", text: "🎓 Obtener Capacitación" },
+            { query: "Como puedo hacer una cita?", text: "🗓️ Hacer una Cita" }
+        ],
+        errorHard: "Tengo problemas para conectarme a mis recursos en este momento. Por favor, inténtalo de nuevo más tarde o llama directamente a la línea de citas.",
+        errorSoft: "Lo siento, tuve un pequeño problema con esa solicitud. ¿Podrías intentar reformularla?"
+    },
+    ht: {
+        greeting: "Bonjou! Mwen se Asistan Travay TASK la. Kòman mwen ka ede ou jodi a?",
+        suggestions: [
+            { query: "Jwenn travay toupre mwen", text: "💼 Jwenn Travay" },
+            { query: "Pale m de pwogram fòmasyon yo", text: "🎓 Jwenn Fòmasyon" },
+            { query: "Kòman pou m pran yon randevou?", text: "🗓️ Pran Randevou" }
+        ],
+        errorHard: "Mwen gen difikilte pou konekte ak resous mwen yo kounye a. Tanpri eseye ankò pita oswa rele liy randevou a dirèkteman.",
+        errorSoft: "Mwen regrèt, mwen te gen yon ti pwoblèm ak demann sa a. Èske ou ta ka eseye reformile li?"
+    }
+};
+
+/** Detects language from text and sets the global `lang` variable. */
+async function detectAndSetLanguage(text) {
+    // This is a simplified, keyword-based detection for this environment.
+    // A real implementation might use a more robust library or API call.
+    const lowerText = text.toLowerCase();
+    if (/\b(hola|gracias|cita|trabajo|ayuda)\b/.test(lowerText)) {
+        lang = 'es';
+    } else if (/\b(bonjou|mwen|ede|kòman|travay)\b/.test(lowerText)) {
+        lang = 'ht';
+    } else {
+        lang = 'en';
+    }
+    console.log(`Language detected: ${lang}`);
+}
+
+/** Displays the initial greeting message and suggestion buttons. */
+function greet() {
+    setTimeout(() => {
+        addBotBubble(UI_STRINGS[lang].greeting);
+        showSuggestionButtons(UI_STRINGS[lang].suggestions);
+    }, CONFIG.INITIAL_GREETING_DELAY);
+}
+
+// ================== INITIALIZATION ================== //
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach all event listeners
+    sendBtn.addEventListener('click', send);
+    resetBtn.addEventListener('click', resetConversation);
+    magicBtn.addEventListener('click', () => {
+        if(isLoading) return;
+        showSuggestionButtons(UI_STRINGS[lang].suggestions);
+    });
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            send();
+        }
+    });
+    userInput.addEventListener('input', adjustTextareaHeight);
+
+    // Initial greeting
+    greet();
+    adjustTextareaHeight();
+});
+
 </script>
 </body>
 </html>
