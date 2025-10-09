@@ -1,801 +1,182 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Employment Assistant</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TASK Assistant</title>
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-
-  <!-- Tone.js for chimes -->
-  <script src="https://unpkg.com/tone"></script>
-  <!-- DOMPurify to sanitize AI HTML -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" defer></script>
+  <!-- Inline favicon (prevents /favicon.ico 404) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E">
 
   <style>
-    :root{
-      --brand:#FF911F;        /* Orange accents */
-      --accent:#145078;       /* Blue accents */
-      --bg:#0a0f1a;           /* Dark background */
-      --surface:#111929;      /* Card dark */
-      --surface-2:#0e1625;    /* Chat bg */
-      --text:#eaf2ff;
-      --muted:#a7bad5;
-      --border:#344b6b;
-      --shadow:0 10px 20px rgba(0,0,0,.25);
-      --shadow-soft:0 6px 14px rgba(0,0,0,.18);
-      --radius:18px;
+    :root {
+      --bg: #0f1720;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --brand: #ff8a00;
+      --radius: 14px;
     }
-    [data-theme="light"]{
-      --bg:#f6f8fc;
-      --surface:#ffffff;
-      --surface-2:#f1f5fb;
-      --text:#0b1930;
-      --muted:#4b607d;
-      --border:#d6e2f3;
-      --shadow:0 12px 20px rgba(0,0,0,.08);
-      --shadow-soft:0 6px 14px rgba(0,0,0,.06);
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      display: grid; place-items: center;
     }
+    .app {
+      width: min(920px, 94vw); min-height: 70vh; background: var(--panel);
+      border-radius: var(--radius); padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.40);
+      display: grid; grid-template-rows: auto 1fr auto; gap: 16px;
+    }
+    header { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 9px; display: grid; place-items: center;
+      background: var(--brand); font-weight: 800; color: #fff;
+    }
+    .muted { color: var(--muted); }
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family:"Inter",-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
-      display:flex; align-items:center; justify-content:center;
-      min-height:100vh;
+    .chat {
+      overflow: auto; padding: 12px; border-radius: 12px; background: #0b1220; border: 1px solid #1f2937;
+      display: flex; flex-direction: column; gap: 12px;
     }
-
-    /* Splash (soft animation) */
-    #splash{
-      position:fixed; inset:0; background:linear-gradient(160deg,var(--accent),#0b1a2c);
-      color:#fff; z-index:999;
-      display:grid; place-items:center;
-      font-family:"Nunito",sans-serif; text-align:center;
-      transition:opacity .45s ease, transform .45s ease;
+    .bubble {
+      max-width: 80%;
+      padding: 12px 14px; border-radius: 14px; line-height: 1.4;
+      border: 1px solid #1f2937;
+      word-wrap: break-word; white-space: pre-wrap;
     }
-    #splash.fade-out{ opacity:0; transform:scale(1.02); pointer-events:none }
-    .splash-card{
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.22);
-      border-radius:18px;
-      padding:26px 22px;
-      box-shadow:var(--shadow);
-      max-width:620px; width:min(92vw,620px);
-      backdrop-filter: blur(6px);
-      animation:softIn .6s ease;
+    .me   { align-self: flex-end; background: #172554; }
+    .bot  { align-self: flex-start; background: #111827; }
+    .row { display: flex; gap: 8px; }
+    input[type="text"] {
+      flex: 1; font-size: 18px; padding: 14px; border-radius: 12px;
+      background: #0b1220; color: var(--text); border: 1px solid #1f2937;
+      outline: none;
     }
-    @keyframes softIn{from{opacity:0; transform:translateY(10px) scale(.98)} to{opacity:1; transform:translateY(0) scale(1)}}
-    .splash-logo{
-      width:88px; height:88px; border-radius:50%;
-      background:#fff; display:grid; place-items:center; margin:0 auto 12px;
-      overflow:hidden;
+    button {
+      font-size: 18px; padding: 14px 18px; border-radius: 12px; border: 0; cursor: pointer;
+      background: var(--brand); color: #000;
     }
-    .splash-logo img{ width:100%; height:100%; object-fit:cover }
-    .splash-btn{
-      background:var(--brand); color:#fff; border:0;
-      font-weight:800; border-radius:999px; padding:12px 22px; cursor:pointer;
-      box-shadow:var(--shadow-soft);
-    }
-    .splash-btn:hover{ filter:brightness(.95) }
-
-    /* App shell */
-    .container{
-      width:100%; max-width:1040px; height:100vh;
-      display:flex; flex-direction:column; position:relative;
-      background:var(--surface); border:1px solid var(--border); border-radius:22px;
-      box-shadow:var(--shadow); overflow:hidden;
-    }
-    .header{
-      display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
-      padding:10px 14px; background:var(--surface);
-      border-bottom:1px solid var(--border);
-      font-family:"Nunito",sans-serif;
-    }
-    .header .title{
-      justify-self:center; font-weight:800; letter-spacing:.2px; color:var(--accent);
-      display:flex; align-items:center; gap:10px;
-    }
-    .hdr-right{ justify-self:end; display:flex; gap:8px }
-    .icon-btn{
-      width:38px;height:38px;border-radius:50%;border:1px solid var(--border);
-      background:transparent;color:var(--text);display:grid;place-items:center;
-      cursor:pointer; transition:.15s all;
-    }
-    .icon-btn:hover{background:rgba(0,0,0,.06)}
-    [data-theme="light"] .icon-btn:hover{background:rgba(0,0,0,.06)}
-    .brand-logo{
-      width:28px;height:28px;border-radius:50%; overflow:hidden; display:inline-block;
-      border:2px solid var(--border);
-    }
-    .brand-logo img{ width:100%; height:100%; object-fit:cover }
-
-    /* Chat area */
-    .chat{
-      flex:1; overflow:auto; background:var(--surface-2); padding:20px 18px 180px;
-    }
-    .row{
-      display:flex; gap:10px; align-items:flex-start; margin:14px 0;
-      animation:pop .2s ease-out;
-    }
-    @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)}}
-    .avatar{
-      flex:0 0 34px; height:34px; border-radius:50%; background:var(--accent);
-      color:#fff; display:grid; place-items:center; font-weight:800; font-family:"Nunito",sans-serif;
-    }
-    .user .avatar{ background:var(--brand) }
-
-    /* Two-sided bubbles (left blue = assistant, right orange = user) */
-    .bubble{
-      max-width:48%;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:18px; padding:12px 14px; line-height:1.55; box-shadow:var(--shadow-soft);
-      font-size:16px;
-      word-wrap:break-word; overflow-wrap:break-word;
-    }
-    .bot .bubble{
-      border-radius:18px 18px 18px 6px;
-      align-self:flex-start;
-    }
-    .user{
-      margin-left:auto; flex-direction:row-reverse;
-    }
-    .user .bubble{
-      background:var(--brand); color:#fff; border-color:transparent;
-      border-radius:18px 18px 6px 18px;
-      align-self:flex-end;
-    }
-    .bubble ul{margin:.5em 0 .5em 1.2em}
-    .bubble li{margin:.2em 0}
-
-    /* Input + status */
-    .input-wrap{
-      position:fixed; left:50%; transform:translateX(-50%);
-      bottom:64px; width:100%; max-width:1040px; padding:8px 14px; z-index:50;
-      background:transparent;
-    }
-    .input-row{
-      display:grid; grid-template-columns:46px 1fr 46px 46px; gap:8px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:999px; padding:8px; box-shadow:var(--shadow-soft);
-    }
-    #box{
-      border:0; outline:0; font-size:1rem; background:transparent; color:var(--text);
-    }
-    .send-btn{
-      width:46px;height:46px;border:0;border-radius:50%;
-      background:var(--brand); color:#fff; cursor:pointer; display:grid; place-items:center;
-      box-shadow:var(--shadow-soft); transition:.12s background;
-    }
-    .send-btn:hover{ background:var(--accent); }
-    .send-btn:disabled{ opacity:.6; cursor:not-allowed }
-    .sparkle-btn{
-      width:46px;height:46px;border:2px solid var(--brand);
-      color:var(--brand); background:transparent; border-radius:50%;
-      font-size:18px; font-weight:900; cursor:pointer; display:grid; place-items:center;
-    }
-    .sparkle-btn:hover{ background:rgba(255,145,31,0.14); }
-    .mic-btn{
-      width:46px;height:46px;border:2px solid var(--accent);
-      color:var(--accent); background:transparent; border-radius:50%;
-      font-size:16px; font-weight:900; cursor:pointer; display:grid; place-items:center;
-    }
-    .mic-btn.active{ background:rgba(20,80,120,.15) }
-
-    .status-line{
-      margin-top:6px; font-size:.9rem; color:var(--muted);
-      text-align:left; padding-left:8px;
-    }
-
-    /* Suggestions tray */
-    #sparkleTray{
-      position:fixed; left:50%; transform:translateX(-50%);
-      bottom:130px; width:100%; max-width:1040px; z-index:40; display:none;
-    }
-    .sparkle-pills{ display:flex; flex-wrap:wrap; gap:8px; padding:8px 14px; }
-    .sparkle-pill{
-      border:2px solid var(--accent); background:var(--surface);
-      color:var(--accent); border-radius:999px; padding:8px 12px;
-      font-weight:700; cursor:pointer; font-size:.92rem;
-    }
-    .sparkle-pill:hover{ background:var(--accent); color:#fff; }
-
-    /* Typing dots */
-    .typing{ display:inline-flex; gap:6px; align-items:center; }
-    .typing .dot{
-      width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.7;
-      animation:bounce 1s infinite ease-in-out;
-    }
-    .typing .dot:nth-child(2){animation-delay:.2s}
-    .typing .dot:nth-child(3){animation-delay:.4s}
-    @keyframes bounce{0%,80%,100%{transform:scale(.6)}40%{transform:scale(1)}}
-
-    /* Legal disclaimer */
-    .legal-disclaimer{
-      position:fixed; left:50%; transform:translateX(-50%);
-      bottom:0; width:100%; max-width:1040px; padding:8px 14px;
-      background:var(--accent); color:#fff; text-align:center; font-size:.85rem;
-      z-index:60;
-    }
-
-    /* Quick actions + planner modal */
-    .quick-card{
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:14px;
-      box-shadow:var(--shadow-soft);
-      margin-bottom:8px;
-    }
-    .quick-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:10px;
-    }
-    .qbtn{
-      width:100%; text-align:left;
-      background:var(--surface-2);
-      color:var(--text);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px 12px;
-      cursor:pointer; transition:.15s all;
-    }
-    .qbtn:hover{ background:rgba(255,255,255,.06) }
-    .qbtn small{ display:block; color:var(--muted); }
-
-    #planner{
-      position:fixed; inset:0; display:none; place-items:center; z-index:900;
-      background:rgba(0,0,0,.5);
-    }
-    .planner-card{
-      width:min(520px,92vw);
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:16px;
-      box-shadow:var(--shadow);
-    }
-    .planner-card h3{ margin:0 0 8px }
-    .input-row-vert{ display:flex; flex-direction:column; gap:8px; }
-    .input-row-vert input{
-      width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
-      background:var(--surface-2); color:var(--text);
-    }
-    .planner-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px }
-    .btn{
-      border:1px solid var(--border); background:var(--surface-2); color:var(--text);
-      padding:10px 14px; border-radius:10px; cursor:pointer;
-    }
-    .btn.primary{ background:var(--brand); color:#fff; border-color:transparent }
-    .btn:hover{ filter:brightness(.95) }
-
-    /* Small screens stack a bit more */
-    @media (max-width: 720px){
-      .bubble{ max-width:86% }
-      .chat{ padding-bottom:200px }
-      .input-row{ grid-template-columns:46px 1fr 46px 46px }
-    }
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+    .pill { font-size: 14px; padding: 8px 12px; border-radius: 999px; background: #0b1220; border: 1px solid #1f2937; }
+    .error { color: #fca5a5; }
+    .hidden { display: none !important; }
   </style>
 </head>
-
 <body>
-  <!-- Splash -->
-  <div id="splash" role="dialog" aria-modal="true">
-    <div class="splash-card">
-      <div class="splash-logo"><img src="logo.png" alt="TASK logo" onerror="this.style.display='none'"></div>
-      <h1 style="margin:0 0 6px">Employment Assistant</h1>
-      <p style="margin:0 0 14px;opacity:.9">
-        Getting ready for work • Finding work • Keeping work
-      </p>
-      <button id="startBtn" class="splash-btn" aria-label="Start">Start</button>
-    </div>
-  </div>
-
-  <!-- App -->
-  <main class="container" id="app" style="display:none">
-    <header class="header">
-      <div></div>
-      <div class="title">
-        <span class="brand-logo"><img src="logo.png" alt="TASK" onerror="this.style.display='none'"></span>
-        Employment Assistant
+  <div class="app">
+    <header>
+      <!-- Inline logo (prevents /logo.png 404) -->
+      <div class="logo">T</div>
+      <div>
+        <div style="font-weight:700;">TASK Assistant</div>
+        <div class="muted" style="font-size:14px;">Ask questions. Get help. No setup errors.</div>
       </div>
-      <div class="hdr-right">
-        <button id="themeBtn" class="icon-btn" title="Light/Dark" aria-label="Toggle theme">☼</button>
-        <button id="resetBtn" class="icon-btn" title="Clear chat" aria-label="Clear chat">↺</button>
+      <div style="margin-left:auto;" class="toolbar">
+        <button id="enable-audio" class="pill">Enable sound</button>
+        <span id="audio-status" class="muted">audio off</span>
       </div>
     </header>
 
-    <section id="chat" class="chat" role="log" aria-live="polite" aria-relevant="additions"></section>
+    <div id="chat" class="chat" aria-live="polite"></div>
 
-    <!-- Suggestions tray (sparkle) -->
-    <div id="sparkleTray" aria-label="Suggestions">
-      <div class="sparkle-pills" id="sparklePills"></div>
-    </div>
+    <form id="composer" class="row" autocomplete="off">
+      <input id="input" type="text" placeholder="Type your question…" />
+      <button id="send" type="submit">Send</button>
+    </form>
 
-    <!-- Input + status -->
-    <div class="input-wrap">
-      <div class="input-row">
-        <button id="sparkleBtn" class="sparkle-btn" title="Suggestions" aria-label="Suggestions">✦</button>
-        <input id="box" type="text" placeholder="Type your message..." autocomplete="off" aria-label="Message to assistant"/>
-        <button id="micBtn" class="mic-btn" title="Speak" aria-label="Speak">🎙</button>
-        <button id="sendBtn" class="send-btn" aria-label="Send">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path d="M2 21l20-9L2 3l3 7 9 2-9 2-3 7z" fill="currentColor"/>
-          </svg>
-        </button>
-      </div>
-      <div id="statusLine" class="status-line" role="status">
-        ⚠️ I can make mistakes — please double-check important info.
-      </div>
-    </div>
+    <div id="status" class="muted"></div>
+  </div>
 
-    <div class="legal-disclaimer">
-      Disclaimer: This assistant is for informational purposes only and is not legal, financial, or employment advice.
-    </div>
+  <!-- Tone.js -->
+  <script type="module">
+    import * as Tone from "https://cdn.jsdelivr.net/npm/tone@15.1.22/build/Tone.js";
 
-    <!-- Transit planner -->
-    <div id="planner" role="dialog" aria-modal="true" aria-labelledby="plannerTitle">
-      <div class="planner-card">
-        <h3 id="plannerTitle">Plan a Bus/Transit Route</h3>
-        <div class="input-row-vert">
-          <input id="fromField" type="text" placeholder="From (address or place)" />
-          <input id="toField"   type="text" placeholder="To (default: TASK, 72 Escher St, Trenton, NJ)" />
-          <small style="color:var(--muted)">We’ll open Google Maps in transit mode (works on mobile & desktop).</small>
-        </div>
-        <div class="planner-actions">
-          <button class="btn" id="plannerClose">Cancel</button>
-          <button class="btn primary" id="plannerGo">Open Directions</button>
-        </div>
-      </div>
-    </div>
-  </main>
+    const chat  = document.getElementById('chat');
+    const form  = document.getElementById('composer');
+    const input = document.getElementById('input');
+    const statusEl = document.getElementById('status');
+    const enableBtn = document.getElementById('enable-audio');
+    const audioStatus = document.getElementById('audio-status');
 
-<script>
-(() => {
-  'use strict';
-
-  /* -------- Small API config -------- */
-  const urlParams = new URLSearchParams(location.search);
-const API_BASE = '/api/ai';
-
-  /* -------- TASK configuration -------- */
-  const TASK = {
-    address: "72 Escher St, Trenton, NJ 08609",
-    site: "https://trentonsoupkitchen.org/",
-    employment: "https://trentonsoupkitchen.org/job-search-and-assistance/",
-    getHelpEmployment: "https://trentonsoupkitchen.org/get-help/#job-search-employment-services",
-    arts: "https://trentonsoupkitchen.org/creative-arts-program/",
-    bycell: [
-      "https://bycell.co/ddmnx",
-      "https://bycell.co/ddmui",
-      "https://bycell.co/ddmua",
-      "https://bycell.co/ddmwm",
-      "https://bycell.co/ddmul",
-      "https://bycell.co/ddmtq",
-      "https://bycell.co/ddncs",
-      "https://bycell.co/ddmtn"
-    ],
-    phones: {
-      employment1: "609-697-6215",
-      employment2: "609-697-6166",
-      appointments: "609-337-1624"
-    }
-  };
-
-  /* ---------- Audio chimes ---------- */
-  let synth = null;
-  try {
-    synth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "triangle8" },
-      envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.7 }
-    }).toDestination();
-  } catch (e) { /* non-blocking */ }
-
-  function chime(kind){
-    if (!synth) return;
-    if (Tone.context.state !== 'running') { Tone.start().catch(()=>{}); }
-    try{
-      if (kind==='send')  synth.triggerAttackRelease(["E4"], "8n");
-      if (kind==='recv')  synth.triggerAttackRelease(["C5","E5","G5"], "8n");
-      if (kind==='error') synth.triggerAttackRelease(["C4"], "8n");
-    }catch(e){}
-  }
-
-  /* ---------- Theme ---------- */
-  const themeBtn = document.getElementById('themeBtn');
-  function applyTheme(t){
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('ea_theme', t);
-  }
-  const savedTheme = localStorage.getItem('ea_theme') || 'dark';
-  applyTheme(savedTheme);
-  themeBtn.addEventListener('click', () => {
-    const next = (document.documentElement.getAttribute('data-theme') === 'light') ? 'dark' : 'light';
-    applyTheme(next);
-  });
-
-  /* ---------- DOM refs ---------- */
-  const splash   = document.getElementById('splash');
-  const startBtn = document.getElementById('startBtn');
-  const app      = document.getElementById('app');
-  const chat     = document.getElementById('chat');
-  const box      = document.getElementById('box');
-  const sendBtn  = document.getElementById('sendBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const statusLine = document.getElementById('statusLine');
-  const sparkleBtn  = document.getElementById('sparkleBtn');
-  const sparkleTray = document.getElementById('sparkleTray');
-  const sparklePills= document.getElementById('sparklePills');
-  const micBtn = document.getElementById('micBtn');
-
-  // Planner
-  const planner = document.getElementById('planner');
-  const plannerClose = document.getElementById('plannerClose');
-  const plannerGo = document.getElementById('plannerGo');
-  const fromField = document.getElementById('fromField');
-  const toField = document.getElementById('toField');
-
-  /* ---------- Helpers ---------- */
-  function openLink(url){ try { window.open(url, '_blank', 'noopener'); } catch(e){} }
-  function callNumber(n){ window.location.href = `tel:${n.replace(/[^\d+]/g,'')}`; }
-  function smsNumber(n, body=""){ window.location.href = `sms:${n.replace(/[^\d+]/g,'')}${body?`?&body=${encodeURIComponent(body)}`:''}`; }
-  function escapeHTML(s){
-    return String(s)
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;")
-      .replace(/'/g,"&#39;");
-  }
-
-  /* ---------- Suggestions (sparkle) ---------- */
-  const SUGGESTIONS = [
-    // Get ready
-    "Make a 1-page resume for a warehouse job",
-    "Practice interview answers for retail roles",
-    "Explain PTO, FMLA, and 401(k) simply",
-    // Find work
-    "Find entry-level jobs hiring near Trenton",
-    "Open job search & assistance at TASK",
-    "Check a job post for scam red flags",
-    // Keep work
-    "Create a weekly work schedule with buses",
-    "How to talk to a supervisor about scheduling"
-  ];
-  function renderPills(){
-    sparklePills.innerHTML = "";
-    SUGGESTIONS.forEach(txt => {
-      const btn = document.createElement('button');
-      btn.className = 'sparkle-pill';
-      btn.textContent = txt;
-      btn.addEventListener('click', () => {
-        box.value = txt;
-        sparkleTray.style.display = 'none';
-        send();
-      });
-      sparklePills.appendChild(btn);
-    });
-  }
-  sparkleBtn.addEventListener('click', () => {
-    if (sparkleTray.style.display === 'none' || !sparkleTray.style.display) {
-      renderPills();
-      sparkleTray.style.display = 'block';
-    } else {
-      sparkleTray.style.display = 'none';
-    }
-  });
-
-  /* ---------- Chat rendering ---------- */
-  function addUser(text){
-    const row = document.createElement('div');
-    row.className = 'row user';
-    row.innerHTML = `
-      <div class="avatar" aria-hidden="true">U</div>
-      <div class="bubble">${escapeHTML(text)}</div>
-    `;
-    chat.appendChild(row);
-    scrollToBottom();
-    chime('send');
-  }
-  function addBot(html){
-    const safe = DOMPurify.sanitize(html);
-    const row = document.createElement('div');
-    row.className = 'row bot';
-    row.innerHTML = `
-      <div class="avatar" aria-hidden="true">E</div>
-      <div class="bubble">${safe}</div>
-    `;
-    chat.appendChild(row);
-    scrollToBottom();
-    chime('recv');
-  }
-  function typing(on){
-    const id='typing-row';
-    if (on){
-      if (document.getElementById(id)) return;
-      const row = document.createElement('div');
-      row.id = id;
-      row.className = 'row bot';
-      row.innerHTML = `
-        <div class="avatar" aria-hidden="true">E</div>
-        <div class="bubble"><span class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
-      `;
-      chat.appendChild(row);
-    } else {
-      const r = document.getElementById(id);
-      if (r) r.remove();
-    }
-    scrollToBottom();
-  }
-  function clearChat(){
-    chat.innerHTML = "";
-    statusLine.textContent = "⚠️ I can make mistakes — please double-check important info.";
-  }
-  function scrollToBottom(){
-    requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
-  }
-
-  /* ---------- Formatting ---------- */
-  function formatOutput(text){
-    // Convert * or - lists to proper bullets
-    const lines = String(text).split(/\r?\n/);
-    const hasBullets = lines.some(l => /^\s*[\*\-]\s+/.test(l));
-    if (hasBullets){
-      const items = lines
-        .filter(l => /^\s*[\*\-]\s+/.test(l))
-        .map(l => l.replace(/^\s*[\*\-]\s+/, ''))
-        .map(escapeHTML)
-        .map(li => `<li>${li}</li>`)
-        .join("");
-      return `<ul>${items}</ul>`;
-    }
-    // Light paragraphing
-    return escapeHTML(text).replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
-  }
-
-  /* ---------- AI call via server (/api/ai) ---------- */
-  async function askAI(promptText){
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort('timeout'), 20000);
-    try{
-      const r = await fetch(`${API_BASE}/ai`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ message: promptText }),
-        signal: controller.signal
-      });
-      clearTimeout(t);
-      if (!r.ok){
-        const detail = await r.text().catch(()=> '');
-        throw new Error(`Upstream error: ${detail.slice(0,400)}`);
+    // --- Audio gate (fixes "AudioContext was not allowed to start") ---
+    let audioReady = false;
+    async function ensureAudio() {
+      if (!audioReady) {
+        if (Tone.context.state !== 'running') await Tone.start();
+        audioReady = true;
+        audioStatus.textContent = 'audio on';
+        enableBtn.classList.add('hidden');
       }
-      const data = await r.json();
-      return data?.text || 'No reply.';
-    }catch(err){
-      clearTimeout(t);
-      throw err;
     }
-  }
+    enableBtn.addEventListener('click', ensureAudio);
 
-  function setInputEnabled(enabled){
-    sendBtn.disabled = !enabled;
-    box.disabled = !enabled;
-    sparkleBtn.disabled = !enabled;
-    micBtn.disabled = !enabled;
-  }
-  function setStatus(msg){
-    statusLine.textContent = msg || "⚠️ I can make mistakes — please double-check important info.";
-  }
-
-  /* ---------- Speech to text ---------- */
-  let rec = null;
-  let listening = false;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SR){
-    rec = new SR();
-    rec.lang = 'en-US';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.onresult = (e) => {
-      const t = e.results[0][0].transcript;
-      box.value = (box.value ? box.value + ' ' : '') + t;
-    };
-    rec.onend = () => {
-      listening = false;
-      micBtn.classList.remove('active');
-    };
-  }
-  micBtn.addEventListener('click', async () => {
-    if (!SR) { alert('Speech recognition not supported on this browser.'); return; }
-    if (listening){
-      rec.stop();
-      listening = false;
-      micBtn.classList.remove('active');
-      return;
-    }
-    try{
-      await Tone.start().catch(()=>{});
-      rec.start();
-      listening = true;
-      micBtn.classList.add('active');
-    }catch(e){
-      listening = false;
-      micBtn.classList.remove('active');
-    }
-  });
-
-  /* ---------- Events ---------- */
-  async function send(){
-    const text = (box.value || "").trim();
-    if (!text) return;
-
-    // Intent short-circuit for TASK actions (don’t hit AI if we know)
-    if (handledByIntent(text)){
-      addUser(text);
-      box.value = '';
-      return;
+    function ding() {
+      if (!audioReady) return;
+      const synth = new Tone.Synth().toDestination();
+      synth.triggerAttackRelease("C5", "8n");
     }
 
-    addUser(text);
-    box.value = '';
-    box.focus();
-
-    typing(true);
-    setInputEnabled(false);
-    setStatus("Thinking…");
-
-    try{
-      const reply = await askAI(text);
-      typing(false);
-      setStatus("Ready");
-      addBot(formatOutput(reply));
-    }catch(err){
-      typing(false);
-      setStatus("Network or API error. Try again.");
-      chime('error');
-      addBot("Sorry — I couldn’t reach the AI service. Please try again.");
-      console.error(err);
-    }finally{
-      setInputEnabled(true);
+    // --- UI helpers ---
+    function bubble(text, who='bot') {
+      const div = document.createElement('div');
+      div.className = `bubble ${who}`;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
     }
-  }
+    function setStatus(msg, isError=false) {
+      statusEl.textContent = msg || '';
+      statusEl.className = isError ? 'error' : 'muted';
+    }
 
-  sendBtn.addEventListener('click', send);
-  box.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter'){
+    // --- API client (correct path: /api/ai) ---
+    const API_URL = '/api/ai';
+
+    async function askAI(prompt, history=[]) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, history }),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(()=> '');
+        throw new Error(`Upstream error: ${res.status} ${res.statusText}\n${text}`);
+      }
+      return res.json();
+    }
+
+    // --- Chat send flow ---
+    const history = [];
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      send();
-    }
-  });
-  resetBtn.addEventListener('click', () => {
-    clearChat();
-    greet();
-  });
 
-  startBtn.addEventListener('click', () => {
-    splash.classList.add('fade-out');
-    setTimeout(() => {
-      splash.style.display = 'none';
-      app.style.display = 'flex';
-      greet();
-      box.focus();
-    }, 380);
-  });
+      // Start audio as part of the user's first gesture if not already
+      if (!audioReady) await ensureAudio();
 
-  // Planner
-  plannerClose.addEventListener('click', () => planner.style.display='none');
-  plannerGo.addEventListener('click', () => {
-    const from = (fromField.value || '').trim();
-    const dest = (toField.value || TASK.address).trim();
-    const q = encodeURIComponent(`${from} to ${dest}`);
-    openLink(`https://www.google.com/maps/dir/?api=1&travelmode=transit&dir_action=navigate&destination=${encodeURIComponent(dest)}${from?`&origin=${encodeURIComponent(from)}`:''}`);
-    planner.style.display='none';
-  });
+      const prompt = input.value.trim();
+      if (!prompt) return;
 
-  /* ---------- First message + quick-start ---------- */
-  function greet(){
-    addBot(`
-      <div class="quick-card">
-        <strong>Welcome to TASK Employment Assistant</strong><br>
-        I can connect you to TASK, plan bus routes, and point you to official job pages.
-        <div class="quick-grid" style="margin-top:10px">
-          <button class="qbtn" onclick="(function(){ window.location.href='tel:${TASK.phones.employment1.replace(/[^\d+]/g,'')}' })()">
-            📞 TASK Employment Services<br><small>${TASK.phones.employment1}</small>
-          </button>
-          <button class="qbtn" onclick="(function(){ window.location.href='tel:${TASK.phones.employment2.replace(/[^\d+]/g,'')}' })()">
-            📞 Employment Training<br><small>${TASK.phones.employment2}</small>
-          </button>
-          <button class="qbtn" onclick="(function(){ window.location.href='tel:${TASK.phones.appointments.replace(/[^\d+]/g,'')}' })()">
-            📅 Make Appointment<br><small>${TASK.phones.appointments}</small>
-          </button>
-          <button class="qbtn" onclick="(function(){ window.open('${TASK.employment}','_blank','noopener') })()">
-            🧭 Job Search & Assistance<br><small>trentonsoupkitchen.org</small>
-          </button>
-          <button class="qbtn" onclick="(function(){ window.open('${TASK.site}','_blank','noopener') })()">
-            🏠 TASK Website<br><small>Programs and services</small>
-          </button>
-          <button class="qbtn" onclick="(function(){ window.open('${TASK.arts}','_blank','noopener') })()">
-            🎨 Creative Arts Program<br><small>Music • Arts • More</small>
-          </button>
-          <button class="qbtn" onclick="(function(){ document.getElementById('planner').style.display='grid'; document.getElementById('fromField').focus(); })()">
-            🚌 Plan Transit Route<br><small>NJ Transit (via Google Maps)</small>
-          </button>
-          <button class="qbtn" onclick="(function(){ 
-            ${TASK.bycell.map(u=>`window.open('${u}','_blank','noopener')`).join(';')}
-          })()">
-            📲 TASK Mobile Menus<br><small>ByCell links</small>
-          </button>
-        </div>
-        <small style="display:block;margin-top:8px;color:var(--muted)">
-          Address: ${TASK.address}
-        </small>
-      </div>
-    `);
+      bubble(prompt, 'me');
+      input.value = '';
+      setStatus('Thinking…');
 
-    addBot(`How can I help you today? You can say things like:
-      <ul>
-        <li>“Find warehouse jobs hiring near Trenton.”</li>
-        <li>“Plan a bus route from my address to TASK.”</li>
-        <li>“Call TASK Employment Services.”</li>
-        <li>“Open TASK job search page.”</li>
-      </ul>`);
-  }
+      try {
+        const json = await askAI(prompt, history);
+        const text = json?.text || '(no response)';
+        history.push({ role: 'user', text: prompt });
+        history.push({ role: 'assistant', text });
 
-  /* ---------- Intent shortcuts (keep users on-task) ---------- */
-  function handledByIntent(text){
-    const t = text.toLowerCase();
-
-    // Phone / appointment
-    if (t.includes("call task") || t.includes("call employment")){
-      callNumber(TASK.phones.employment1);
-      addBot("Calling TASK Employment Services…");
-      return true;
-    }
-    if (t.includes("appointment") || t.includes("make appointment")){
-      callNumber(TASK.phones.appointments);
-      addBot("Opening phone dialer for appointments…");
-      return true;
-    }
-
-    // Open TASK pages
-    if (t.includes("task website")){ openLink(TASK.site); addBot("Opening TASK website…"); return true; }
-    if (t.includes("job search") || t.includes("employment page")){ openLink(TASK.employment); addBot("Opening TASK Job Search & Assistance…"); return true; }
-    if (t.includes("creative arts")){ openLink(TASK.arts); addBot("Opening TASK Creative Arts…"); return true; }
-
-    // ByCell menus
-    if (t.includes("bycell") || t.includes("menu")){
-      TASK.bycell.forEach(openLink);
-      addBot("Opened TASK mobile menu links.");
-      return true;
-    }
-
-    // Transit planner
-    if (t.includes("plan route") || t.includes("bus") || t.includes("nj transit") || t.includes("transit")){
-      planner.style.display = 'grid';
-      fromField.focus();
-      addBot("Enter your start and end, then tap Open Directions.");
-      return true;
-    }
-
-    // “jobs at {company}”
-    const m = t.match(/jobs?\s+at\s+([a-z0-9&\-\s]+)$/i);
-    if (m && m[1]){
-      const company = m[1].trim();
-      const url = `https://www.google.com/search?q=${encodeURIComponent(company+" careers site")}`;
-      openLink(url);
-      addBot(`Opened official career search for <b>${escapeHTML(company)}</b>.`);
-      return true;
-    }
-
-    return false;
-  }
-
-})();
-</script>
+        bubble(text, 'bot');
+        setStatus('');
+        ding();
+      } catch (err) {
+        console.error(err);
+        const msg = (err && err.message) ? err.message : String(err);
+        setStatus(msg.includes('NOT_FOUND') ? 'Service not found. Check /api/ai route.' : msg, true);
+        bubble('Sorry — I couldn’t reach the AI service. Please try again.', 'bot');
+      }
+    });
+  </script>
 </body>
 </html>
-
