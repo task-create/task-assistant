@@ -320,11 +320,12 @@
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort('timeout'), 20000);
     try{
-      const r = await fetch('/ai',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ message: promptText }),
-        signal: controller.signal
+      const r = await fetch('/api/ai', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: promptText })
+});
+
       });
       clearTimeout(timer);
       if(!r.ok) throw new Error(await r.text());
