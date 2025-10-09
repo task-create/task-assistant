@@ -1,70 +1,91 @@
 // File: /api/ai.js
-// Vercel serverless function that proxies requests to Google Gemini
+// Vercel Node Serverless Function (NOT Edge). Uses res.setHeader, not res.set.
 
-export default async function handler(req, res) {
-  // Only allow POST
+const MODEL = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
+const KEY   = process.env.GEMINI_API_KEY;
+
+// Small helper to read JSON body safely (works whether Vercel gives string or object)
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    if (req.body && typeof req.body === 'object') return resolve(req.body);
+    let data = '';
+    req.on('data', chunk => (data += chunk));
+    req.on('end', () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch (e) {
+        reject(e);
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+module.exports = async function handler(req, res) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    // Preflight
+    res.status(204).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  if (!KEY) {
+    res.status(500).json({ error: 'Server missing GEMINI_API_KEY' });
+    return;
   }
 
   try {
-    const KEY = process.env.GEMINI_API_KEY;
-    const MODEL = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
+    const body = await readJsonBody(req);
+    const userText = String(body?.message || '').slice(0, 5000);
 
-    if (!KEY) {
-      console.error('Missing GEMINI_API_KEY in environment.');
-      return res.status(500).json({ error: 'Server missing GEMINI_API_KEY' });
-    }
-
-    // Expect JSON: { message: "..." }
-    const { message } = req.body || {};
-    const userText = String(message || '').slice(0, 5000);
-
-    if (!userText) {
-      return res.status(400).json({ error: 'Request must include "message"' });
-    }
-
-    // Build Gemini request
+    // Build Gemini URL
     const url = new URL(
       `https://generativelanguage.googleapis.com/v1beta/${MODEL}:generateContent`
     );
     url.searchParams.set('key', KEY);
 
-    const body = {
-      contents: [{ role: 'user', parts: [{ text: userText }]}],
-      generationConfig: {
-        temperature: 0.7,
-        topP: 0.9,
-        topK: 40,
-        maxOutputTokens: 800
-      }
+    // Ask for concise, bullet-friendly answers biased to TASK topics
+    const systemPreamble =
+      'You are Employment Assistant for Trenton Area Soup Kitchen (TASK). ' +
+      'Be brief and actionable. Use bullet points when listing. ' +
+      'Prefer TASK resources and official sites.';
+
+    const payload = {
+      contents: [
+        { role: 'user', parts: [{ text: `${systemPreamble}\n\nUser: ${userText}` }] }
+      ]
     };
 
-    // Call Gemini
     const upstream = await fetch(url.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(payload)
     });
 
     if (!upstream.ok) {
       const detail = await upstream.text().catch(() => '');
-      console.error('Gemini upstream error', upstream.status, detail);
-      return res.status(502).json({
+      res.status(502).json({
         error: 'Upstream error',
         detail: detail.slice(0, 2000)
       });
+      return;
     }
 
     const data = await upstream.json();
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No reply.';
 
-    return res.status(200).json({ text: reply });
+    res.status(200).json({ text: reply });
   } catch (err) {
-    console.error('Function crash:', err);
-    return res
-      .status(500)
-      .json({ error: 'Server error', detail: String(err).slice(0, 1000) });
+    res.status(500).json({ error: 'Server error', detail: String(err).slice(0, 2000) });
   }
-}
+};
