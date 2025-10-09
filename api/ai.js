@@ -1,68 +1,27 @@
-// File: api/ai.js
-// Vercel Serverless Function (Node.js runtime)
-// Frontend calls: fetch('/api/ai', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message }) })
-
-const MODEL = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
-const KEY   = process.env.GEMINI_API_KEY;
-
-// Keep outputs focused on TASK (Trenton Area Soup Kitchen) services
-const TASK_POLICY = `
-You are "Employment Assistant" for Trenton Area Soup Kitchen (TASK).
-Focus on: getting ready for work, finding work, keeping work.
-Prefer verified, official resources and TASK services.
-
-Assume:
-- Address: 72 Escher St, Trenton, NJ 08609
-- Phones: Employment Services 609-697-6215, Employment Training 609-697-6166, Appointments 609-337-1624
-- Site: https://trentonsoupkitchen.org/
-- Job search & assistance: https://trentonsoupkitchen.org/job-search-and-assistance/
-- Creative Arts: https://trentonsoupkitchen.org/creative-arts-program/
-
-Do NOT provide legal/medical/financial advice; suggest contacting TASK staff or official agencies when needed.
-Be concise, structured, and use bullet points when helpful.
-`;
-
-// If your frontend is same-origin (recommended), this can be strict.
-// If you're calling from a different domain (e.g., GitHub Pages), put that origin here.
-function corsHeaders(origin) {
-  return {
-    "Access-Control-Allow-Origin": origin || "*",       // tighten to your domain if possible
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}
+// File: /api/ai.js
+// Vercel serverless function that proxies requests to Google Gemini
 
 export default async function handler(req, res) {
-  try {
-    // CORS preflight
-    if (req.method === 'OPTIONS') {
-      res.set(corsHeaders(req.headers.origin));
-      return res.status(200).end();
-    }
+  // Only allow POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-    if (req.method !== 'POST') {
-      res.set(corsHeaders(req.headers.origin));
-      return res.status(405).json({ error: 'Method not allowed' });
-    }
+  try {
+    const KEY = process.env.GEMINI_API_KEY;
+    const MODEL = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
 
     if (!KEY) {
-      res.set(corsHeaders(req.headers.origin));
-      return res.status(500).json({ error: 'Missing GEMINI_API_KEY on server' });
+      console.error('Missing GEMINI_API_KEY in environment.');
+      return res.status(500).json({ error: 'Server missing GEMINI_API_KEY' });
     }
 
-    // Parse input
-    let message = '';
-    try {
-      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-      message = String(body?.message || '').slice(0, 5000);
-    } catch {
-      res.set(corsHeaders(req.headers.origin));
-      return res.status(400).json({ error: 'Invalid JSON body' });
-    }
+    // Expect JSON: { message: "..." }
+    const { message } = req.body || {};
+    const userText = String(message || '').slice(0, 5000);
 
-    if (!message) {
-      res.set(corsHeaders(req.headers.origin));
-      return res.status(400).json({ error: 'message is required' });
+    if (!userText) {
+      return res.status(400).json({ error: 'Request must include "message"' });
     }
 
     // Build Gemini request
@@ -71,48 +30,41 @@ export default async function handler(req, res) {
     );
     url.searchParams.set('key', KEY);
 
-    const payload = {
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: TASK_POLICY }]
-      },
-      contents: [
-        { role: "user", parts: [{ text: message }] }
-      ],
+    const body = {
+      contents: [{ role: 'user', parts: [{ text: userText }]}],
       generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 1024
+        temperature: 0.7,
+        topP: 0.9,
+        topK: 40,
+        maxOutputTokens: 800
       }
     };
 
-    // Timeout guard (20s)
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort('timeout'), 20000);
-
-    const r = await fetch(url, {
+    // Call Gemini
+    const upstream = await fetch(url.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    }).catch(err => ({ ok: false, statusText: String(err) }));
+      body: JSON.stringify(body)
+    });
 
-    clearTimeout(timer);
-
-    if (!r?.ok) {
-      const detail = typeof r.text === 'function' ? await r.text() : String(r.statusText || 'Unknown error');
-      res.set(corsHeaders(req.headers.origin));
-      return res.status(502).json({ error: 'Gemini upstream error', detail: detail.slice(0, 1000) });
+    if (!upstream.ok) {
+      const detail = await upstream.text().catch(() => '');
+      console.error('Gemini upstream error', upstream.status, detail);
+      return res.status(502).json({
+        error: 'Upstream error',
+        detail: detail.slice(0, 2000)
+      });
     }
 
-    const data = await r.json();
+    const data = await upstream.json();
     const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      'Sorry — I could not find a good answer.';
+      data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No reply.';
 
-    res.set(corsHeaders(req.headers.origin));
     return res.status(200).json({ text: reply });
   } catch (err) {
-    res.set(corsHeaders(req.headers.origin));
-    return res.status(500).json({ error: 'Server error', detail: String(err).slice(0, 1000) });
+    console.error('Function crash:', err);
+    return res
+      .status(500)
+      .json({ error: 'Server error', detail: String(err).slice(0, 1000) });
   }
 }
