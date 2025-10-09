@@ -1,0 +1,9 @@
+{
+  "name": "task-assistant",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "serve ."
+  },
+  "devDependencies": {}
+}
