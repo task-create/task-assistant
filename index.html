@@ -61,7 +61,15 @@
     .sparkle-sm.on{ opacity:.7; }
 
     .muted{ color:var(--muted); font-size:14px; }
-    .chat{ overflow:auto; padding:12px; border-radius:12px; background: rgba(0,0,0,0.06); border:1px solid var(--border); display:flex; flex-direction:column; gap:12px; }
+    .chat{ overflow:auto; padding:0; border-radius:12px; background: rgba(0,0,0,0.06); border:1px solid var(--border); display:flex; flex-direction:column; gap:12px; }
+    .settings-bar{
+      position: sticky; top: 0; z-index: 5; display:flex; gap:8px; align-items:center;
+      padding:10px 12px; background:var(--panel); border-bottom:1px solid var(--border);
+    }
+    .settings-bar .spacer{ flex:1; }
+    .settings-link{ padding:8px 12px; border:1px solid var(--border); border-radius:999px; background:transparent; color:var(--text); text-decoration:none; font-size:14px; }
+    .chat-body{ padding:12px; display:flex; flex-direction:column; gap:12px; }
+
     .bubble{ max-width:82%; padding:12px 14px; border-radius:14px; line-height:1.5; border:1px solid var(--border); }
     .me{ align-self:flex-end; background:#172554; color:#fff; white-space:pre-wrap; word-wrap:break-word; }
     .bot{ align-self:flex-start; background:#111827; color:#e5e7eb; }
@@ -78,9 +86,13 @@
 
     .error{ color:#ef4444; }
 
-    /* bullets inside bot bubbles */
+    /* bulletized output */
     .bot ul{ margin:0; padding-left:22px; }
-    .bot li{ margin:6px 0; }
+    .bot li{ margin:6px 0; list-style: disc; }
+
+    /* suggestion chips */
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 0; }
+    .chip{ font-size:14px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:transparent; cursor:pointer; }
   </style>
 </head>
 <body data-theme="dark">
@@ -93,7 +105,7 @@
         <div class="logo">T</div>
       </div>
       <div class="splash-title">TASK Assistant — Ask Anything</div>
-      <div class="splash-sub">Task Employment Services: resumes, interviews, training info, job leads and more.</div>
+      <div class="splash-sub">Task Employment Services • Clear steps, quick actions, Engage by Cell for follow-through.</div>
       <div class="actions"><button id="start" class="btn">Start</button></div>
     </div>
   </div>
@@ -112,11 +124,25 @@
       <div style="margin-left:auto;" class="muted" id="providerTag"></div>
     </header>
 
-    <div id="chat" class="chat" aria-live="polite"></div>
+    <div id="chat" class="chat" aria-live="polite">
+      <!-- sticky settings at VERY top (scroll up to change) -->
+      <div class="settings-bar">
+        <button id="settingsTheme" class="settings-link" type="button" title="Theme">Theme</button>
+        <a id="openEngageTop" class="settings-link" href="#" target="_blank" rel="noopener">Open Engage</a>
+        <button id="clearChat" class="settings-link" type="button">Clear</button>
+        <div class="spacer"></div>
+        <span id="settingsInfo" class="muted">Settings</span>
+      </div>
+
+      <div class="chat-body" id="chatBody"></div>
+    </div>
+
+    <!-- Suggestions row (appears above composer) -->
+    <div id="suggestions" class="chips hidden"></div>
 
     <!-- Composer: sparkle indicator (far-left), input, mic, send -->
     <form id="composer" class="row" autocomplete="off">
-      <button id="sparkleBtn" class="icon-btn" type="button" title="Model status"><span id="sparkleGlyph">✨</span></button>
+      <button id="sparkleBtn" class="icon-btn" type="button" title="Ideas"><span id="sparkleGlyph">✨</span></button>
       <input id="input" type="text" placeholder="Type your question…" />
       <button id="mic" class="icon-btn" type="button" title="Dictate"><span id="micIcon">🎤</span></button>
       <button id="send" type="submit">Send</button>
@@ -126,18 +152,29 @@
   </div>
 
   <script>
-    // THEME (sun/moon on splash + persist)
+    /* ------------ CONFIG ------------ */
+    const ENGAGE_URL = "https://m.engagebycell.com"; // TODO: replace with your Engage by Cell app link
+
+    // TASK-first nudge (prepends to model prompt; keeps answers action oriented)
+    const TASK_NUDGE = `You are TASK Assistant for Task Employment Services.
+Respond with clear, step-by-step guidance. Keep answers concise.
+Use bullet points only when they improve readability (for longer sections).
+Prefer actionable steps and reference Engage by Cell for completing tasks (use short phrasing like: Open Engage by Cell to {action}).
+Avoid markdown bold (**).`;
+
+    /* ------------ THEME ------------ */
     const root = document.body;
     const themeToggle = document.getElementById('themeToggle');
     function setTheme(t){ root.setAttribute('data-theme', t); themeToggle.textContent = t==='dark'?'🌙':'☀️'; localStorage.setItem('theme', t); }
     setTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light'));
     themeToggle.addEventListener('click', ()=> setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'));
 
-    // Elements
+    /* ------------ ELEMENTS ------------ */
     const splash  = document.getElementById('splash');
     const app     = document.getElementById('app');
     const startBtn= document.getElementById('start');
     const chat    = document.getElementById('chat');
+    const chatBody= document.getElementById('chatBody');
     const form    = document.getElementById('composer');
     const input   = document.getElementById('input');
     const statusEl= document.getElementById('status');
@@ -147,8 +184,21 @@
     const micIcon = document.getElementById('micIcon');
     const sparkleBtn = document.getElementById('sparkleBtn');
     const sparkleGlyph = document.getElementById('sparkleGlyph');
+    const suggestionsEl = document.getElementById('suggestions');
+    const openEngageTop = document.getElementById('openEngageTop');
+    const settingsTheme = document.getElementById('settingsTheme');
+    const clearChatBtn  = document.getElementById('clearChat');
 
-    // Audio (Tone lazy-loaded after Start)
+    openEngageTop.href = ENGAGE_URL;
+
+    settingsTheme.addEventListener('click', ()=> setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'));
+    clearChatBtn.addEventListener('click', ()=>{
+      chatBody.innerHTML = '';
+      history.length = 0;
+      suggestionsEl.classList.add('hidden');
+    });
+
+    /* ------------ AUDIO (lazy) ------------ */
     let Tone = null;
     let audioReady = false;
     async function ensureAudio() {
@@ -159,26 +209,22 @@
       if (Tone?.context?.state !== 'running') await Tone.start();
       audioReady = true;
     }
-
-    // Sparkle chime (a shimmery arpeggio)
     function sparkleChime(){
       if (!audioReady || !Tone) return;
       const synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' } }).toDestination();
       const now = Tone.now();
       const notes = ["E5","A5","C#6","E6","A6"];
       notes.forEach((n,i)=> synth.triggerAttackRelease(n, "8n", now + i*0.06));
-      // soft pad under it
       const pad = new Tone.Synth({ oscillator:{type:'triangle'}, envelope:{attack:0.02, release:0.4} }).toDestination();
       pad.triggerAttackRelease("A4","4n", now+0.02);
     }
-
-    function ding(){ // short confirm for regular reply (kept)
+    function ding(){
       if (!audioReady || !Tone) return;
       const s = new Tone.Synth().toDestination();
       s.triggerAttackRelease("C5","8n");
     }
 
-    // STT (Web Speech API)
+    /* ------------ VOICE (Web Speech API) ------------ */
     let recognition = null, listening = false;
     function initSTT(){
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -200,45 +246,47 @@
       if (!listening) recognition.start(); else recognition.stop();
     });
 
-    // Helpers
+    /* ------------ UI HELPERS ------------ */
     function bubbleMe(text){
       const div = document.createElement('div');
       div.className = 'bubble me';
       div.textContent = text;
-      chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+      chatBody.appendChild(div); chat.scrollTop = 0; chat.scrollTop = chat.scrollHeight;
     }
 
-    // Bulletize bot output: split by lines or sentences → <ul><li>…</li></ul>
-    function bulletize(text){
-      const container = document.createElement('div');
-      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    function cleanMarkdown(s){
+      return s.replace(/\*\*/g, '')  // remove bold markers
+              .replace(/^#+\s*/gm,'') // remove headings
+              .replace(/`{1,3}/g, ''); // remove backticks
+    }
 
-      function makeList(items){
+    // make bullets only when helpful (multi-line or long text)
+    function bulletizeIfHelpful(text){
+      const cleaned = cleanMarkdown(text);
+      const lines = cleaned.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      const long = cleaned.length > 220;
+
+      if (lines.length >= 2 || long) {
         const ul = document.createElement('ul');
-        items.forEach(item=>{
-          const li = document.createElement('li');
-          // strip markdown bullets if present
-          li.textContent = item.replace(/^(\*|-|•|\d+\.)\s*/, '');
-          ul.appendChild(li);
-        });
+        (lines.length >= 2 ? lines : cleaned.split(/(?<=[.!?])\s+(?=[A-Z(])/).filter(Boolean))
+          .forEach(item=>{
+            const li = document.createElement('li');
+            li.textContent = item.replace(/^(\*|-|•|\d+\.)\s*/, '');
+            ul.appendChild(li);
+          });
         return ul;
-      }
-
-      if (lines.length >= 2) {
-        container.appendChild(makeList(lines));
       } else {
-        const parts = text.split(/(?<=[.!?])\s+(?=[A-Z(])/).filter(Boolean);
-        if (parts.length > 1) container.appendChild(makeList(parts));
-        else container.textContent = text; // fallback
+        const p = document.createElement('div');
+        p.textContent = cleaned;
+        return p;
       }
-      return container;
     }
 
     function bubbleBot(text){
       const div = document.createElement('div');
       div.className = 'bubble bot';
-      div.appendChild(bulletize(text));
-      chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+      div.appendChild(bulletizeIfHelpful(text));
+      chatBody.appendChild(div); chat.scrollTop = chat.scrollHeight;
     }
 
     function setStatus(msg, isError=false){
@@ -246,12 +294,25 @@
       statusEl.className = isError ? 'error' : 'muted';
     }
 
-    // API
+    function showChips(list){
+      suggestionsEl.innerHTML = '';
+      list.forEach(s=>{
+        const b = document.createElement('button');
+        b.className = 'chip';
+        b.type = 'button';
+        b.textContent = s;
+        b.addEventListener('click', ()=> { input.value = s; input.focus(); });
+        suggestionsEl.appendChild(b);
+      });
+      suggestionsEl.classList.toggle('hidden', list.length === 0);
+    }
+
+    /* ------------ API ------------ */
     const history = [];
     async function askAI(prompt){
       const res = await fetch('/api/ai', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ prompt, history })
+        body: JSON.stringify({ prompt: `${TASK_NUDGE}\n\nUser: ${prompt}`, history })
       });
       if (!res.ok) { const t = await res.text().catch(()=> ''); throw new Error(`Upstream error: ${res.status} ${res.statusText}\n${t}`); }
       return res.json();
@@ -265,8 +326,16 @@
       const j = await res.json().catch(()=> null);
       return j?.suggestion || null;
     }
+    async function getSuggestionsN(lastUserMessage, n=3){
+      const arr = [];
+      for (let i=0;i<n;i++){
+        const s = await getSuggestion(lastUserMessage);
+        if (s && !arr.includes(s)) arr.push(s);
+      }
+      return arr;
+    }
 
-    // Start
+    /* ------------ START / SEND ------------ */
     startBtn.addEventListener('click', async ()=>{
       try { await ensureAudio(); } catch {}
       splash.classList.add('hidden');
@@ -274,7 +343,6 @@
       input.focus();
     });
 
-    // Send
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const prompt = input.value.trim();
@@ -282,13 +350,11 @@
 
       if (!audioReady) { try { await ensureAudio(); } catch {} }
 
+      showChips([]); // clear any prior chips
       bubbleMe(prompt);
       input.value = '';
       setStatus('Thinking…');
-
-      // spin the sparkle indicator while thinking
-      sparkleBtn.classList.add('on');
-      sparkleGlyph.classList.add('spin');
+      sparkleBtn.classList.add('on'); sparkleGlyph.classList.add('spin');
 
       try {
         const json = await askAI(prompt);
@@ -299,34 +365,47 @@
 
         bubbleBot(text);
         setStatus('');
+        ding(); sparkleChime();
 
-        // happy path sounds
-        ding();          // short confirm
-        sparkleChime();  // the “Gemini sparkle” sound
-
-        // Smart follow-up (also lights header sparkle)
+        // auto suggestion (header sparkle)
         sparkleSm.classList.add('on');
         const suggestion = await getSuggestion(prompt);
         sparkleSm.classList.remove('on');
-        if (suggestion) bubbleBot(`✨ Try: ${suggestion}`);
+        if (suggestion) showChips([suggestion, `Open Engage by Cell to continue: ${ENGAGE_URL}`]);
       } catch (err) {
         console.error(err);
         setStatus(err.message || String(err), true);
         bubbleBot('Sorry — I couldn’t reach the AI service. Please try again.');
       } finally {
-        sparkleBtn.classList.remove('on');
-        sparkleGlyph.classList.remove('spin');
+        sparkleBtn.classList.remove('on'); sparkleGlyph.classList.remove('spin');
       }
     });
 
-    // Starter bubbles (TES context)
-    bubbleBot('Here’s what I can help with:');
+    /* ------------ SPARKLE BUTTON (ideas on demand) ------------ */
+    sparkleBtn.addEventListener('click', async ()=>{
+      // find last user message
+      const lastUser = [...history].reverse().find(m => m.role === 'user')?.text || input.value.trim() || 'employment help';
+      sparkleBtn.classList.add('on'); sparkleGlyph.classList.add('spin');
+      try {
+        if (!audioReady) { try { await ensureAudio(); } catch {} }
+        const ideas = await getSuggestionsN(lastUser, 3);
+        // Always include the Engage app action as one option
+        ideas.push(`Open Engage by Cell to continue: ${ENGAGE_URL}`);
+        showChips(ideas);
+        sparkleChime();
+      } finally {
+        sparkleBtn.classList.remove('on'); sparkleGlyph.classList.remove('spin');
+      }
+    });
+
+    /* ------------ STARTER CONTENT (TES) ------------ */
+    bubbleBot('Here’s what I can help with today:');
     bubbleBot([
-      'Polish a resume for a specific role.',
-      'Prep quick bullet points for interviews.',
-      'Find training programs and prerequisites.',
-      'Draft outreach messages to employers.',
-      'Explain next steps after an application.'
+      'Quick steps to tailor your resume to a specific job.',
+      'Interview practice prompts and concise talking points.',
+      'Find local training programs and what you need to enroll.',
+      'Draft short outreach messages to employers.',
+      'Next steps after applying (follow-up and documents).'
     ].join('\n'));
   </script>
 </body>
