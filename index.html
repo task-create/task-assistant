@@ -11,21 +11,30 @@
       --brand: #ff8a00;
       --brand-light: #ffd088;
     }
-    .dark .prose-invert { color: #d1d5db; }
-    .dark .prose-invert a { color: #93c5fd; }
-    .dark .prose-invert strong { color: #f9fafb; }
-    .dark .prose-invert blockquote { border-left-color: #4b5563; }
-    .dark .prose-invert ul > li::before { background-color: #6b7280; }
-    /* Custom scrollbar for webkit browsers */
+    .prose { color: inherit; }
+    .prose strong { color: inherit; }
+    .prose a { color: #3b82f6; text-decoration: underline; }
+    .dark .prose a { color: #93c5fd; }
+    .prose ul > li::before { background-color: #6b7280; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
-    /* Motion safety */
-    @media (prefers-reduced-motion: reduce){ .animate-spin, .animate-bounce { animation: none !important } }
+    @media (prefers-reduced-motion: reduce){ .animate-spin, .animate-bounce, .transition-all { transition: none !important } }
     .sparkle {
       background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-light) 25%, transparent 40%, transparent 60%, var(--brand-light) 75%, var(--brand) 100%);
       filter: blur(14px) saturate(1.2);
+    }
+    .action-btn-group { opacity: 0; transition: opacity 0.2s ease-in-out; }
+    .group:hover .action-btn-group { opacity: 1; }
+    aside {
+        overflow-x: hidden;
+        transition: width 0.3s ease-in-out;
+    }
+    @media (min-width: 1024px) { /* lg breakpoint */
+        #app.sidebar-collapsed {
+            grid-template-columns: 0 1fr;
+        }
     }
   </style>
   <script>
@@ -54,7 +63,7 @@
         <div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
       </div>
       <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">TASK Assistant</h1>
-      <p class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Clear steps, quick actions. Use Engage by Cell to complete tasks.</p>
+      <p class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Your guide to career and community resources.</p>
       <div class="mt-8">
         <button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button>
       </div>
@@ -62,34 +71,42 @@
   </div>
 
   <!-- Main App -->
-  <div id="app" class="hidden h-screen w-screen lg:grid lg:grid-cols-[280px_1fr]">
+  <div id="app" class="hidden h-screen w-screen lg:grid lg:grid-cols-[280px_1fr] transition-all duration-300">
     <!-- Sidebar -->
-    <aside class="flex-col hidden h-full p-3 bg-white lg:flex dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
-      <div class="flex items-center gap-3 p-2">
-        <div class="relative w-10 h-10">
-          <div class="absolute inset-[-8px] rounded-xl sparkle"></div>
-          <div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">T</div>
+    <aside class="flex-col hidden h-full p-3 bg-white lg:flex dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] w-[280px]">
+        <div class="flex items-center gap-3 p-2">
+            <div class="relative w-10 h-10">
+                <div class="absolute inset-[-8px] rounded-xl sparkle"></div>
+                <div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">T</div>
+            </div>
+            <span class="text-xl font-semibold">TASK Assistant</span>
         </div>
-        <span class="text-xl font-semibold">TASK Assistant</span>
-      </div>
-      <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
-        <span>New Chat</span>
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-      </button>
-      <div class="mt-4 flex-grow overflow-y-auto custom-scrollbar">
-        <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
-        <div id="historyContainer" class="mt-2 space-y-1"></div>
-      </div>
-      <div class="p-2 text-xs text-gray-500 border-t border-gray-200 dark:border-gray-700">
-        <button id="themeToggleApp" class="flex items-center w-full gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-          <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-          <span id="themeTextApp">Toggle Theme</span>
+        <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+            <span>New Chat</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
         </button>
-      </div>
+        <div class="px-2 mt-6">
+            <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
+            <div id="quickActionsContainer" class="mt-2 space-y-1"></div>
+        </div>
+        <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
+            <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
+            <div id="historyContainer" class="mt-2 space-y-1"></div>
+        </div>
+        <div class="p-2 border-t border-gray-200 dark:border-gray-700">
+            <button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+                <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <span id="themeTextApp" class="text-sm font-medium">Dark Mode</span>
+            </button>
+        </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex flex-col h-full bg-gray-100 dark:bg-[#0b1220]">
+    <main class="relative flex flex-col h-full bg-gray-100 dark:bg-[#0b1220]">
+        <button id="toggleSidebarBtn" class="absolute top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand">
+            <svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+
         <div class="flex flex-col flex-1 w-full max-w-4xl mx-auto">
             <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
                  <div class="flex items-center gap-3">
@@ -106,7 +123,7 @@
             
             <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
                 <div id="chatBody" class="space-y-6">
-                  <!-- Chat bubbles will be appended here -->
+                  <!-- Chat bubbles and other content will be appended here -->
                 </div>
             </div>
 
@@ -119,13 +136,20 @@
                             <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
                          </button>
                          <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                            <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                          </button>
                     </div>
                 </form>
                 <div id="status" class="mt-2 text-sm text-center text-gray-500"></div>
-                <div class="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
-                    This assistant provides general guidance. For emergencies, call <a href="tel:911" class="underline">911</a>.
+                <div class="mt-3 text-xs text-center text-gray-500 dark:text-gray-400 space-y-1.5">
+                    <p>
+                        <span class="font-semibold">Disclaimer:</span> This AI assistant can make mistakes. Please verify important information. For guidance only.
+                    </p>
+                    <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
+                        <p><span class="font-semibold">Crisis?</span> Call/Text <a href="tel:988" class="underline hover:text-brand">988</a></p>
+                         <p><span class="font-semibold">Emergencies:</span> <a href="tel:911" class="underline hover:text-brand">911</a></p>
+                         <p><span class="font-semibold">Appointments:</span> <a href="tel:+16093371624" class="underline hover:text-brand">609-337-1624</a></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -138,19 +162,22 @@
               <span class="text-xl font-semibold">Menu</span>
               <button id="closeMenuBtn" class="p-2 rounded-md">&times;</button>
             </div>
-            <!-- Mobile menu content mirrors sidebar -->
              <button id="newChatMobile" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
                 <span>New Chat</span>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             </button>
-            <div class="mt-4 flex-grow overflow-y-auto custom-scrollbar">
+            <div class="px-2 mt-6">
+                <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
+                <div id="quickActionsContainerMobile" class="mt-2 space-y-1"></div>
+            </div>
+            <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
                 <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
                 <div id="historyContainerMobile" class="mt-2 space-y-1"></div>
             </div>
-            <div class="border-t border-gray-200 dark:border-gray-700">
-                <button id="themeToggleMobile" class="flex items-center w-full gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+            <div class="p-2 border-t border-gray-200 dark:border-gray-700">
+                <button id="themeToggleMobile" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
                     <svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    <span id="themeTextMobile">Toggle Theme</span>
+                    <span id="themeTextMobile" class="text-sm font-medium">Dark Mode</span>
                 </button>
             </div>
         </div>
@@ -161,22 +188,31 @@
     /* -------- Links & Config -------- */
     const ENGAGE = {
         landing: "https://bycell.co/ddmnx",
+        jobAssistance: "https://bycell.co/ddnke",
+        trainingOpps: "https://bycell.co/ddnki",
+        resources: "https://bycell.co/ddnkj",
+        careerTips: "https://bycell.co/ddmui",
+        communityResources: "https://bycell.co/ddmua",
+        employmentVerification: "https://bycell.co/ddmwm",
+        events: "https://bycell.co/ddmul",
         jobOpenings: "https://bycell.co/ddmtq",
         appointment: "https://bycell.co/ddncs",
-        trainingOpps: "https://bycell.co/ddnki"
+        otherServices: "https://bycell.co/ddmud",
+        trainings: "https://bycell.co/ddmtn"
     };
-    const TASK_NUDGE = `You are TASK Assistant...`; // System prompt
 
     /* -------- Theme Management -------- */
-    const sunIcon = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
-    const moonIcon = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
+    const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
+    const moonIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
     
     function applyTheme(theme) {
         document.documentElement.classList.toggle('dark', theme === 'dark');
         localStorage.setItem('theme', theme);
         const isDark = theme === 'dark';
         
-        document.getElementById('themeIconSplash').innerHTML = isDark ? sunIcon : moonIcon;
+        const themeIconSplash = document.getElementById('themeIconSplash');
+        if (themeIconSplash) themeIconSplash.innerHTML = isDark ? sunIcon : moonIcon;
+        
         document.getElementById('themeIconApp').innerHTML = isDark ? sunIcon : moonIcon;
         document.getElementById('themeTextApp').textContent = isDark ? 'Light Mode' : 'Dark Mode';
         document.getElementById('themeIconMobile').innerHTML = isDark ? sunIcon : moonIcon;
@@ -190,8 +226,12 @@
     
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     applyTheme(savedTheme);
+    
+    const themeToggleSplash = document.getElementById('themeToggleSplash');
+    if(themeToggleSplash) themeToggleSplash.addEventListener('click', toggleTheme);
+    document.getElementById('themeToggleApp').addEventListener('click', toggleTheme);
+    document.getElementById('themeToggleMobile').addEventListener('click', toggleTheme);
 
-    [document.getElementById('themeToggleSplash'), document.getElementById('themeToggleApp'), document.getElementById('themeToggleMobile')].forEach(btn => btn.addEventListener('click', toggleTheme));
 
     /* -------- DOM Elements -------- */
     const splash = document.getElementById('splash'), app = document.getElementById('app'), startBtn = document.getElementById('start');
@@ -201,17 +241,63 @@
     const suggestionsEl = document.getElementById('suggestions');
     const newChatBtn = document.getElementById('newChat'), newChatMobileBtn = document.getElementById('newChatMobile');
     const historyContainer = document.getElementById('historyContainer'), historyContainerMobile = document.getElementById('historyContainerMobile');
+    const quickActionsContainer = document.getElementById('quickActionsContainer'), quickActionsContainerMobile = document.getElementById('quickActionsContainerMobile');
     const menuBtn = document.getElementById('menuBtn'), mobileMenu = document.getElementById('mobileMenu'), closeMenuBtn = document.getElementById('closeMenuBtn');
+    const asideEl = document.querySelector('aside');
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const toggleSidebarIcon = document.getElementById('toggleSidebarIcon');
 
     /* -------- State Management -------- */
     let currentChatId = null;
     let allChats = {};
+    let conversationState = {
+        isWaitingForLocation_Jobs: false,
+        isWaitingForLocation_Resources: false,
+        resourceType: null // e.g., 'food', 'housing'
+    };
+
+    /* -------- MOCK API and Data -------- */
+    const MOCK_JOBS_DB = {
+        "trenton": [
+            { title: "Registered Nurse", company: "Capital Health", location: "Trenton, NJ", url: "https://capitalhealth.wd1.myworkdayjobs.com/CapitalHealth" },
+            { title: "Claims Adjuster", company: "NJM Insurance Group", location: "Trenton, NJ", url: "https://jobs.njm.com/" },
+            { title: "Administrative Assistant", company: "City of Trenton", location: "Trenton, NJ", url: "https://www.trentonnj.org/291/Employment-Opportunities" }
+        ],
+        "philadelphia": [
+            { title: "Software Engineer", company: "Comcast", location: "Philadelphia, PA", url: "https://jobs.comcast.com/" },
+            { title: "Research Scientist", company: "UPenn", location: "Philadelphia, PA", url: "https://careers.upenn.edu/" }
+        ]
+    };
+
+    const MOCK_RESOURCES_DB = {
+        "trenton": {
+            "food": [{ name: "Mercer Street Friends Food Bank", details: "824 Silvia St, Ewing Township, NJ", url: "https://mercerstreetfriends.org/" }],
+            "housing": [{ name: "Rescue Mission of Trenton", details: "98 Carroll St, Trenton, NJ", url: "https://rescuemissionoftrenton.org/" }],
+            "mental health": [{ name: "Catholic Charities, Diocese of Trenton", details: "Offers various support services.", url: "https://www.catholiccharitiestrenton.org/"}]
+        }
+    };
+
+    async function fetchJobs(location) {
+        setStatus(`Searching for jobs in ${location}...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return MOCK_JOBS_DB[location.toLowerCase()] || [];
+    }
+
+    async function fetchResources(location, type) {
+        setStatus(`Finding ${type} resources in ${location}...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const locData = MOCK_RESOURCES_DB[location.toLowerCase()];
+        return locData ? (locData[type] || []) : [];
+    }
     
-    /* -------- Event Listeners -------- */
+    /* -------- Initial Setup -------- */
     startBtn.addEventListener('click', () => {
       splash.classList.add('hidden');
       app.classList.remove('hidden');
+      renderQuickActions();
       loadChats();
+      const savedSidebarState = localStorage.getItem('sidebarCollapsed') === 'true';
+      setSidebarState(savedSidebarState);
       if (Object.keys(allChats).length === 0) {
         startNewChat();
       } else {
@@ -220,34 +306,42 @@
       }
       input.focus();
     });
-
+    
+    /* -------- Event Listeners -------- */
     input.addEventListener('input', () => {
       sendBtn.disabled = input.value.trim().length === 0;
       input.style.height = 'auto';
       input.style.height = (input.scrollHeight) + 'px';
     });
     
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            form.dispatchEvent(new Event('submit'));
-        }
-    });
-
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.dispatchEvent(new Event('submit')); } });
     form.addEventListener('submit', handleSend);
     newChatBtn.addEventListener('click', startNewChat);
-    newChatMobileBtn.addEventListener('click', () => {
-        startNewChat();
-        mobileMenu.classList.add('hidden');
-    });
-
+    newChatMobileBtn.addEventListener('click', () => { startNewChat(); mobileMenu.classList.add('hidden'); });
     menuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
     closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-    mobileMenu.addEventListener('click', (e) => {
-        if (e.target === mobileMenu) mobileMenu.classList.add('hidden');
+    mobileMenu.addEventListener('click', (e) => { if (e.target === mobileMenu) mobileMenu.classList.add('hidden'); });
+    toggleSidebarBtn.addEventListener('click', () => {
+        const isCurrentlyCollapsed = app.classList.contains('sidebar-collapsed');
+        setSidebarState(!isCurrentlyCollapsed);
     });
-    
+
     /* -------- Core Functions -------- */
+    function setSidebarState(isCollapsed) {
+        app.classList.toggle('sidebar-collapsed', isCollapsed);
+        asideEl.classList.toggle('w-[280px]', !isCollapsed);
+        asideEl.classList.toggle('w-0', isCollapsed);
+        asideEl.classList.toggle('p-3', !isCollapsed);
+        asideEl.classList.toggle('p-0', isCollapsed);
+
+        if (isCollapsed) {
+            toggleSidebarIcon.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+        } else {
+            toggleSidebarIcon.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
+        }
+        localStorage.setItem('sidebarCollapsed', String(isCollapsed));
+    }
+
     function saveChats() { localStorage.setItem('allChats', JSON.stringify(allChats)); }
     function loadChats() {
         const saved = localStorage.getItem('allChats');
@@ -263,23 +357,28 @@
     }
 
     function startNewChat() {
-      currentChatId = `chat_${Date.now()}`;
-      const welcomeHistory = [
-          { role: 'assistant', text: "Hello! I'm the TASK Assistant. How can I help you prepare for your next career move?" },
-      ];
-      allChats[currentChatId] = { id: currentChatId, title: "New Chat", history: welcomeHistory };
-      renderChat();
-      renderHistory();
-      saveChats();
-      input.value = '';
-      sendBtn.disabled = true;
-      showChips([
-          {type: 'prompt', text: 'Help me with my resume'},
-          {type: 'prompt', text: 'How do I prepare for an interview?'},
-          {type: 'prompt', text: 'What jobs are available?'},
-      ]);
+        const existingEmptyChat = Object.values(allChats).find(chat => chat.title === "New Chat" && chat.history.length <= 1);
+        if (existingEmptyChat) {
+            loadChat(existingEmptyChat.id);
+            if(window.innerWidth < 1024) mobileMenu.classList.add('hidden');
+            return;
+        }
+
+        currentChatId = `chat_${Date.now()}`;
+        const welcomeHistory = [{ role: 'assistant', text: "Hello! I'm the TASK Assistant. How can I help you prepare for your next career move?" }];
+        allChats[currentChatId] = { id: currentChatId, title: "New Chat", history: welcomeHistory };
+        renderChat();
+        renderHistory();
+        saveChats();
+        input.value = '';
+        sendBtn.disabled = true;
+        showChips([
+            {type: 'prompt', text: 'Help me with my resume'},
+            {type: 'prompt', text: 'How do I prepare for an interview?'},
+            {type: 'prompt', text: 'What jobs are available?'},
+        ]);
     }
-    
+
     async function handleSend(e) {
       if(e) e.preventDefault();
       const prompt = input.value.trim();
@@ -288,6 +387,7 @@
       addMessageToHistory('user', prompt);
       bubbleMe(prompt);
       
+      const originalInput = input.value;
       input.value = '';
       sendBtn.disabled = true;
       input.style.height = 'auto';
@@ -299,15 +399,44 @@
       scrollToBottom();
       
       try {
-        const response = await askAI(prompt);
-        
+        if (conversationState.isWaitingForLocation_Jobs) {
+            const jobs = await fetchJobs(originalInput);
+            chatBody.removeChild(typingIndicator);
+            renderJobBoard(jobs, originalInput);
+            resetConversationState();
+            setStatus('');
+            return;
+        }
+        if (conversationState.isWaitingForLocation_Resources) {
+            const resources = await fetchResources(originalInput, conversationState.resourceType);
+            chatBody.removeChild(typingIndicator);
+            renderResourceList(resources, originalInput, conversationState.resourceType);
+            resetConversationState();
+            setStatus('');
+            return;
+        }
+
+        const response = await askAI(originalInput);
         chatBody.removeChild(typingIndicator);
-        addMessageToHistory('assistant', response.text);
-        bubbleBot(response.text);
-        showChips(response.chips);
-        updateChatTitle(prompt);
-        setStatus('');
         
+        if (response.action === 'askLocation_Jobs') {
+            conversationState.isWaitingForLocation_Jobs = true;
+            bubbleBot(response.text);
+        } else if (response.action === 'askLocation_Resources') {
+            conversationState.isWaitingForLocation_Resources = true;
+            conversationState.resourceType = response.resourceType;
+            bubbleBot(response.text);
+        } else {
+            addMessageToHistory('assistant', response.text);
+            bubbleBot(response.text);
+            const chips = response.chips || [];
+            if (response.followUp) {
+                chips.push({ type: 'prompt', text: response.followUp });
+            }
+            showChips(chips);
+            updateChatTitle(originalInput);
+        }
+        setStatus('');
       } catch (err) {
         console.error(err);
         chatBody.removeChild(typingIndicator);
@@ -315,6 +444,12 @@
       }
     }
 
+    function resetConversationState() {
+        conversationState.isWaitingForLocation_Jobs = false;
+        conversationState.isWaitingForLocation_Resources = false;
+        conversationState.resourceType = null;
+    }
+    
     function addMessageToHistory(role, text) {
         if(!allChats[currentChatId]) return;
         allChats[currentChatId].history.push({ role, text });
@@ -330,62 +465,123 @@
         }
     }
 
-    /* -------- MOCK API with Intent Recognition -------- */
+    /* -------- MOCK API with Intent Recognition (Updated) -------- */
     async function askAI(prompt) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
         const p = prompt.toLowerCase();
+        
+        const deescalationKeywords = ['useless', 'stupid', 'doesn\'t work', 'frustrated', 'angry', 'i need real help'];
+        if (deescalationKeywords.some(k => p.includes(k))) {
+            return {
+                text: "I understand this can be frustrating, and I'm sorry you're having trouble. I'm here to help. Let's try to solve this together.\n\nIf you're feeling overwhelmed, please remember that support is available. You can call or text **988** anytime to connect with the Suicide & Crisis Lifeline.",
+                chips: [{ type: 'prompt', text: 'Find mental health resources near me'}, { type: 'link', label: 'Call 988', href: 'tel:988' }]
+            };
+        }
+        
+        const resourceKeywords = {
+            'food': ['food', 'pantry', 'hungry', 'eat'],
+            'housing': ['housing', 'shelter', 'homeless', 'rent'],
+            'mental health': ['mental health', 'counseling', 'support group', 'therapist']
+        };
+        for(const type in resourceKeywords) {
+            if (resourceKeywords[type].some(k => p.includes(k))) {
+                return { action: 'askLocation_Resources', resourceType: type, text: `I can help with that. What city or ZIP code should I search for ${type} resources in?` };
+            }
+        }
 
-        if (p.includes('job') || p.includes('opening') || p.includes('hiring') || p.includes('apply')) {
-            return {
-                text: "That's great you're looking for new opportunities! The best place to see all current job openings and apply is through **Engage by Cell**.\n\nIt has the most up-to-date listings. I can also help you prepare your resume or practice for interviews.",
-                chips: [
-                    {type: 'link', label: 'View Job Openings on Engage', href: ENGAGE.jobOpenings},
-                    {type: 'prompt', text: 'Help me tailor my resume for a job'},
-                    {type: 'prompt', text: 'Give me some interview tips'},
-                ]
-            }
-        }
-        if (p.includes('appointment') || p.includes('meet') || p.includes('schedule')) {
-            return {
-                text: "To schedule an appointment with a TASK professional, please use our booking portal on **Engage by Cell**.\n\nThis ensures you get a dedicated time slot. You can choose the time and person that works best for you there.",
-                chips: [
-                    {type: 'link', label: 'Schedule an Appointment', href: ENGAGE.appointment},
-                    {type: 'prompt', text: 'What should I bring to my appointment?'},
-                ]
-            }
-        }
-        if (p.includes('resume') || p.includes('cv') || p.includes('cover letter')) {
-            return {
-                text: "A strong resume is key! Here are a few tips:\n\n- Use action verbs to describe your accomplishments.\n- Tailor your skills to the job description.\n- Keep it to one page if possible.\n\nWould you like me to review a specific part of your resume?",
-                chips: [
-                    {type: 'prompt', text: 'Review my "Work Experience" section'},
-                    {type: 'prompt', text: 'What are good action verbs to use?'},
-                    {type: 'link', label: 'See All Career Tips on Engage', href: ENGAGE.landing},
-                ]
-            }
-        }
-         if (p.includes('help') || p.includes('support')) {
-            return {
+        const intents = [
+            { 
+              keywords: ['job', 'opening', 'hiring', 'apply', 'find jobs'], 
+              response: { action: 'askLocation_Jobs', text: "Absolutely. To find the most relevant job openings, what city or ZIP code are you looking in?" }
+            },
+             { 
+              keywords: ['star method', 'challenge, action, result'], 
+              response: {
+                text: "The STAR method is a fantastic way to structure your answers in interviews and on your resume. It stands for:\n\n- **S - Situation:** Briefly describe the context. What was the challenge?\n- **T - Task:** What was your specific responsibility or goal in that situation?\n- **A - Action:** Describe the specific steps **you** took to address the task. Use strong action verbs.\n- **R - Result:** What was the outcome? Quantify it with numbers whenever possible (e.g., increased efficiency by 15%, saved $500, improved customer satisfaction).",
+                chips: [{type: 'prompt', text: 'Give me an example'}, {type: 'prompt', text: 'Help me write a resume bullet point'}]
+              }
+            },
+             { 
+              keywords: ['career tip', 'advice'], 
+              response: {
+                text: "Great question! One of the best ways to showcase your skills is using the **STAR method**. It helps you tell a compelling story about your accomplishments.\n\nInstead of just listing duties, you describe a **Situation**, the **Task** you had, the **Action** you took, and the **Result** you achieved. This is powerful for both resumes and interviews.\n\nAnother key tip is to always **tailor your resume** for each job application. Read the job description carefully and highlight the skills and experiences that match what the employer is looking for.",
+                chips: [{type: 'prompt', text: 'Tell me more about the STAR method'}, {type: 'prompt', text: 'Where can I find jobs?'}]
+              }
+            },
+            { keywords: ['appointment', 'meet', 'schedule'], response: {
+                text: "To schedule an appointment with a TASK professional, please use our booking portal on **Engage by Cell**.\n\nThis ensures you get a dedicated time slot. You can also call or text **609-337-1624** for appointments.",
+                chips: [{type: 'link', label: 'Schedule an Appointment', href: ENGAGE.appointment}, {type: 'prompt', text: 'What should I bring to my appointment?'}]}},
+            { keywords: ['resume', 'cv', 'cover letter'], response: {
+                text: "A strong resume is key! Here are a few tips:\n- Use action verbs.\n- Tailor it to the job description.\n- Use the **STAR method** to frame your accomplishments.\n\nFor more detailed help, check out our **Career Tips** on Engage by Cell.",
+                chips: [{type: 'prompt', text: 'Review my "Work Experience" section'}, {type: 'link', label: 'See All Career Tips', href: ENGAGE.careerTips}],
+                followUp: "Now that your resume is ready, shall we look for jobs?"
+              }},
+            { keywords: ['training', 'class', 'course', 'certificate'], response: {
+                text: "We have various training opportunities available. You can see a full list and sign up on **Engage by Cell**.",
+                chips: [{type: 'link', label: 'Training Opportunities', href: ENGAGE.trainingOpps}, {type: 'link', label: 'All Trainings', href: ENGAGE.trainings}]}},
+            { keywords: ['resource', 'support', 'benefit'], response: {
+                text: "We provide access to both general and community-specific resources. You can explore them on **Engage by Cell**.",
+                chips: [{type: 'link', label: 'General Resources', href: ENGAGE.resources}, {type: 'link', label: 'Community Resources', href: ENGAGE.communityResources}]}},
+            { keywords: ['verify', 'verification'], response: {
+                text: "For employment verification, please use the dedicated portal on **Engage by Cell**.",
+                chips: [{type: 'link', label: 'Employment Verification', href: ENGAGE.employmentVerification}]}},
+            { keywords: ['event', 'workshop', 'fair'], response: {
+                text: "Stay up to date with all our upcoming events, workshops, and job fairs by checking our **Events** page on Engage by Cell.",
+                chips: [{type: 'link', label: 'View Upcoming Events', href: ENGAGE.events}]}},
+            { keywords: ['contact', 'phone', 'number', 'call'], response: {
+                text: "Of course! For general employment inquiries, you can call or text **609-697-6215** or **609-697-6166**.\n\nTo make an appointment, please use the booking link or call/text **609-337-1624**.",
+                chips: [{type: 'link', label: 'Schedule an Appointment', href: ENGAGE.appointment}]}},
+            { keywords: ['help', 'support'], response: {
                 text: "I can certainly help! What do you need assistance with today?",
-                chips: [
-                    {type: 'prompt', text: 'Finding a job'},
-                    {type: 'prompt', text: 'Improving my resume'},
-                    {type: 'prompt', text: 'Scheduling an appointment'},
-                    {type: 'prompt', text: 'Finding training opportunities'},
-                ]
-            }
+                chips: [{type: 'prompt', text: 'Finding a job'}, {type: 'prompt', text: 'Improving my resume'}, {type: 'prompt', text: 'Scheduling an appointment'}]}}
+        ];
+
+        for (const intent of intents) {
+            if (intent.keywords.some(k => p.includes(k))) return intent.response;
         }
+
         return {
             text: `I can provide information on resumes, interviews, and job searching strategies. For direct actions like applying or scheduling, you'll be guided to our **Engage by Cell** portal.\n\nHow can I assist you further?`,
-            chips: [
-                {type: 'prompt', text: 'How do I find jobs?'},
-                {type: 'prompt', text: 'Tell me about available trainings'},
-            ]
-        }
+            chips: [{type: 'prompt', text: 'How do I find jobs?'}, {type: 'prompt', text: 'Tell me about available trainings'}]
+        };
+    }
+    
+    /* -------- Rendering Functions -------- */
+     function renderQuickActions() {
+        const actions = [
+            { label: 'Find Local Jobs', action: 'find_jobs', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>` },
+            { label: 'Find Local Resources', action: 'find_resources', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>`},
+            { label: 'Schedule Appointment', key: 'appointment', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>` },
+            { label: 'Get Career Tips', action: 'career_tips', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6"></path></svg>` }
+        ];
+        const renderContainer = (container) => {
+            container.innerHTML = '';
+            actions.forEach(action => {
+                let el;
+                if(action.key) { // It's an external link
+                    el = document.createElement('a');
+                    el.href = ENGAGE[action.key];
+                    el.target = '_blank';
+                    el.rel = 'noopener noreferrer';
+                } else { // It's an internal prompt
+                    el = document.createElement('button');
+                    const prompts = {
+                        'find_jobs': 'Find jobs near me',
+                        'find_resources': 'Find food pantries near me',
+                        'career_tips': 'Give me career tips'
+                    };
+                    el.onclick = () => { input.value = prompts[action.action]; form.dispatchEvent(new Event('submit')); };
+                }
+                
+                el.className = 'flex items-center w-full gap-3 px-2 py-1.5 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800';
+                el.innerHTML = `${action.icon} <span class="text-sm font-medium">${action.label}</span>`;
+                container.appendChild(el);
+            });
+        };
+        renderContainer(quickActionsContainer);
+        renderContainer(quickActionsContainerMobile);
     }
 
-
-    /* -------- Rendering Functions -------- */
     function renderChat() {
         chatBody.innerHTML = '';
         if (allChats[currentChatId]) {
@@ -403,7 +599,7 @@
             sortedChats.forEach(chat => {
                 const isActive = chat.id === currentChatId;
                 const button = document.createElement('button');
-                button.className = `w-full text-left px-2 py-1.5 rounded-md truncate ${isActive ? 'bg-brand text-black font-semibold' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`;
+                button.className = `w-full text-left px-2 py-1.5 rounded-md truncate text-sm ${isActive ? 'bg-brand text-black font-semibold' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`;
                 button.textContent = chat.title;
                 button.onclick = () => { loadChat(chat.id); if(window.innerWidth < 1024) mobileMenu.classList.add('hidden'); };
                 container.appendChild(button);
@@ -428,10 +624,7 @@
                 el = document.createElement('button');
                 el.className = 'px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-300 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600';
                 el.textContent = chip.text;
-                el.onclick = () => {
-                    input.value = chip.text;
-                    form.dispatchEvent(new Event('submit'));
-                };
+                el.onclick = () => { input.value = chip.text; form.dispatchEvent(new Event('submit')); };
             }
             suggestionsEl.appendChild(el);
         });
@@ -440,40 +633,125 @@
     function bubbleMe(text) {
         const bubble = document.createElement('div');
         bubble.className = 'flex items-start justify-end gap-3';
-        bubble.innerHTML = `
-            <div class="max-w-xl p-3 bg-brand text-black rounded-lg whitespace-pre-wrap">${escapeHtml(text)}</div>
-            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 font-semibold bg-gray-300 rounded-full dark:bg-gray-600">You</div>
-        `;
+        bubble.innerHTML = `<div class="max-w-xl p-3 bg-brand text-black rounded-lg whitespace-pre-wrap">${escapeHtml(text)}</div><div class="flex items-center justify-center flex-shrink-0 w-8 h-8 font-semibold bg-gray-300 rounded-full dark:bg-gray-600">You</div>`;
         chatBody.appendChild(bubble);
         scrollToBottom();
     }
     
     function bubbleBot(text, doScroll = true) {
+        const bubbleContainer = document.createElement('div');
+        bubbleContainer.className = 'group';
+
         const bubble = document.createElement('div');
         bubble.className = 'flex items-start gap-3';
         const contentDiv = document.createElement('div');
-        contentDiv.className = 'prose prose-sm dark:prose-invert max-w-xl p-3 bg-white dark:bg-[#0f172a] rounded-lg border border-gray-200 dark:border-[#1f2937]';
+        contentDiv.className = 'prose prose-sm max-w-xl p-3 bg-white dark:bg-[#0f172a] rounded-lg border border-gray-200 dark:border-[#1f2937]';
         contentDiv.innerHTML = renderSmart(text);
-
-        bubble.innerHTML = `
-            <div class="relative flex items-center justify-center flex-shrink-0 w-8 h-8 text-lg font-bold text-black bg-brand rounded-full">
-              T
-              <div class="absolute inset-[-4px] rounded-full sparkle opacity-50 animate-spin [animation-duration:5s]"></div>
-            </div>
-        `;
+        
+        bubble.innerHTML = `<div class="relative flex items-center justify-center flex-shrink-0 w-8 h-8 text-lg font-bold text-black bg-brand rounded-full">T<div class="absolute inset-[-4px] rounded-full sparkle opacity-50 animate-spin [animation-duration:5s]"></div></div>`;
         bubble.appendChild(contentDiv);
-        chatBody.appendChild(bubble);
+        
+        const actions = document.createElement('div');
+        actions.className = 'action-btn-group flex items-center gap-2 ml-11 mt-1';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.title = 'Copy';
+        copyBtn.className = 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200';
+        copyBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(contentDiv.innerText);
+            copyBtn.innerHTML = `<svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`;
+            setTimeout(() => {
+                copyBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+            }, 2000);
+        };
+
+        const feedbackContainer = document.createElement('div');
+        const thumbUpBtn = document.createElement('button');
+        thumbUpBtn.title = 'Good response';
+        thumbUpBtn.className = 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200';
+        thumbUpBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 18.331v-5.447c0-.828.672-1.5 1.5-1.5h2.5a2 2 0 012 2v4.5m0-6.5v-2a2 2 0 00-2-2h-2.5a2 2 0 00-2 2v6.5"></path></svg>`;
+        
+        const thumbDownBtn = document.createElement('button');
+        thumbDownBtn.title = 'Bad response';
+        thumbDownBtn.className = 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200';
+        thumbDownBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3h4.017c.163 0 .326.02.485.06L17 5.669v5.447c0 .828-.672 1.5-1.5 1.5h-2.5a2 2 0 01-2-2v-4.5m0 6.5v2a2 2 0 002 2h2.5a2 2 0 002-2v-6.5"></path></svg>`;
+
+        const handleFeedback = (isGood) => {
+            thumbUpBtn.disabled = true;
+            thumbDownBtn.disabled = true;
+            thumbUpBtn.classList.toggle('text-blue-500', isGood);
+            thumbDownBtn.classList.toggle('text-blue-500', !isGood);
+            console.log(`Feedback received: ${isGood ? 'Positive' : 'Negative'}`);
+        };
+        thumbUpBtn.onclick = () => handleFeedback(true);
+        thumbDownBtn.onclick = () => handleFeedback(false);
+
+        feedbackContainer.append(thumbUpBtn, thumbDownBtn);
+        actions.append(copyBtn, feedbackContainer);
+        bubbleContainer.append(bubble, actions);
+        chatBody.appendChild(bubbleContainer);
         if (doScroll) scrollToBottom();
+    }
+
+    function renderJobBoard(jobs, location) {
+        const container = document.createElement('div');
+        container.className = 'p-4 bg-white dark:bg-[#0f172a] rounded-lg border border-gray-200 dark:border-[#1f2937]';
+        
+        let content;
+        if (jobs.length > 0) {
+            content = jobs.map(job => `
+                <div class="p-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold text-base">${escapeHtml(job.title)}</p>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">${escapeHtml(job.company)} - ${escapeHtml(job.location)}</p>
+                        </div>
+                        <a href="${job.url}" target="_blank" rel="noopener noreferrer" class="ml-4 px-3 py-1 text-sm font-semibold text-white bg-brand rounded-full hover:opacity-90 whitespace-nowrap">Apply</a>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            content = `<p class="text-center text-gray-500 py-4">No jobs found for "${escapeHtml(location)}". Try another location.</p>`;
+        }
+        
+        container.innerHTML = `
+            <h3 class="text-lg font-bold mb-2 px-3">Job Listings in ${escapeHtml(location)}</h3>
+            ${content}
+        `;
+        chatBody.appendChild(container);
+        scrollToBottom();
+    }
+
+    function renderResourceList(resources, location, type) {
+        const container = document.createElement('div');
+        container.className = 'p-4 bg-white dark:bg-[#0f172a] rounded-lg border border-gray-200 dark:border-[#1f2937]';
+        
+        let content;
+        if (resources.length > 0) {
+            content = resources.map(res => `
+                <div class="p-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                     <p class="font-bold text-base">${escapeHtml(res.name)}</p>
+                     <p class="text-sm text-gray-700 dark:text-gray-300">${escapeHtml(res.details)}</p>
+                     ${res.url ? `<a href="${res.url}" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-500 hover:underline">Visit Website</a>` : ''}
+                </div>
+            `).join('');
+        } else {
+            content = `<p class="text-center text-gray-500 py-4">No ${escapeHtml(type)} resources found for "${escapeHtml(location)}".</p>`;
+        }
+        
+        container.innerHTML = `
+            <h3 class="text-lg font-bold mb-2 px-3">${escapeHtml(type.charAt(0).toUpperCase() + type.slice(1))} Resources in ${escapeHtml(location)}</h3>
+            ${content}
+        `;
+        chatBody.appendChild(container);
+        scrollToBottom();
     }
 
     function createTypingIndicator() {
         const indicator = document.createElement('div');
         indicator.className = 'flex items-center gap-2 ml-11';
-        indicator.innerHTML = `
-            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-        `;
+        indicator.innerHTML = `<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`;
         return indicator;
     }
 
@@ -483,24 +761,45 @@
     }
     
     function renderSmart(text) {
-        let html = text
-            .replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))
+        let processedText = text.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        
+        processedText = processedText
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n\s*-\s*(.*)/g, (match, item) => `<li>${item.trim()}</li>`)
-            .replace(/(\<li\>.*\<\/li\>)/gs, '<ul>$1</ul>')
-            .replace(/\n/g, '<br>');
-        return html;
-    }
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        processedText = processedText.replace(/(\+?1\s?)?\(?(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})/g, (match, p1, p2, p3, p4) => {
+            const tel = `+1${p2}${p3}${p4}`;
+            return `<a href="tel:${tel}" class="underline">${match}</a>`;
+        });
+        processedText = processedText.replace(/\b988\b/g, '<a href="tel:988" class="underline">988</a>');
 
+        const lines = processedText.split('\n');
+        let html = '';
+        let inList = false;
+        for (const line of lines) {
+            if (line.trim().startsWith('- ')) {
+                if (!inList) {
+                    html += '<ul>';
+                    inList = true;
+                }
+                html += `<li>${line.trim().substring(2)}</li>`;
+            } else {
+                if (inList) {
+                    html += '</ul>';
+                    inList = false;
+                }
+                html += line + '<br>';
+            }
+        }
+        if (inList) {
+            html += '</ul>';
+        }
+        
+        return html.replace(/<br><ul>/g, '<ul>').replace(/<\/ul><br>/g, '</ul>');
+    }
 
     /* -------- Utility Functions -------- */
-    function scrollToBottom(instant = false) {
-      chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' });
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
+    function scrollToBottom(instant = false) { chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' }); }
+    function escapeHtml(str) { return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
     /* -------- Speech Recognition (STT) -------- */
     let recognition = null, listening = false;
@@ -524,6 +823,7 @@
       };
       return r;
     }
+    
     micBtn.addEventListener('click', () => {
       if (!recognition) recognition = initSTT();
       if (!recognition) { setStatus('Voice input not supported in this browser.', true); return; }
