@@ -1,5 +1,4 @@
-// api/suggest.js
-// Returns one short follow-up suggestion. Uses Gemini with optional OpenAI fallback.
+// api/suggest.js — short follow-up suggestion. Gemini with optional OpenAI fallback.
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
 const GEMINI_KEY   = process.env.GEMINI_API_KEY;
@@ -21,8 +20,8 @@ async function askGeminiPrompt(prompt) {
   if (!GEMINI_KEY) throw new Error('NO_GEMINI_KEY');
   const url = `https://generativelanguage.googleapis.com/v1beta/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
   const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type':'application/json' },
+    method:'POST',
+    headers:{ 'content-type':'application/json' },
     body: JSON.stringify({ contents:[{ role:'user', parts:[{ text: prompt }]}] })
   });
   if (!res.ok) {
@@ -76,9 +75,7 @@ ${base}
       if (geminiExpired || e._isGemini || e.message === 'NO_GEMINI_KEY') {
         if (OPENAI_KEY) text = await askOpenAI(prompt);
         else throw e;
-      } else {
-        throw e;
-      }
+      } else { throw e; }
     }
 
     res.status(200).json({ ok:true, suggestion: (text||'').trim().split('\n')[0] });
