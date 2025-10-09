@@ -1,126 +1,117 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>TASK Assistant</title>
 
-  <!-- Inline favicon -->
+  <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E">
 
   <style>
+    /* System theme by default (no visible toggle on splash) */
     :root {
-      --bg: #0b1220; --panel:#0f172a; --text:#e5e7eb; --muted:#9aa4b2; --border:#1f2937; --brand:#ff8a00; --brand-2:#ffd088;
+      color-scheme: light dark;
+      --bg-dark:#0b1220; --panel-dark:#0f172a; --text-dark:#e5e7eb; --muted-dark:#9aa4b2; --border-dark:#1f2937;
+      --bg-light:#f8fafc; --panel-light:#ffffff; --text-light:#0b1220; --muted-light:#475569; --border-light:#e5e7eb;
+      --brand:#ff8a00; --brand2:#ffd088;
     }
-    [data-theme="light"] {
-      --bg: #f8fafc; --panel:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --brand:#ff8a00; --brand-2:#cc6f00;
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:var(--bg-dark); --panel:var(--panel-dark); --text:var(--text-dark); --muted:var(--muted-dark); --border:var(--border-dark); }
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg:var(--bg-light); --panel:var(--panel-light); --text:var(--text-light); --muted:var(--muted-light); --border:var(--border-light); }
     }
 
-    html, body { height: 100%; }
+    html, body { height:100%; }
     body {
-      margin: 0; background: var(--bg); color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
-      display: grid; place-items: center;
+      margin:0; background:var(--bg); color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      display:grid; place-items:center;
     }
-
     .app {
-      width: min(980px, 96vw); min-height: 76vh; background: var(--panel);
-      border: 1px solid var(--border); border-radius: 16px; padding: 20px; 
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-      display: grid; grid-template-rows: auto 1fr auto; gap: 14px;
+      width:min(980px,96vw); min-height:76vh; background:var(--panel);
+      border:1px solid var(--border); border-radius:16px; padding:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      display:grid; grid-template-rows:auto 1fr auto; gap:14px;
     }
-
     header { display:flex; align-items:center; gap:12px; }
-    .logo-wrap { position: relative; width: 46px; height: 46px; }
+    .logo-wrap { position:relative; width:46px; height:46px; }
     .logo {
-      width: 46px; height: 46px; border-radius: 12px; display:grid; place-items:center;
-      background: var(--brand); color:#000; font-weight:800; font-size:20px; z-index:2; position:relative;
+      width:46px; height:46px; border-radius:12px; display:grid; place-items:center;
+      background:var(--brand); color:#000; font-weight:800; font-size:20px; z-index:2; position:relative;
     }
-    /* "Gemini sparkle" ring */
     .sparkle {
-      position:absolute; inset:-8px; border-radius:20px; pointer-events:none;
-      background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-2) 20%, transparent 25%, transparent 75%, var(--brand-2) 80%, var(--brand) 100%);
-      filter: blur(10px) saturate(1.2); opacity:.6; animation: spin 4s linear infinite;
+      position:absolute; inset:-8px; border-radius:20px; pointer-events:none; opacity:.0; transition:opacity .25s ease;
+      background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand2) 25%, transparent 40%, transparent 60%, var(--brand2) 75%, var(--brand) 100%);
+      filter: blur(10px) saturate(1.2); animation: spin 4s linear infinite;
     }
+    .sparkle.on { opacity:.7; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .toolbar { margin-left:auto; display:flex; gap:8px; align-items:center; }
-    .pill { font-size: 14px; padding: 8px 12px; border-radius: 999px; background: transparent; color: var(--text);
-      border:1px solid var(--border); cursor:pointer;
-    }
-
+    .muted { color:var(--muted); font-size:14px; }
     .chat {
-      overflow:auto; padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--panel), black 6%);
-      border: 1px solid var(--border); display:flex; flex-direction:column; gap:12px;
+      overflow:auto; padding:12px; border-radius:12px; background: rgba(0,0,0,0.06);
+      border:1px solid var(--border); display:flex; flex-direction:column; gap:12px;
     }
     .bubble {
-      max-width: 82%; padding: 12px 14px; border-radius: 14px; line-height: 1.5;
-      border: 1px solid var(--border); word-wrap:break-word; white-space:pre-wrap;
+      max-width:82%; padding:12px 14px; border-radius:14px; line-height:1.5;
+      border:1px solid var(--border); word-wrap:break-word; white-space:pre-wrap;
     }
-    .me   { align-self:flex-end; background: color-mix(in srgb, var(--brand), black 70%); color:#fff; }
-    .bot  { align-self:flex-start; background: color-mix(in srgb, var(--panel), white 4%); }
+    .me { align-self:flex-end; background:#172554; color:#fff; }
+    .bot { align-self:flex-start; background:#111827; color:#e5e7eb; }
+    @media (prefers-color-scheme: light) {
+      .me { background:#e6f0ff; color:#0b1220; }
+      .bot{ background:#f3f4f6; color:#0b1220; }
+    }
 
-    .row { display:flex; gap:10px; }
-    input[type="text"] {
-      flex: 1; font-size: 18px; padding: 14px; border-radius: 12px;
-      background: transparent; color: var(--text); border: 1px solid var(--border); outline:none;
+    .row{ display:flex; gap:10px; }
+    input[type="text"]{
+      flex:1; font-size:18px; padding:14px; border-radius:12px;
+      background:transparent; color:var(--text); border:1px solid var(--border); outline:none;
     }
-    button {
-      font-size: 18px; padding: 14px 18px; border-radius: 12px; border: 0; cursor: pointer;
-      background: var(--brand); color: #000;
-    }
-    .muted { color: var(--muted); font-size: 14px; }
-    .error { color: #ef4444; }
-    .hidden { display:none !important; }
+    button{ font-size:18px; padding:14px 18px; border-radius:12px; border:0; cursor:pointer; background:var(--brand); color:#000; }
 
-    /* Splash screen */
-    .splash {
-      position: fixed; inset: 0; display:grid; place-items:center;
-      background: radial-gradient(80% 80% at 50% 20%, rgba(255,138,0,.1), transparent 60%), var(--bg);
-      z-index: 9999;
+    .error{ color:#ef4444; }
+    .hidden{ display:none !important; }
+
+    /* Splash */
+    .splash{ position:fixed; inset:0; display:grid; place-items:center; background:var(--bg); z-index:9999; }
+    .splash-card{
+      width:min(520px,92vw); background:var(--panel); border:1px solid var(--border);
+      border-radius:16px; padding:24px; display:grid; gap:12px; text-align:center;
     }
-    .splash-card {
-      width: min(520px, 92vw); background: var(--panel); border:1px solid var(--border);
-      border-radius: 16px; padding: 24px; display:grid; gap:12px; text-align:center;
-    }
-    .splash h1 { margin: 0; font-size: 28px; }
-    .splash p  { margin: 0; color: var(--muted); }
-    .splash .actions { display:flex; gap:10px; justify-content:center; padding-top:8px; }
-    .ghost { background: transparent; border:1px solid var(--border); color: var(--text); }
+    .splash h1{ margin:0; font-size:28px; }
+    .splash p{ margin:0; color:var(--muted); }
+    .splash .actions{ display:flex; gap:10px; justify-content:center; padding-top:8px; }
   </style>
 </head>
 <body>
-  <!-- Splash / audio gate -->
+  <!-- Splash / user gesture gate -->
   <div id="splash" class="splash">
     <div class="splash-card">
       <div class="logo-wrap" style="margin:0 auto 8px;">
-        <div class="sparkle"></div>
+        <div class="sparkle on" id="splashSparkle"></div>
         <div class="logo">T</div>
       </div>
       <h1>Welcome to TASK Assistant</h1>
-      <p>Lightweight help for resumes, jobs, training, and more. Click <b>Start</b> to enable audio & continue.</p>
-      <div class="actions">
-        <button id="start" class="pill">Start</button>
-        <button id="theme-toggle" class="pill ghost">Toggle Theme</button>
-      </div>
-      <div class="muted">Tip: you can ask anything. Try “Give me 3 bullet points for a prep cook resume.”</div>
+      <p>Click <b>Start</b> to continue. (Audio & features enable after your click.)</p>
+      <div class="actions"><button id="start" style="padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--brand);color:#000;">Start</button></div>
     </div>
   </div>
 
-  <div class="app" aria-hidden="true" id="app">
+  <div class="app hidden" id="app">
     <header>
       <div class="logo-wrap">
-        <div class="sparkle"></div>
+        <div class="sparkle" id="sparkle"></div>
         <div class="logo">T</div>
       </div>
       <div>
         <div style="font-weight:700;">TASK Assistant</div>
-        <div class="muted">You can ask anything — jobs, resumes, training info.</div>
+        <div class="muted">Ask anything — resumes, interviews, training dates.</div>
       </div>
-      <div class="toolbar">
-        <button id="toggle-theme" class="pill">Light/Dark</button>
-        <span id="audio-status" class="muted">audio off</span>
-      </div>
+      <!-- No theme toggle at outset -->
+      <div style="margin-left:auto;" class="muted" id="providerTag"></div>
     </header>
 
     <div id="chat" class="chat" aria-live="polite"></div>
@@ -133,57 +124,38 @@
     <div id="status" class="muted"></div>
   </div>
 
-  <!-- Tone.js as classic script (global 'Tone'), avoids undefined import issues -->
-  <script src="https://cdn.jsdelivr.net/npm/tone@15.1.22/build/Tone.js"></script>
-
   <script>
-    const d = document.documentElement;
-    const splash = document.getElementById('splash');
-    const startBtn = document.getElementById('start');
-    const themeBtnSplash = document.getElementById('theme-toggle');
-    const toggleTheme = document.getElementById('toggle-theme');
+    // elements
+    const splash  = document.getElementById('splash');
+    const app     = document.getElementById('app');
+    const startBtn= document.getElementById('start');
+    const chat    = document.getElementById('chat');
+    const form    = document.getElementById('composer');
+    const input   = document.getElementById('input');
+    const statusEl= document.getElementById('status');
+    const sparkle = document.getElementById('sparkle');
+    const providerTag = document.getElementById('providerTag');
 
-    const app = document.getElementById('app');
-    const chat  = document.getElementById('chat');
-    const form  = document.getElementById('composer');
-    const input = document.getElementById('input');
-    const statusEl = document.getElementById('status');
-    const audioStatus = document.getElementById('audio-status');
-
-    // THEME
-    function swapTheme() {
-      d.setAttribute('data-theme', d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-    }
-    themeBtnSplash.addEventListener('click', swapTheme);
-    toggleTheme.addEventListener('click', swapTheme);
-
-    // AUDIO (robust guards)
+    // audio (lazy import Tone after click)
+    let Tone = null;
     let audioReady = false;
     async function ensureAudio() {
-      // If Tone isn't present or no context, just mark ready = false and return (no crash)
-      if (!window.Tone || !Tone.context) return;
-      if (Tone.context.state !== 'running') {
-        await Tone.start(); // this is now definitely in a user gesture
+      if (!Tone) {
+        // Lazy-load Tone ONLY after user gesture -> avoids autoplay warnings entirely
+        const mod = await import('https://cdn.jsdelivr.net/npm/tone@15.1.22/build/Tone.js');
+        Tone = mod.default || window.Tone || mod; // CDN exposes default export or global
+      }
+      if (Tone?.context?.state !== 'running') {
+        await Tone.start();
       }
       audioReady = true;
-      audioStatus.textContent = 'audio on';
     }
-
     function ding() {
-      if (!audioReady || !window.Tone) return;
+      if (!audioReady || !Tone) return;
       const synth = new Tone.Synth().toDestination();
       synth.triggerAttackRelease("C5", "8n");
     }
 
-    // Splash → App
-    startBtn.addEventListener('click', async () => {
-      try { await ensureAudio(); } catch {}
-      splash.classList.add('hidden');
-      app.setAttribute('aria-hidden', 'false');
-      input.focus();
-    });
-
-    // UI helpers
     function bubble(text, who='bot') {
       const div = document.createElement('div');
       div.className = `bubble ${who}`;
@@ -196,56 +168,83 @@
       statusEl.className = isError ? 'error' : 'muted';
     }
 
-    // API client
-    const API_URL = '/api/ai';
-    async function askAI(prompt, history=[]) {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, history }),
+    const history = [];
+
+    async function askAI(prompt) {
+      const res = await fetch('/api/ai', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ prompt, history })
       });
       if (!res.ok) {
         const text = await res.text().catch(()=> '');
-        throw new Error(`Upstream error: ${res.status} ${res.statusText}\n${text}`);
+        throw new Error(`Upstream error: ${res.status} ${res.statusText} ${text}`);
       }
       return res.json();
     }
 
+    async function getSuggestion(lastUserMessage) {
+      const res = await fetch('/api/suggest', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ lastUserMessage })
+      });
+      if (!res.ok) return null;
+      const json = await res.json().catch(()=> null);
+      return json?.suggestion || null;
+    }
+
+    // Start flow (no theme toggle shown here)
+    startBtn.addEventListener('click', async () => {
+      // enable audio once, safely
+      try { await ensureAudio(); } catch {}
+      splash.classList.add('hidden');
+      app.classList.remove('hidden');
+      input.focus();
+    });
+
     // Chat send
-    const history = [];
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const prompt = input.value.trim();
       if (!prompt) return;
 
-      // Try to enable audio on first send if user used Enter from app view
-      try { await ensureAudio(); } catch {}
+      // ensure audio on first send if user bypassed Start with Enter (unlikely, but safe)
+      if (!audioReady) { try { await ensureAudio(); } catch {} }
 
       bubble(prompt, 'me');
       input.value = '';
       setStatus('Thinking…');
 
       try {
-        const json = await askAI(prompt, history);
+        const json = await askAI(prompt);
         const text = json?.text || '(no response)';
-        history.push({ role: 'user', text: prompt });
-        history.push({ role: 'assistant', text });
+        providerTag.textContent = json?.provider ? `via ${json.provider}` : '';
+        history.push({ role:'user', text: prompt });
+        history.push({ role:'assistant', text });
 
         bubble(text, 'bot');
         setStatus('');
         ding();
+
+        // ----- Gemini Sparkle: auto-suggest follow-up
+        sparkle.classList.add('on');
+        const suggestion = await getSuggestion(prompt);
+        sparkle.classList.remove('on');
+        if (suggestion) {
+          bubble(`✨ Try: ${suggestion}`, 'bot');
+        }
       } catch (err) {
         console.error(err);
         const msg = (err && err.message) ? err.message : String(err);
-        setStatus(msg.includes('NOT_FOUND') ? 'Service not found. Check /api/ai route.' : msg, true);
+        setStatus(msg, true);
         bubble('Sorry — I couldn’t reach the AI service. Please try again.', 'bot');
       }
     });
 
     // Starter bubbles
-    bubble('Hi! I’m TASK Assistant. Ask me anything — resumes, interviews, training dates, and more.');
-    bubble('Example: “Give me 3 bullet points for a dishwasher resume in Trenton.”');
+    bubble('Hi! I’m TASK Assistant. Ask me anything — resumes, interviews, training info, and more.');
+    bubble('Example: “Give me 3 bullet points for a prep cook resume in Trenton.”');
   </script>
 </body>
 </html>
