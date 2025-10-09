@@ -201,6 +201,15 @@
         trainings: "https://bycell.co/ddmtn"
     };
 
+    const SYSTEM_PROMPT = `You are the TASK Assistant, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on all employment-related topics, including resume writing, interview preparation, job searching, and career development. Be encouraging and break down complex topics into simple steps. You are an expert in techniques like the STAR method. For specific actions like applying for jobs, scheduling appointments, or accessing official resources, guide the user to the 'Engage by Cell' portal.
+
+Special Instructions:
+- If a user expresses frustration, anger, uses curse words, or insults you, respond with empathy and understanding. Apologize for their negative experience and gently try to get the conversation back on track.
+- If the user's language suggests a mental health crisis (mentions of self-harm, severe depression), immediately provide the 988 Suicide & Crisis Lifeline number and express care.
+- Use markdown (like **bolding** and bullet points) to make your answers easy to read.
+- When you mention 'Engage by Cell', make it a clickable markdown link like this: [Engage by Cell portal](https://bycell.co/ddmnx).
+- Do not invent URLs or contact information.`;
+
     /* -------- Theme Management -------- */
     const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
     const moonIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
@@ -251,22 +260,21 @@
     let currentChatId = null;
     let allChats = {};
     let conversationState = {
+        mode: null, // e.g., 'STAR_PRACTICE'
+        step: 0,
+        data: {},
         isWaitingForLocation_Jobs: false,
         isWaitingForLocation_Resources: false,
-        resourceType: null // e.g., 'food', 'housing'
+        resourceType: null 
     };
 
     /* -------- MOCK API and Data -------- */
     const MOCK_JOBS_DB = {
-        "trenton": [
-            { title: "Registered Nurse", company: "Capital Health", location: "Trenton, NJ", url: "https://capitalhealth.wd1.myworkdayjobs.com/CapitalHealth" },
-            { title: "Claims Adjuster", company: "NJM Insurance Group", location: "Trenton, NJ", url: "https://jobs.njm.com/" },
-            { title: "Administrative Assistant", company: "City of Trenton", location: "Trenton, NJ", url: "https://www.trentonnj.org/291/Employment-Opportunities" }
-        ],
-        "philadelphia": [
-            { title: "Software Engineer", company: "Comcast", location: "Philadelphia, PA", url: "https://jobs.comcast.com/" },
-            { title: "Research Scientist", company: "UPenn", location: "Philadelphia, PA", url: "https://careers.upenn.edu/" }
-        ]
+        "trenton": [ { title: "Registered Nurse", company: "Capital Health", location: "Trenton, NJ", url: "https://capitalhealth.wd1.myworkdayjobs.com/CapitalHealth" }, { title: "Claims Adjuster", company: "NJM Insurance Group", location: "Trenton, NJ", url: "https://jobs.njm.com/" }, { title: "Administrative Assistant", company: "City of Trenton", location: "Trenton, NJ", url: "https://www.trentonnj.org/291/Employment-Opportunities" } ],
+        "philadelphia": [ { title: "Software Engineer", company: "Comcast", location: "Philadelphia, PA", url: "https://jobs.comcast.com/" }, { title: "Research Scientist", company: "UPenn", location: "Philadelphia, PA", url: "https://careers.upenn.edu/" } ],
+        "08610": [ { title: "Warehouse Associate", company: "Amazon", location: "Trenton, NJ", url: "https://www.amazon.jobs/en/search?base_query=warehouse&loc_query=Trenton%2C+NJ%2C+USA" }],
+        "08605": [],
+        "08609": []
     };
 
     const MOCK_RESOURCES_DB = {
@@ -274,19 +282,24 @@
             "food": [{ name: "Mercer Street Friends Food Bank", details: "824 Silvia St, Ewing Township, NJ", url: "https://mercerstreetfriends.org/" }],
             "housing": [{ name: "Rescue Mission of Trenton", details: "98 Carroll St, Trenton, NJ", url: "https://rescuemissionoftrenton.org/" }],
             "mental health": [{ name: "Catholic Charities, Diocese of Trenton", details: "Offers various support services.", url: "https://www.catholiccharitiestrenton.org/"}]
+        },
+        "08609": {
+             "housing": [{ name: "Rescue Mission of Trenton", details: "98 Carroll St, Trenton, NJ", url: "https://rescuemissionoftrenton.org/" }]
         }
     };
 
     async function fetchJobs(location) {
         setStatus(`Searching for jobs in ${location}...`);
         await new Promise(resolve => setTimeout(resolve, 1500));
-        return MOCK_JOBS_DB[location.toLowerCase()] || [];
+        const key = location.toLowerCase();
+        return MOCK_JOBS_DB[key] || [];
     }
 
     async function fetchResources(location, type) {
         setStatus(`Finding ${type} resources in ${location}...`);
         await new Promise(resolve => setTimeout(resolve, 1500));
-        const locData = MOCK_RESOURCES_DB[location.toLowerCase()];
+        const key = location.toLowerCase();
+        const locData = MOCK_RESOURCES_DB[key] || MOCK_RESOURCES_DB['trenton']; // Fallback to Trenton
         return locData ? (locData[type] || []) : [];
     }
     
@@ -351,6 +364,7 @@
     
     function loadChat(chatId) {
         currentChatId = chatId;
+        resetConversationState();
         renderChat();
         renderHistory();
         scrollToBottom(true);
@@ -367,6 +381,7 @@
         currentChatId = `chat_${Date.now()}`;
         const welcomeHistory = [{ role: 'assistant', text: "Hello! I'm the TASK Assistant. How can I help you prepare for your next career move?" }];
         allChats[currentChatId] = { id: currentChatId, title: "New Chat", history: welcomeHistory };
+        resetConversationState();
         renderChat();
         renderHistory();
         saveChats();
@@ -399,6 +414,7 @@
       scrollToBottom();
       
       try {
+        let response;
         if (conversationState.isWaitingForLocation_Jobs) {
             const jobs = await fetchJobs(originalInput);
             chatBody.removeChild(typingIndicator);
@@ -415,8 +431,12 @@
             setStatus('');
             return;
         }
+        if (conversationState.mode) {
+            response = await handleGuidedConversation(originalInput);
+        } else {
+            response = await getSmartResponse(originalInput);
+        }
 
-        const response = await askAI(originalInput);
         chatBody.removeChild(typingIndicator);
         
         if (response.action === 'askLocation_Jobs') {
@@ -426,30 +446,136 @@
             conversationState.isWaitingForLocation_Resources = true;
             conversationState.resourceType = response.resourceType;
             bubbleBot(response.text);
+        } else if (response.action === 'start_guided_conversation') {
+            conversationState.mode = response.mode;
+            conversationState.step = 1;
+            bubbleBot(response.text);
         } else {
             addMessageToHistory('assistant', response.text);
             bubbleBot(response.text);
-            const chips = response.chips || [];
-            if (response.followUp) {
-                chips.push({ type: 'prompt', text: response.followUp });
-            }
-            showChips(chips);
+            const suggestionChips = generateSuggestionChips(originalInput, response.text);
+            showChips(suggestionChips);
             updateChatTitle(originalInput);
         }
         setStatus('');
       } catch (err) {
         console.error(err);
         chatBody.removeChild(typingIndicator);
-        setStatus('Sorry, an error occurred.', true);
+        setStatus(`Error: ${err.message}. Please try again.`, true);
       }
     }
 
     function resetConversationState() {
+        conversationState.mode = null;
+        conversationState.step = 0;
+        conversationState.data = {};
         conversationState.isWaitingForLocation_Jobs = false;
         conversationState.isWaitingForLocation_Resources = false;
         conversationState.resourceType = null;
     }
+
+    /* -------- Guided Conversation Logic -------- */
+    async function handleGuidedConversation(prompt) {
+        if (conversationState.mode === 'STAR_PRACTICE') {
+            return handleStarPractice(prompt);
+        }
+        resetConversationState();
+        return getGenerativeResponse(prompt); 
+    }
+
+    async function handleStarPractice(prompt) {
+        const step = conversationState.step;
+        conversationState.data[step] = prompt;
+
+        if (step === 1) {
+            conversationState.step++;
+            return { text: "Great. Now, what was your specific **Task** or responsibility in that situation?" };
+        } else if (step === 2) {
+            conversationState.step++;
+            return { text: "Excellent. Next, describe the **Action** you took to handle the task." };
+        } else if (step === 3) {
+            conversationState.step++;
+            return { text: "Perfect. Finally, what was the **Result** of your action? Try to use numbers if you can." };
+        } else if (step === 4) {
+            const { '1': s, '2': t, '3': a, '4': r } = conversationState.data;
+            const fullAnswer = `Here's your full STAR answer combined:\n\n**Situation:** ${s}\n**Task:** ${t}\n**Action:** ${a}\n**Result:** ${r}\n\nThis is a strong, structured answer! It clearly demonstrates your experience. Well done.`;
+            resetConversationState();
+            return { text: fullAnswer, chips: [{ type: 'prompt', text: 'Let\'s practice another one' }, { type: 'prompt', text: 'Give me interview tips' }] };
+        }
+    }
     
+    /* -------- Smart Response Router -------- */
+    async function getSmartResponse(prompt) {
+        const p = prompt.toLowerCase();
+        const hasWord = (words) => words.some(word => new RegExp(`\\b${word}\\b`, 'i').test(p));
+        
+        // Guided conversations
+        if (hasWord(['practice']) && hasWord(['star'])) {
+            return { action: 'start_guided_conversation', mode: 'STAR_PRACTICE', text: "Great idea! Let's practice a STAR answer together. First, tell me about the **Situation**. What was the context or background of a challenge you faced at work?"};
+        }
+
+        // Location-based actions
+        const resourceKeywords = { 'food': ['food', 'pantry', 'hungry', 'eat'], 'housing': ['housing', 'shelter', 'homeless', 'rent'], 'mental health': ['mental health', 'counseling', 'support group', 'therapist'] };
+        for(const type in resourceKeywords) {
+            if (hasWord(resourceKeywords[type])) {
+                return { action: 'askLocation_Resources', resourceType: type, text: `I can help with that. What city or ZIP code should I search for ${type} resources in?` };
+            }
+        }
+        if (hasWord(['job', 'jobs', 'opening', 'hiring', 'apply', 'find jobs'])) {
+             const trentonInQuery = hasWord(['trenton', '08609', '08610', '08605']);
+             if (trentonInQuery) {
+                 const jobs = await fetchJobs('trenton');
+                 const responseText = jobs.length > 0 
+                     ? "Here are some current job listings I found in Trenton:" 
+                     : "I couldn't find any specific job listings for Trenton right now, but I can still help you prepare!";
+                 setTimeout(() => renderJobBoard(jobs, 'Trenton'), 10);
+                 return { text: responseText, chips: [{type: 'prompt', text: 'Help me with interview questions'}]};
+             }
+            return { action: 'askLocation_Jobs', text: "Absolutely. To find the most relevant job openings, what city or ZIP code are you looking in?" };
+        }
+        
+        // If no specific action, fall back to the generative AI
+        return getGenerativeResponse(prompt);
+    }
+    
+    /* -------- Gemini API Call -------- */
+    async function getGenerativeResponse(prompt) {
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: {
+                parts: [{ text: SYSTEM_PROMPT }]
+            },
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+            }
+
+            const result = await response.json();
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (text) {
+                return { text };
+            } else {
+                return { text: "I'm sorry, I couldn't generate a response. Please try rephrasing your question." };
+            }
+        } catch (error) {
+            console.error("Gemini API call failed:", error);
+            throw error; // Re-throw to be caught by handleSend
+        }
+    }
+
     function addMessageToHistory(role, text) {
         if(!allChats[currentChatId]) return;
         allChats[currentChatId].history.push({ role, text });
@@ -458,92 +584,11 @@
 
     function updateChatTitle(prompt) {
         if (allChats[currentChatId] && allChats[currentChatId].title === "New Chat") {
-            const newTitle = prompt.split(' ').slice(0, 5).join(' ');
+            const newTitle = prompt.split(' ').slice(0, 4).join(' ');
             allChats[currentChatId].title = newTitle;
             saveChats();
             renderHistory();
         }
-    }
-
-    /* -------- MOCK API with Intent Recognition (Updated) -------- */
-    async function askAI(prompt) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const p = prompt.toLowerCase();
-        
-        const deescalationKeywords = ['useless', 'stupid', 'doesn\'t work', 'frustrated', 'angry', 'i need real help'];
-        if (deescalationKeywords.some(k => p.includes(k))) {
-            return {
-                text: "I understand this can be frustrating, and I'm sorry you're having trouble. I'm here to help. Let's try to solve this together.\n\nIf you're feeling overwhelmed, please remember that support is available. You can call or text **988** anytime to connect with the Suicide & Crisis Lifeline.",
-                chips: [{ type: 'prompt', text: 'Find mental health resources near me'}, { type: 'link', label: 'Call 988', href: 'tel:988' }]
-            };
-        }
-        
-        const resourceKeywords = {
-            'food': ['food', 'pantry', 'hungry', 'eat'],
-            'housing': ['housing', 'shelter', 'homeless', 'rent'],
-            'mental health': ['mental health', 'counseling', 'support group', 'therapist']
-        };
-        for(const type in resourceKeywords) {
-            if (resourceKeywords[type].some(k => p.includes(k))) {
-                return { action: 'askLocation_Resources', resourceType: type, text: `I can help with that. What city or ZIP code should I search for ${type} resources in?` };
-            }
-        }
-
-        const intents = [
-            { 
-              keywords: ['job', 'opening', 'hiring', 'apply', 'find jobs'], 
-              response: { action: 'askLocation_Jobs', text: "Absolutely. To find the most relevant job openings, what city or ZIP code are you looking in?" }
-            },
-             { 
-              keywords: ['star method', 'challenge, action, result'], 
-              response: {
-                text: "The STAR method is a fantastic way to structure your answers in interviews and on your resume. It stands for:\n\n- **S - Situation:** Briefly describe the context. What was the challenge?\n- **T - Task:** What was your specific responsibility or goal in that situation?\n- **A - Action:** Describe the specific steps **you** took to address the task. Use strong action verbs.\n- **R - Result:** What was the outcome? Quantify it with numbers whenever possible (e.g., increased efficiency by 15%, saved $500, improved customer satisfaction).",
-                chips: [{type: 'prompt', text: 'Give me an example'}, {type: 'prompt', text: 'Help me write a resume bullet point'}]
-              }
-            },
-             { 
-              keywords: ['career tip', 'advice'], 
-              response: {
-                text: "Great question! One of the best ways to showcase your skills is using the **STAR method**. It helps you tell a compelling story about your accomplishments.\n\nInstead of just listing duties, you describe a **Situation**, the **Task** you had, the **Action** you took, and the **Result** you achieved. This is powerful for both resumes and interviews.\n\nAnother key tip is to always **tailor your resume** for each job application. Read the job description carefully and highlight the skills and experiences that match what the employer is looking for.",
-                chips: [{type: 'prompt', text: 'Tell me more about the STAR method'}, {type: 'prompt', text: 'Where can I find jobs?'}]
-              }
-            },
-            { keywords: ['appointment', 'meet', 'schedule'], response: {
-                text: "To schedule an appointment with a TASK professional, please use our booking portal on **Engage by Cell**.\n\nThis ensures you get a dedicated time slot. You can also call or text **609-337-1624** for appointments.",
-                chips: [{type: 'link', label: 'Schedule an Appointment', href: ENGAGE.appointment}, {type: 'prompt', text: 'What should I bring to my appointment?'}]}},
-            { keywords: ['resume', 'cv', 'cover letter'], response: {
-                text: "A strong resume is key! Here are a few tips:\n- Use action verbs.\n- Tailor it to the job description.\n- Use the **STAR method** to frame your accomplishments.\n\nFor more detailed help, check out our **Career Tips** on Engage by Cell.",
-                chips: [{type: 'prompt', text: 'Review my "Work Experience" section'}, {type: 'link', label: 'See All Career Tips', href: ENGAGE.careerTips}],
-                followUp: "Now that your resume is ready, shall we look for jobs?"
-              }},
-            { keywords: ['training', 'class', 'course', 'certificate'], response: {
-                text: "We have various training opportunities available. You can see a full list and sign up on **Engage by Cell**.",
-                chips: [{type: 'link', label: 'Training Opportunities', href: ENGAGE.trainingOpps}, {type: 'link', label: 'All Trainings', href: ENGAGE.trainings}]}},
-            { keywords: ['resource', 'support', 'benefit'], response: {
-                text: "We provide access to both general and community-specific resources. You can explore them on **Engage by Cell**.",
-                chips: [{type: 'link', label: 'General Resources', href: ENGAGE.resources}, {type: 'link', label: 'Community Resources', href: ENGAGE.communityResources}]}},
-            { keywords: ['verify', 'verification'], response: {
-                text: "For employment verification, please use the dedicated portal on **Engage by Cell**.",
-                chips: [{type: 'link', label: 'Employment Verification', href: ENGAGE.employmentVerification}]}},
-            { keywords: ['event', 'workshop', 'fair'], response: {
-                text: "Stay up to date with all our upcoming events, workshops, and job fairs by checking our **Events** page on Engage by Cell.",
-                chips: [{type: 'link', label: 'View Upcoming Events', href: ENGAGE.events}]}},
-            { keywords: ['contact', 'phone', 'number', 'call'], response: {
-                text: "Of course! For general employment inquiries, you can call or text **609-697-6215** or **609-697-6166**.\n\nTo make an appointment, please use the booking link or call/text **609-337-1624**.",
-                chips: [{type: 'link', label: 'Schedule an Appointment', href: ENGAGE.appointment}]}},
-            { keywords: ['help', 'support'], response: {
-                text: "I can certainly help! What do you need assistance with today?",
-                chips: [{type: 'prompt', text: 'Finding a job'}, {type: 'prompt', text: 'Improving my resume'}, {type: 'prompt', text: 'Scheduling an appointment'}]}}
-        ];
-
-        for (const intent of intents) {
-            if (intent.keywords.some(k => p.includes(k))) return intent.response;
-        }
-
-        return {
-            text: `I can provide information on resumes, interviews, and job searching strategies. For direct actions like applying or scheduling, you'll be guided to our **Engage by Cell** portal.\n\nHow can I assist you further?`,
-            chips: [{type: 'prompt', text: 'How do I find jobs?'}, {type: 'prompt', text: 'Tell me about available trainings'}]
-        };
     }
     
     /* -------- Rendering Functions -------- */
@@ -607,6 +652,46 @@
         };
         renderContainer(historyContainer);
         renderContainer(historyContainerMobile);
+    }
+    
+    function generateSuggestionChips(prompt, responseText) {
+        const combinedText = (prompt + ' ' + responseText).toLowerCase();
+        const chips = [];
+        const addedLinks = new Set();
+        const hasWord = (words) => words.some(word => new RegExp(`\\b${word}\\b`, 'i').test(combinedText));
+
+        const addChip = (chip) => {
+            const key = chip.href || chip.text;
+            if (!addedLinks.has(key)) {
+                chips.push(chip);
+                addedLinks.add(key);
+            }
+        };
+
+        if (hasWord(['sora', 'culinary', 'forklift', 'training', 'class', 'course', 'certificate'])) {
+            addChip({ type: 'link', label: 'Find Training Opps', href: ENGAGE.trainingOpps });
+            addChip({ type: 'link', label: 'All Trainings', href: ENGAGE.trainings });
+        }
+        if (hasWord(['resource', 'support', 'benefit', 'food', 'housing', 'additional resources'])) {
+            addChip({ type: 'link', label: 'Community Resources', href: ENGAGE.communityResources });
+            addChip({ type: 'link', label: 'General Resources', href: ENGAGE.resources });
+        }
+        if (hasWord(['job', 'opening', 'hiring', 'apply', 'career'])) {
+            addChip({ type: 'link', label: 'View Job Openings', href: ENGAGE.jobOpenings });
+            addChip({ type: 'link', label: 'Get Job Assistance', href: ENGAGE.jobAssistance });
+        }
+        if (hasWord(['resume', 'cv', 'cover letter', 'interview', 'tip'])) {
+            addChip({ type: 'link', label: 'Get Career Tips', href: ENGAGE.careerTips });
+        }
+        if (hasWord(['appoint', 'schedule', 'meet'])) {
+            addChip({ type: 'link', label: 'Make an Appointment', href: ENGAGE.appointment });
+        }
+        
+        if (hasWord(['star method']) && !hasWord(['practice'])) {
+            addChip({type: 'prompt', text: 'Help me practice a STAR answer'});
+        }
+
+        return chips.slice(0, 2); 
     }
 
     function showChips(chips = []) {
@@ -712,7 +797,10 @@
                 </div>
             `).join('');
         } else {
-            content = `<p class="text-center text-gray-500 py-4">No jobs found for "${escapeHtml(location)}". Try another location.</p>`;
+            content = `<p class="text-center text-gray-500 py-4">No jobs found for "${escapeHtml(location)}". Try another location.</p>
+            <div class="flex justify-center mt-2 pb-2">
+                <a href="${ENGAGE.jobOpenings}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm font-semibold text-white bg-brand rounded-full hover:opacity-90">View All Job Openings</a>
+            </div>`;
         }
         
         container.innerHTML = `
@@ -761,22 +849,27 @@
     }
     
     function renderSmart(text) {
+        // Basic sanitization
         let processedText = text.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
         
+        // Markdown Bold and Links
         processedText = processedText
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+        // Phone numbers
         processedText = processedText.replace(/(\+?1\s?)?\(?(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})/g, (match, p1, p2, p3, p4) => {
             const tel = `+1${p2}${p3}${p4}`;
             return `<a href="tel:${tel}" class="underline">${match}</a>`;
         });
         processedText = processedText.replace(/\b988\b/g, '<a href="tel:988" class="underline">988</a>');
 
+        // Markdown Lists
         const lines = processedText.split('\n');
         let html = '';
         let inList = false;
         for (const line of lines) {
-            if (line.trim().startsWith('- ')) {
+            if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
                 if (!inList) {
                     html += '<ul>';
                     inList = true;
