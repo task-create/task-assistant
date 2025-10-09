@@ -107,8 +107,9 @@
 </main>
 
 <script>
-/* ========= CONFIG ========= */
-const API_BASE = 'https://YOUR_WORKER_URL_HERE'; // <-- e.g. https://my-task-proxy.username.workers.dev
+// in index.html (the CONFIG section)
+const API_BASE = ''; // same-origin, will call /api/ai on your Vercel domain
+
 
 /* ========= TASK LINKS ========= */
 const TASK = {
@@ -198,12 +199,12 @@ async function askAI(promptText){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort('timeout'), 20000);
   try{
-    const r = await fetch(API_BASE + '/ai', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: promptText }),
-      signal: ctrl.signal
-    });
+   const r = await fetch(`${API_BASE}/api/ai`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: promptText })
+});
+
     clearTimeout(t);
     if (!r.ok) {
       const detail = await r.text().catch(()=> '');
