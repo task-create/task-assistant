@@ -93,6 +93,7 @@
     /* suggestion chips */
     .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 0; }
     .chip{ font-size:14px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:transparent; cursor:pointer; }
+    .chip-link{ text-decoration:none; }
   </style>
 </head>
 <body data-theme="dark">
@@ -105,7 +106,7 @@
         <div class="logo">T</div>
       </div>
       <div class="splash-title">TASK Assistant — Ask Anything</div>
-      <div class="splash-sub">Task Employment Services • Clear steps, quick actions, Engage by Cell for follow-through.</div>
+      <div class="splash-sub">Task Employment Services • Clear steps, quick actions. Use Engage by Cell to complete tasks.</div>
       <div class="actions"><button id="start" class="btn">Start</button></div>
     </div>
   </div>
@@ -125,7 +126,7 @@
     </header>
 
     <div id="chat" class="chat" aria-live="polite">
-      <!-- sticky settings at VERY top (scroll up to change) -->
+      <!-- sticky settings at top -->
       <div class="settings-bar">
         <button id="settingsTheme" class="settings-link" type="button" title="Theme">Theme</button>
         <a id="openEngageTop" class="settings-link" href="#" target="_blank" rel="noopener">Open Engage</a>
@@ -133,14 +134,13 @@
         <div class="spacer"></div>
         <span id="settingsInfo" class="muted">Settings</span>
       </div>
-
       <div class="chat-body" id="chatBody"></div>
     </div>
 
-    <!-- Suggestions row (appears above composer) -->
+    <!-- Suggestions row -->
     <div id="suggestions" class="chips hidden"></div>
 
-    <!-- Composer: sparkle indicator (far-left), input, mic, send -->
+    <!-- Composer -->
     <form id="composer" class="row" autocomplete="off">
       <button id="sparkleBtn" class="icon-btn" type="button" title="Ideas"><span id="sparkleGlyph">✨</span></button>
       <input id="input" type="text" placeholder="Type your question…" />
@@ -152,15 +152,40 @@
   </div>
 
   <script>
-    /* ------------ CONFIG ------------ */
-    const ENGAGE_URL = "https://m.engagebycell.com"; // TODO: replace with your Engage by Cell app link
+    /* ------------ ENGAGE BY CELL LINKS (from you) ------------ */
+    const ENGAGE = {
+      landing: "https://bycell.co/ddmnx",
+      jobAssistance: "https://bycell.co/ddnke",
+      trainingOpps: "https://bycell.co/ddnki",
+      resources: "https://bycell.co/ddnkj",
+      careerTips: "https://bycell.co/ddmui",
+      communityResources: "https://bycell.co/ddmua",
+      employmentVerification: "https://bycell.co/ddmwm",
+      events: "https://bycell.co/ddmul",
+      jobOpenings: "https://bycell.co/ddmtq",
+      appointment: "https://bycell.co/ddncs",
+      otherServices: "https://bycell.co/ddmud",
+      trainings: "https://bycell.co/ddmtn"
+    };
 
-    // TASK-first nudge (prepends to model prompt; keeps answers action oriented)
+    /* ------------ TASK-FIRST prompt nudge ------------ */
     const TASK_NUDGE = `You are TASK Assistant for Task Employment Services.
-Respond with clear, step-by-step guidance. Keep answers concise.
-Use bullet points only when they improve readability (for longer sections).
-Prefer actionable steps and reference Engage by Cell for completing tasks (use short phrasing like: Open Engage by Cell to {action}).
-Avoid markdown bold (**).`;
+Be action-first. Keep responses concise and practical.
+Use bullet points only when they make long information easier to scan.
+Suggest completing steps in Engage by Cell when appropriate.
+Key sections:
+- Job Assistance (${ENGAGE.jobAssistance})
+- Job Openings (${ENGAGE.jobOpenings})
+- Training Opportunities (${ENGAGE.trainingOpps})
+- Trainings (${ENGAGE.trainings})
+- Career Tips (${ENGAGE.careerTips})
+- Resources (${ENGAGE.resources})
+- Community Resources (${ENGAGE.communityResources})
+- Employment Verification (${ENGAGE.employmentVerification})
+- Events (${ENGAGE.events})
+- Make an Appointment (${ENGAGE.appointment})
+- Other TASK Services (${ENGAGE.otherServices})
+Avoid bold markdown (no **).`;
 
     /* ------------ THEME ------------ */
     const root = document.body;
@@ -189,13 +214,12 @@ Avoid markdown bold (**).`;
     const settingsTheme = document.getElementById('settingsTheme');
     const clearChatBtn  = document.getElementById('clearChat');
 
-    openEngageTop.href = ENGAGE_URL;
-
+    openEngageTop.href = ENGAGE.landing;
     settingsTheme.addEventListener('click', ()=> setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'));
     clearChatBtn.addEventListener('click', ()=>{
       chatBody.innerHTML = '';
       history.length = 0;
-      suggestionsEl.classList.add('hidden');
+      showChips([]);
     });
 
     /* ------------ AUDIO (lazy) ------------ */
@@ -224,7 +248,7 @@ Avoid markdown bold (**).`;
       s.triggerAttackRelease("C5","8n");
     }
 
-    /* ------------ VOICE (Web Speech API) ------------ */
+    /* ------------ VOICE ------------ */
     let recognition = null, listening = false;
     function initSTT(){
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -251,21 +275,15 @@ Avoid markdown bold (**).`;
       const div = document.createElement('div');
       div.className = 'bubble me';
       div.textContent = text;
-      chatBody.appendChild(div); chat.scrollTop = 0; chat.scrollTop = chat.scrollHeight;
+      chatBody.appendChild(div); chat.scrollTop = chat.scrollHeight;
     }
-
     function cleanMarkdown(s){
-      return s.replace(/\*\*/g, '')  // remove bold markers
-              .replace(/^#+\s*/gm,'') // remove headings
-              .replace(/`{1,3}/g, ''); // remove backticks
+      return s.replace(/\*\*/g, '').replace(/^#+\s*/gm,'').replace(/`{1,3}/g, '');
     }
-
-    // make bullets only when helpful (multi-line or long text)
     function bulletizeIfHelpful(text){
       const cleaned = cleanMarkdown(text);
       const lines = cleaned.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
       const long = cleaned.length > 220;
-
       if (lines.length >= 2 || long) {
         const ul = document.createElement('ul');
         (lines.length >= 2 ? lines : cleaned.split(/(?<=[.!?])\s+(?=[A-Z(])/).filter(Boolean))
@@ -281,30 +299,52 @@ Avoid markdown bold (**).`;
         return p;
       }
     }
-
     function bubbleBot(text){
       const div = document.createElement('div');
       div.className = 'bubble bot';
       div.appendChild(bulletizeIfHelpful(text));
       chatBody.appendChild(div); chat.scrollTop = chat.scrollHeight;
     }
-
     function setStatus(msg, isError=false){
       statusEl.textContent = msg || '';
       statusEl.className = isError ? 'error' : 'muted';
     }
 
-    function showChips(list){
+    /* ------------ Chips (prompts + links) ------------ */
+    function showChips(items){
       suggestionsEl.innerHTML = '';
-      list.forEach(s=>{
-        const b = document.createElement('button');
-        b.className = 'chip';
-        b.type = 'button';
-        b.textContent = s;
-        b.addEventListener('click', ()=> { input.value = s; input.focus(); });
-        suggestionsEl.appendChild(b);
+      (items || []).forEach(it=>{
+        if (it.type === 'link') {
+          const a = document.createElement('a');
+          a.href = it.href; a.target = '_blank'; a.rel = 'noopener';
+          a.className = 'chip chip-link'; a.textContent = it.label;
+          suggestionsEl.appendChild(a);
+        } else {
+          const b = document.createElement('button');
+          b.className = 'chip'; b.type = 'button'; b.textContent = it.text;
+          b.addEventListener('click', ()=> { input.value = it.text; input.focus(); });
+          suggestionsEl.appendChild(b);
+        }
       });
-      suggestionsEl.classList.toggle('hidden', list.length === 0);
+      suggestionsEl.classList.toggle('hidden', !items || items.length === 0);
+    }
+
+    // map prompts to relevant Engage sections (simple keyword router)
+    function routeEngageChips(text=''){
+      const t = text.toLowerCase();
+      const picks = [{ type:'link', label:'Open Engage', href: ENGAGE.landing }];
+      if (/(job|hiring|apply|opening|posting)/.test(t)) picks.push({ type:'link', label:'Job Openings', href: ENGAGE.jobOpenings }, { type:'link', label:'Job Assistance', href: ENGAGE.jobAssistance });
+      if (/(resume|cover|cv|interview|tips)/.test(t)) picks.push({ type:'link', label:'Career Tips', href: ENGAGE.careerTips }, { type:'link', label:'Job Assistance', href: ENGAGE.jobAssistance });
+      if (/(training|class|course|certificate|program)/.test(t)) picks.push({ type:'link', label:'Training Opportunities', href: ENGAGE.trainingOpps }, { type:'link', label:'Trainings', href: ENGAGE.trainings });
+      if (/(resource|support|help|benefit|food|housing)/.test(t)) picks.push({ type:'link', label:'Resources', href: ENGAGE.resources }, { type:'link', label:'Community Resources', href: ENGAGE.communityResources });
+      if (/(verify|verification|employment verification)/.test(t)) picks.push({ type:'link', label:'Employment Verification', href: ENGAGE.employmentVerification });
+      if (/(event|workshop|fair)/.test(t)) picks.push({ type:'link', label:'Events', href: ENGAGE.events });
+      if (/(appoint|schedule|meet)/.test(t)) picks.push({ type:'link', label:'Make an Appointment', href: ENGAGE.appointment });
+      if (picks.length === 1) picks.push({ type:'link', label:'Other TASK Services', href: ENGAGE.otherServices });
+      // dedupe & cap
+      const seen = new Set(); const out = [];
+      for (const p of picks) { const k = p.type + (p.href||p.text); if (!seen.has(k)) { seen.add(k); out.push(p); } if (out.length>=4) break; }
+      return out;
     }
 
     /* ------------ API ------------ */
@@ -350,7 +390,7 @@ Avoid markdown bold (**).`;
 
       if (!audioReady) { try { await ensureAudio(); } catch {} }
 
-      showChips([]); // clear any prior chips
+      showChips([]); // clear chips
       bubbleMe(prompt);
       input.value = '';
       setStatus('Thinking…');
@@ -367,11 +407,14 @@ Avoid markdown bold (**).`;
         setStatus('');
         ding(); sparkleChime();
 
-        // auto suggestion (header sparkle)
-        sparkleSm.classList.add('on');
+        // contextual Engage chips + one AI suggestion
+        const chips = routeEngageChips(prompt);
         const suggestion = await getSuggestion(prompt);
-        sparkleSm.classList.remove('on');
-        if (suggestion) showChips([suggestion, `Open Engage by Cell to continue: ${ENGAGE_URL}`]);
+        if (suggestion) chips.push({ type:'prompt', text:suggestion });
+        showChips(chips);
+
+        // header sparkle while suggestion runs
+        sparkleSm.classList.add('on'); setTimeout(()=>sparkleSm.classList.remove('on'), 600);
       } catch (err) {
         console.error(err);
         setStatus(err.message || String(err), true);
@@ -381,32 +424,32 @@ Avoid markdown bold (**).`;
       }
     });
 
-    /* ------------ SPARKLE BUTTON (ideas on demand) ------------ */
+    /* ------------ SPARKLE BUTTON (ideas + Engage chips) ------------ */
     sparkleBtn.addEventListener('click', async ()=>{
-      // find last user message
       const lastUser = [...history].reverse().find(m => m.role === 'user')?.text || input.value.trim() || 'employment help';
       sparkleBtn.classList.add('on'); sparkleGlyph.classList.add('spin');
       try {
         if (!audioReady) { try { await ensureAudio(); } catch {} }
         const ideas = await getSuggestionsN(lastUser, 3);
-        // Always include the Engage app action as one option
-        ideas.push(`Open Engage by Cell to continue: ${ENGAGE_URL}`);
-        showChips(ideas);
+        const chips = routeEngageChips(lastUser);
+        ideas.forEach(s => chips.push({ type:'prompt', text:s }));
+        showChips(chips);
         sparkleChime();
       } finally {
         sparkleBtn.classList.remove('on'); sparkleGlyph.classList.remove('spin');
       }
     });
 
-    /* ------------ STARTER CONTENT (TES) ------------ */
+    /* ------------ Starter content ------------ */
     bubbleBot('Here’s what I can help with today:');
     bubbleBot([
-      'Quick steps to tailor your resume to a specific job.',
-      'Interview practice prompts and concise talking points.',
-      'Find local training programs and what you need to enroll.',
-      'Draft short outreach messages to employers.',
-      'Next steps after applying (follow-up and documents).'
+      'Tailor a resume to a job posting.',
+      'Prep quick interview talking points.',
+      'Find local trainings & prerequisites.',
+      'Draft outreach messages to employers.',
+      'Next steps after applying.'
     ].join('\n'));
+    showChips(routeEngageChips('start'));
   </script>
 </body>
 </html>
