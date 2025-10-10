@@ -577,6 +577,22 @@ form.addEventListener('submit', async (e) => {
         return getGenerativeResponse(prompt);
     }
     
+    // Inside getSmartResponse in index.html
+
+// ...
+if (hasWord(['job', 'jobs', 'hiring'])) {
+    return { action: 'askLocation_Jobs', text: "Absolutely. To find the most relevant job openings, what city or ZIP code are you looking in?" };
+} 
+// ADD A NEW RULE FOR THE NEW SPECIALIST
+else if (hasWord(['food', 'pantry', 'hungry'])) {
+    // This would trigger a new flow that eventually calls /api/food_resources
+    return { action: 'askLocation_Food', text: "I can help with that. What city or ZIP code should I search for food resources in?" };
+} 
+// The default fallback to the generalist brain
+else {
+    return getGenerativeResponse(prompt);
+}
+// ...
     /* -------- Gemini API Call -------- */
    async function getLiveJobs(prompt) {
     // This function now calls YOUR serverless function at /api/jobs
