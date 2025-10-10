@@ -1,7 +1,7 @@
 // Server route: real-time job search via Gemini + Google Search tool
 // Returns a short, clean bullet list with direct employer links when possible.
 
-export const config = { runtime: 'nodejs20.x' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
