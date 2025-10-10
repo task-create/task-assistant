@@ -130,7 +130,13 @@
             
             <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
                 <div id="chatBody" class="w-full">
-                    <!-- Content will be injected by JS -->
+                     <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
+                        <div class="relative w-20 h-20 mx-auto mb-4">
+                           <div class="absolute inset-[-12px] rounded-full sparkle"></div>
+                           <div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
+                        </div>
+                        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>
+                    </div>
                 </div>
             </div>
 
@@ -162,7 +168,8 @@
         </div>
     </main>
     
-    <!-- Mobile Sidebar --><div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
+    <!-- Mobile Sidebar -->
+    <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
         <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
             <div class="flex items-center justify-between">
               <span class="text-xl font-semibold">Menu</span>
@@ -189,7 +196,8 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal --><div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50">
+    <!-- Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50">
       <div class="w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
         <h2 class="text-lg font-bold">Delete Chat?</h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">This will permanently delete the chat history.</p>
@@ -703,12 +711,8 @@ Special Instructions:
     }
 
     function renderChat() {
-        const bubbles = chatBody.querySelectorAll('.group, .bubble-container');
-        bubbles.forEach(b => b.remove());
-
         const welcomeScreen = document.getElementById('welcomeScreen');
-        if (welcomeScreen) welcomeScreen.remove();
-
+        chatBody.innerHTML = ''; // Clear everything first
         if (currentChatId && allChats[currentChatId] && allChats[currentChatId].history.length > 0) {
             chatBody.classList.add('space-y-6');
             allChats[currentChatId].history.forEach(msg => {
@@ -835,8 +839,7 @@ Special Instructions:
     }
     
     function bubbleMe(text, doScroll = true) {
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        if (welcomeScreen) welcomeScreen.remove();
+        document.getElementById('welcomeScreen')?.remove();
         chatBody.classList.add('space-y-6');
 
         const bubble = document.createElement('div');
@@ -847,12 +850,11 @@ Special Instructions:
     }
     
     function bubbleBot(text, doScroll = true) {
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        if (welcomeScreen) welcomeScreen.remove();
+        document.getElementById('welcomeScreen')?.remove();
         chatBody.classList.add('space-y-6');
 
         const bubbleContainer = document.createElement('div');
-        bubbleContainer.className = 'group';
+        bubbleContainer.className = 'group bubble-container';
 
         const bubble = document.createElement('div');
         bubble.className = 'flex items-start gap-3';
