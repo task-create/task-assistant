@@ -575,11 +575,7 @@ form.addEventListener('submit', async (e) => {
                 return { action: 'askLocation_Resources', resourceType: type, text: `I can help with that. What city or ZIP code should I search for ${type} resources in?` };
             }
         }
-        if (hasWord(['job', 'jobs', 'opening', 'hiring', 'apply', 'find jobs'])) {
-            return { action: 'askLocation_Jobs', text: "Absolutely. To find the most relevant job openings, what city or ZIP code are you looking in?" };
-        }
-        
-
+       
     // This function now calls YOUR serverless function at /api/jobs
     try {
         const response = await fetch('/api/jobs', {
