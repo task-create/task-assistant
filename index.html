@@ -418,13 +418,15 @@ form.addEventListener('submit', async (e) => {
     }
     setStatus('');
   }// ... inside the submit handler
-  } catch (err) {
+ // ... code inside the try block ...
+    setStatus('');
+} catch (err) { // The 'catch' now immediately follows the 'try'
     console.error(err);
     // safe remove if it’s still there
     try { chatBody.removeChild(typingIndicator); } catch {}
     setStatus(`Error: ${err.message}. Please try again.`, true);
     bubbleBot('Sorry — I could not reach the service. Please try again.');
-    resetConversationState(); // <-- ADD THIS LINE to fix the loop
+    resetConversationState();
   }
 });
 
