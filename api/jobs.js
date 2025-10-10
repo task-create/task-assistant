@@ -1,24 +1,23 @@
 // Server route: real-time job search via Gemini + Google Search tool
-// Returns a short, clean bullet list with direct employer links when possible.
-
 export const config = { runtime: 'nodejs' };
 
-// Use a more current model that's great for tool use
 const GEMINI_MODEL = 'models/gemini-1.5-flash-latest';
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).end();
+    if (req.method !== 'POST') {
+        return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+    }
     
     const GEMINI_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_KEY) {
-        console.error('Missing GEMINI_API_KEY');
-        return res.status(500).json({ ok: false, error: 'Missing API Key configuration' });
+        console.error('SERVER ERROR: Missing GEMINI_API_KEY environment variable.');
+        return res.status(500).json({ ok: false, error: 'Server configuration error: Missing API Key.' });
     }
 
     try {
         const { query = '' } = await readJson(req);
         if (!query.trim()) {
-            return res.status(400).json({ ok: false, error: 'Missing "query"' });
+            return res.status(400).json({ ok: false, error: 'Bad Request: Missing "query" in body.' });
         }
 
         const system = [
@@ -30,10 +29,11 @@ export default async function handler(req, res) {
             'Keep the results highly relevant to the user\'s query, especially the location.',
             'If you cannot find any relevant jobs, state that clearly and politely, and include this specific markdown link: [TASK Job Openings](https://bycell.co/ddmtq).'
         ].join('\n');
-
+        
+        // Note: Using the API key in the URL is a valid authentication method for this API.
         const url = `https://generativelanguage.googleapis.com/v1beta/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
 
-        const r = await fetch(url, {
+        const apiResponse = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -44,24 +44,30 @@ export default async function handler(req, res) {
             }),
         });
 
-        if (!r.ok) {
-            const errorData = await r.json();
-            // Log the actual error from Google for easier debugging
-            console.error('Gemini API Error:', errorData); 
-            return res.status(r.status).json({ ok: false, provider: 'Gemini', error: errorData });
+        if (!apiResponse.ok) {
+            const errorBody = await apiResponse.json();
+            console.error('GEMINI API ERROR:', JSON.stringify(errorBody, null, 2));
+            const errorMessage = errorBody?.error?.message || 'The AI service failed to respond.';
+            return res.status(502).json({ ok: false, error: `Failed to fetch from Gemini API: ${errorMessage}` });
         }
 
-        const data = await r.json();
-        // A more robust way to extract text, checking for tool calls vs. simple text response
+        const data = await apiResponse.json();
+        
+        if (!data.candidates || data.candidates.length === 0) {
+            console.warn('GEMINI API WARNING: No candidates returned in response.');
+            return res.status(200).json({ ok: true, text: `Sorry, I couldn't find any specific jobs for that search. You can always check the main [TASK Job Openings](https://bycell.co/ddmtq) board.` });
+        }
+
         const text = data.candidates[0]?.content?.parts
             .filter(part => part.text)
             .map(part => part.text)
             .join('') || `Sorry, I couldn't find any specific jobs for that search. You can always check the main [TASK Job Openings](https://bycell.co/ddmtq) board.`;
 
-        return res.status(200).json({ ok: true, provider: 'Gemini', text });
+        return res.status(200).json({ ok: true, text: text });
+
     } catch (e) {
-        console.error('Server-side error in /api/jobs:', e);
-        return res.status(500).json({ ok: false, error: String(e) });
+        console.error('SERVER-SIDE CRASH in /api/jobs:', e);
+        return res.status(500).json({ ok: false, error: 'An unexpected error occurred on the server.' });
     }
 }
 
