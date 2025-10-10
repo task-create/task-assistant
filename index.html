@@ -480,67 +480,6 @@ form.addEventListener('submit', async (e) => {
         ]);
     }
 
-    async function handleSend(e) {
-      if(e) e.preventDefault();
-      const prompt = input.value.trim();
-      if (!prompt) return;
-
-      const isFirstMessage = allChats[currentChatId].history.length === 0;
-      if (isFirstMessage) {
-        addMessageToHistory('assistant', "Hello! I'm the TASK Assistant. How can I help you prepare for your next career move?");
-        renderChat(); 
-      }
-
-      addMessageToHistory('user', prompt);
-      bubbleMe(prompt);
-      
-      const originalInput = input.value;
-      input.value = '';
-      sendBtn.disabled = true;
-      input.style.height = 'auto';
-      showChips([]);
-      setStatus('Thinking…');
-
-      const typingIndicator = createTypingIndicator();
-      chatBody.appendChild(typingIndicator);
-      scrollToBottom();
-      
-      try {
-        let response;
-        if (conversationState.mode) {
-            response = await handleGuidedConversation(originalInput);
-        } else {
-            response = await getSmartResponse(originalInput);
-        }
-
-        chatBody.removeChild(typingIndicator);
-        
-        if (response.action === 'askLocation_Jobs') {
-            conversationState.mode = 'LOCATION_JOB_SEARCH';
-            bubbleBot(response.text);
-        } else if (response.action === 'askLocation_Resources') {
-            conversationState.mode = 'LOCATION_RESOURCE_SEARCH';
-            conversationState.data.resourceType = response.resourceType;
-            bubbleBot(response.text);
-        } else if (response.action === 'start_guided_conversation') {
-            conversationState.mode = response.mode;
-            conversationState.step = 1;
-            bubbleBot(response.text);
-        } else {
-            addMessageToHistory('assistant', response.text);
-            bubbleBot(response.text);
-            const suggestionChips = generateSuggestionChips(originalInput, response.text);
-            showChips(suggestionChips);
-            updateChatTitle(originalInput);
-        }
-        setStatus('');
-      } catch (err) {
-        console.error(err);
-        chatBody.removeChild(typingIndicator);
-        setStatus(`Error: ${err.message}. Please try again.`, true);
-      }
-    }
-
     function resetConversationState() {
         conversationState.mode = null;
         conversationState.step = 0;
