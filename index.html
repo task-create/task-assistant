@@ -309,36 +309,122 @@ Special Instructions:
       input.focus();
     });
     
-    /* -------- Event Listeners -------- */
-    input.addEventListener('input', () => {
-      sendBtn.disabled = input.value.trim().length === 0;
-      input.style.height = 'auto';
-      input.style.height = (input.scrollHeight) + 'px';
-    });
-    
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.dispatchEvent(new Event('submit')); } });
-    form.addEventListener('submit', handleSend);
-    newChatBtn.addEventListener('click', startNewChat);
-    newChatMobileBtn.addEventListener('click', () => { startNewChat(); mobileMenu.classList.add('hidden'); });
-    menuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
-    closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-    mobileMenu.addEventListener('click', (e) => { if (e.target === mobileMenu) mobileMenu.classList.add('hidden'); });
-    toggleSidebarBtn.addEventListener('click', () => {
-        const isCurrentlyCollapsed = app.classList.contains('sidebar-collapsed');
-        setSidebarState(!isCurrentlyCollapsed);
-    });
-    cancelDeleteBtn.addEventListener('click', () => {
-        deleteModal.classList.add('hidden');
-        deleteModal.classList.remove('flex');
-        chatToDelete = null;
-    });
-    confirmDeleteBtn.addEventListener('click', () => {
-        if(chatToDelete) {
-            deleteChat(chatToDelete);
-        }
-        deleteModal.classList.add('hidden');
-        deleteModal.classList.remove('flex');
-    });
+  /* -------- Event Listeners (robust) -------- */
+function autosize() {
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+}
+
+function updateSendState() {
+  const hasText = input.value.trim().length > 0;
+  sendBtn.disabled = !hasText;
+  sendBtn.setAttribute('aria-disabled', String(!hasText));
+}
+
+// keep button state and height in sync
+['input','change','keyup','paste'].forEach(ev => {
+  input.addEventListener(ev, () => { updateSendState(); autosize(); });
+});
+
+// Enter = send; Shift+Enter = newline (works in Safari too)
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit(); // more reliable than manual dispatch
+  }
+});
+
+// Button always submits (covers iOS)
+sendBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  form.requestSubmit();
+});
+
+// Other UI listeners (unchanged)
+newChatBtn.addEventListener('click', startNewChat);
+newChatMobileBtn.addEventListener('click', () => { startNewChat(); mobileMenu.classList.add('hidden'); });
+menuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
+closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+mobileMenu.addEventListener('click', (e) => { if (e.target === mobileMenu) mobileMenu.classList.add('hidden'); });
+toggleSidebarBtn.addEventListener('click', () => {
+  const isCurrentlyCollapsed = app.classList.contains('sidebar-collapsed');
+  setSidebarState(!isCurrentlyCollapsed);
+});
+cancelDeleteBtn.addEventListener('click', () => {
+  deleteModal.classList.add('hidden');
+  deleteModal.classList.remove('flex');
+  chatToDelete = null;
+});
+confirmDeleteBtn.addEventListener('click', () => {
+  if(chatToDelete) deleteChat(chatToDelete);
+  deleteModal.classList.add('hidden');
+  deleteModal.classList.remove('flex');
+});
+
+// Initial state for composer
+updateSendState();
+autosize();
+
+/* -------- Guarded submit handler (replaces handleSend) -------- */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const prompt = input.value.trim();
+  if (!prompt) { updateSendState(); return; }
+
+  const isFirstMessage = allChats[currentChatId]?.history.length === 0;
+  if (isFirstMessage) {
+    addMessageToHistory('assistant', "Hello! I'm the TASK Assistant. How can I help you prepare for your next career move?");
+    renderChat();
+  }
+
+  addMessageToHistory('user', prompt);
+  bubbleMe(prompt);
+
+  input.value = '';
+  autosize();
+  updateSendState();
+  showChips([]);
+  setStatus('Thinking…');
+
+  const typingIndicator = createTypingIndicator();
+  chatBody.appendChild(typingIndicator);
+  scrollToBottom();
+
+  try {
+    const response = conversationState.mode
+      ? await handleGuidedConversation(prompt)
+      : await getSmartResponse(prompt);
+
+    chatBody.removeChild(typingIndicator);
+
+    if (response.action === 'askLocation_Jobs') {
+      conversationState.mode = 'LOCATION_JOB_SEARCH';
+      bubbleBot(response.text);
+    } else if (response.action === 'askLocation_Resources') {
+      conversationState.mode = 'LOCATION_RESOURCE_SEARCH';
+      conversationState.data.resourceType = response.resourceType;
+      bubbleBot(response.text);
+    } else if (response.action === 'start_guided_conversation') {
+      conversationState.mode = response.mode;
+      conversationState.step = 1;
+      bubbleBot(response.text);
+    } else {
+      addMessageToHistory('assistant', response.text);
+      bubbleBot(response.text);
+      const suggestionChips = generateSuggestionChips(prompt, response.text);
+      showChips(suggestionChips);
+      updateChatTitle(prompt);
+    }
+    setStatus('');
+  } catch (err) {
+    console.error(err);
+    // safe remove if it’s still there
+    try { chatBody.removeChild(typingIndicator); } catch {}
+    setStatus(`Error: ${err.message}. Please try again.`, true);
+    bubbleBot('Sorry — I could not reach the service. Please try again.');
+  }
+});
 
     /* -------- Core Functions -------- */
     function setSidebarState(isCollapsed) {
