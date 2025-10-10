@@ -391,44 +391,49 @@ form.addEventListener('submit', async (e) => {
   chatBody.appendChild(typingIndicator);
   scrollToBottom();
 
-  try {
-    const response = conversationState.mode
-      ? await handleGuidedConversation(prompt)
-      : await getSmartResponse(prompt);
+// --- SNIPPET START ---
 
-    chatBody.removeChild(typingIndicator);
+// ... inside the form.addEventListener('submit', ...) function
 
-    if (response.action === 'askLocation_Jobs') {
-      conversationState.mode = 'LOCATION_JOB_SEARCH';
-      bubbleBot(response.text);
-    } else if (response.action === 'askLocation_Resources') {
-      conversationState.mode = 'LOCATION_RESOURCE_SEARCH';
-      conversationState.data.resourceType = response.resourceType;
-      bubbleBot(response.text);
-    } else if (response.action === 'start_guided_conversation') {
-      conversationState.mode = response.mode;
-      conversationState.step = 1;
-      bubbleBot(response.text);
-    } else {
-      addMessageToHistory('assistant', response.text);
-      bubbleBot(response.text);
-      const suggestionChips = generateSuggestionChips(prompt, response.text);
-      showChips(suggestionChips);
-      updateChatTitle(prompt);
+    try {
+      // (This is the section where the bot thinks and gets a response)
+      const response = conversationState.mode
+        ? await handleGuidedConversation(prompt)
+        : await getSmartResponse(prompt);
+
+      chatBody.removeChild(typingIndicator);
+
+      if (response.action === 'askLocation_Jobs') {
+        conversationState.mode = 'LOCATION_JOB_SEARCH';
+        bubbleBot(response.text);
+      } else if (response.action === 'askLocation_Resources') {
+        conversationState.mode = 'LOCATION_RESOURCE_SEARCH';
+        conversationState.data.resourceType = response.resourceType;
+        bubbleBot(response.text);
+      } else if (response.action === 'start_guided_conversation') {
+        conversationState.mode = response.mode;
+        conversationState.step = 1;
+        bubbleBot(response.text);
+      } else {
+        addMessageToHistory('assistant', response.text);
+        bubbleBot(response.text);
+        const suggestionChips = generateSuggestionChips(prompt, response.text);
+        showChips(suggestionChips);
+        updateChatTitle(prompt);
+      }
+      setStatus('');
+      
+    } catch (err) { // <<< THIS 'catch' MUST COME RIGHT AFTER THE 'try'
+      console.error(err);
+      // safe remove if it’s still there
+      try { chatBody.removeChild(typingIndicator); } catch {}
+      setStatus(`Error: ${err.message}. Please try again.`, true);
+      bubbleBot('Sorry — I could not reach the service. Please try again.');
+      resetConversationState();
     }
-    setStatus('');
-  }// ... inside the submit handler
- // ... code inside the try block ...
-    setStatus('');
-} catch (err) { // The 'catch' now immediately follows the 'try'
-    console.error(err);
-    // safe remove if it’s still there
-    try { chatBody.removeChild(typingIndicator); } catch {}
-    setStatus(`Error: ${err.message}. Please try again.`, true);
-    bubbleBot('Sorry — I could not reach the service. Please try again.');
-    resetConversationState();
-  }
-});
+}); // <<< This brace closes the entire addEventListener function
+
+// --- SNIPPET END ---
 
     /* -------- Core Functions -------- */
     function setSidebarState(isCollapsed) {
