@@ -66,7 +66,7 @@
         <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
       </button>
       <div class="relative w-24 h-24 mx-auto mb-6">
-        <div class="absolute inset-[-16px] rounded-3xl sparkle animate-spin [animation-duration:4s]"></div>
+        <div class="absolute inset-[-16px] rounded-full sparkle animate-spin [animation-duration:4s]"></div>
         <div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
       </div>
       <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">TASK Assistant</h1>
@@ -553,7 +553,7 @@ Special Instructions:
     /* -------- Gemini API Call -------- */
     async function getLiveJobs(prompt) {
         const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
         
         const jobSearchSystemPrompt = `You are a specialized job search assistant for TASK (Trenton Area Soup Kitchen). Your goal is to find real, up-to-date job openings that match the user's query.
 
@@ -601,7 +601,7 @@ Special Instructions:
 
     async function getGenerativeResponse(prompt) {
         const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
         
         const payload = {
             contents: [{ parts: [{ text: prompt }] }],
@@ -892,7 +892,7 @@ Special Instructions:
         const thumbDownBtn = document.createElement('button');
         thumbDownBtn.title = 'Bad response';
         thumbDownBtn.className = 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200';
-        thumbDownBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3h4.017c.163 0 .326.02.485.06L17 5.669v5.447c0 .828-.672 1.5-1.5 1.5h-2.5a2 2 0 01-2-2v-4.5m0 6.5v2a2 2 0 002 2h2.5a2 2 0 002-2v-6.5"></path></svg>`;
+        thumbDownBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3h4.017c.163 0 .326.02.485-.06L17 5.669v5.447c0 .828-.672 1.5-1.5 1.5h-2.5a2 2 0 01-2-2v-4.5m0 6.5v2a2 2 0 002 2h2.5a2 2 0 002-2v-6.5"></path></svg>`;
 
         const handleFeedback = (isGood) => {
             thumbUpBtn.disabled = true;
