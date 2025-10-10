@@ -1,8 +1,7 @@
 // Server route: returns ONE short nudge suggestion based on the user's last message.
 // Used by the sparkle/nudge UX. Keeps it actionable and under ~16 words.
 
-export const config = { runtime: 'nodejs20.x' };
-
+export const config = { runtime: 'nodejs' };
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const GEMINI_KEY = process.env.GEMINI_API_KEY;
