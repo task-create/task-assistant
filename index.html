@@ -395,8 +395,7 @@ form.addEventListener('submit', async (e) => {
 
 // ... inside the form.addEventListener('submit', ...) function
 
-    try {
-      // (This is the section where the bot thinks and gets a response)
+  try {
       const response = conversationState.mode
         ? await handleGuidedConversation(prompt)
         : await getSmartResponse(prompt);
@@ -422,8 +421,8 @@ form.addEventListener('submit', async (e) => {
         updateChatTitle(prompt);
       }
       setStatus('');
-      
-    } catch (err) { // <<< THIS 'catch' MUST COME RIGHT AFTER THE 'try'
+
+    } catch (err) {
       console.error(err);
       // safe remove if it’s still there
       try { chatBody.removeChild(typingIndicator); } catch {}
@@ -431,7 +430,7 @@ form.addEventListener('submit', async (e) => {
       bubbleBot('Sorry — I could not reach the service. Please try again.');
       resetConversationState();
     }
-}); // <<< This brace closes the entire addEventListener function
+});
 
 // --- SNIPPET END ---
 
