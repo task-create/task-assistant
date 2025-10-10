@@ -9,6 +9,8 @@
     "start": "vercel dev",
     "build": "echo 'Static front-end; serverless functions built by Vercel.'"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.5"
+  },
   "devDependencies": {}
 }
