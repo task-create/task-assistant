@@ -637,90 +637,65 @@ form.addEventListener('submit', async (e) => {
     }
     
     /* -------- Gemini API Call -------- */
-    async function getLiveJobs(prompt) {
-        const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
-        
-        const jobSearchSystemPrompt = `You are a specialized job search assistant for TASK (Trenton Area Soup Kitchen). Your goal is to find real, up-to-date job openings that match the user's query.
+   async function getLiveJobs(prompt) {
+    // This function now calls YOUR serverless function at /api/jobs
+    try {
+        const response = await fetch('/api/jobs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: prompt }) // Pass the prompt as 'query'
+        });
 
-        **Instructions:**
-        1.  **Use Google Search:** You MUST use the provided Google Search tool to find job listings.
-        2.  **Prioritize Direct Links:** Find links directly to the careers page of the hiring company. Avoid job boards like Indeed, LinkedIn, or ZipRecruiter.
-        3.  **Format the Output:** Present the findings as a clean, bulleted markdown list. Each item should include the **Job Title**, **Company**, and a **direct markdown link** to the application page. For example: "- **Warehouse Associate** at Amazon: [Apply Here](https://amazon.jobs/...)".
-        4.  **No Results:** If you cannot find any matching jobs, state that clearly and apologize, then provide a link to the main TASK job board. Do not invent jobs.
-        5.  **Stay Focused:** Only respond with job listings related to the user's query.`;
-
-        const payload = {
-            contents: [{ parts: [{ text: `Find ${prompt}` }] }], // Make the prompt more explicit for the model
-            systemInstruction: {
-                parts: [{ text: jobSearchSystemPrompt }]
-            },
-            tools: [{ "google_search": {} }]
-        };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
-            }
-
-            const result = await response.json();
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (text) {
-                return { text: text + `\n\nYou can also find more opportunities on the [TASK Job Board](${ENGAGE.jobOpenings}).` };
-            } else {
-                return { text: `I'm sorry, I couldn't find any specific results for "${prompt}" right now. You can check all available listings on the [TASK Job Board](${ENGAGE.jobOpenings}).` };
-            }
-        } catch (error) {
-            console.error("Gemini Live Job Search failed:", error);
-            throw error;
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
         }
-    }
 
-
-    async function getGenerativeResponse(prompt) {
-        const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+        const result = await response.json();
         
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: {
-                parts: [{ text: SYSTEM_PROMPT }]
-            },
-        };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
-            }
-
-            const result = await response.json();
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (text) {
-                return { text };
-            } else {
-                return { text: "I'm sorry, I couldn't generate a response. Please try rephrasing your question." };
-            }
-        } catch (error) {
-            console.error("Gemini API call failed:", error);
-            throw error; // Re-throw to be caught by handleSend
+        if (result.ok && result.text) {
+             // The server-side code already adds the fallback link if needed.
+            return { text: result.text };
+        } else {
+            throw new Error(result.error || "Failed to get job listings.");
         }
+    } catch (error) {
+        console.error("Job search failed:", error);
+        // Provide a user-friendly message
+        return { text: `Sorry, the job search is currently unavailable. Please try again later or visit the [TASK Job Board](${ENGAGE.jobOpenings}).` };
     }
+}
+
+
+   async function getGenerativeResponse(prompt) {
+    // This function now calls YOUR serverless function at /api/ai
+    try {
+        const response = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                prompt: prompt,
+                systemPrompt: SYSTEM_PROMPT 
+            })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+        }
+
+        const result = await response.json();
+
+        if (result.ok && result.text) {
+            return { text: result.text };
+        } else {
+             return { text: "I'm sorry, I couldn't generate a response. Please try rephrasing your question." };
+        }
+    } catch (error) {
+        console.error("Generative API call failed:", error);
+        throw error; // Re-throw to be caught by the submit handler
+    }
+}
 
     function addMessageToHistory(role, text) {
         if(!allChats[currentChatId]) return;
