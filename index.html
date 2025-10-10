@@ -293,14 +293,6 @@ Special Instructions:
     };
 
     /* -------- MOCK API and Data -------- */
-    const MOCK_JOBS_DB = {
-        "trenton": [ { title: "Registered Nurse", company: "Capital Health", location: "Trenton, NJ", url: "https://capitalhealth.wd1.myworkdayjobs.com/CapitalHealth" }, { title: "Claims Adjuster", company: "NJM Insurance Group", location: "Trenton, NJ", url: "https://jobs.njm.com/" }, { title: "Administrative Assistant", company: "City of Trenton", location: "Trenton, NJ", url: "https://www.trentonnj.org/291/Employment-Opportunities" } ],
-        "philadelphia": [ { title: "Software Engineer", company: "Comcast", location: "Philadelphia, PA", url: "https://jobs.comcast.com/" }, { title: "Research Scientist", company: "UPenn", location: "Philadelphia, PA", url: "https://careers.upenn.edu/" } ],
-        "08610": [ { title: "Warehouse Associate", company: "Amazon", location: "Trenton, NJ", url: "https://www.amazon.jobs/en/search?base_query=warehouse&loc_query=Trenton%2C+NJ%2C+USA" }],
-        "08605": [],
-        "08609": []
-    };
-
     const MOCK_RESOURCES_DB = {
         "trenton": {
             "food": [{ name: "Mercer Street Friends Food Bank", details: "824 Silvia St, Ewing Township, NJ", url: "https://mercerstreetfriends.org/" }],
@@ -311,13 +303,6 @@ Special Instructions:
              "housing": [{ name: "Rescue Mission of Trenton", details: "98 Carroll St, Trenton, NJ", url: "https://rescuemissionoftrenton.org/" }]
         }
     };
-
-    async function fetchJobs(location) {
-        setStatus(`Searching for jobs in ${location}...`);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        const key = location.toLowerCase();
-        return MOCK_JOBS_DB[key] || [];
-    }
 
     async function fetchResources(location, type) {
         setStatus(`Finding ${type} resources in ${location}...`);
@@ -502,10 +487,9 @@ Special Instructions:
             return handleStarPractice(prompt);
         }
         if (conversationState.mode === 'LOCATION_JOB_SEARCH') {
-            const jobs = await fetchJobs(prompt);
-            renderJobBoard(jobs, prompt);
+            const response = await getLiveJobs(prompt);
             resetConversationState();
-            return { text: jobs.length > 0 ? "Let me know if you'd like help preparing for any of these roles." : "Is there another location you'd like to search?" };
+            return response;
         }
         if (conversationState.mode === 'LOCATION_RESOURCE_SEARCH') {
             const resources = await fetchResources(prompt, conversationState.data.resourceType);
@@ -579,15 +563,6 @@ Special Instructions:
             }
         }
         if (hasWord(['job', 'jobs', 'opening', 'hiring', 'apply', 'find jobs'])) {
-             const trentonInQuery = hasWord(['trenton', '08609', '08610', '08605']);
-             if (trentonInQuery) {
-                 const jobs = await fetchJobs('trenton');
-                 const responseText = jobs.length > 0 
-                     ? "Here are some current job listings I found in Trenton:" 
-                     : "I couldn't find any specific job listings for Trenton right now, but I can still help you prepare!";
-                 setTimeout(() => renderJobBoard(jobs, 'Trenton'), 10);
-                 return { text: responseText, chips: [{type: 'prompt', text: 'Help me with interview questions'}]};
-             }
             return { action: 'askLocation_Jobs', text: "Absolutely. To find the most relevant job openings, what city or ZIP code are you looking in?" };
         }
         
@@ -596,6 +571,54 @@ Special Instructions:
     }
     
     /* -------- Gemini API Call -------- */
+    async function getLiveJobs(prompt) {
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        
+        const jobSearchSystemPrompt = `You are a specialized job search assistant for TASK (Trenton Area Soup Kitchen). Your goal is to find real, up-to-date job openings that match the user's query.
+
+        **Instructions:**
+        1.  **Use Google Search:** You MUST use the provided Google Search tool to find job listings.
+        2.  **Prioritize Direct Links:** Find links directly to the careers page of the hiring company. Avoid job boards like Indeed, LinkedIn, or ZipRecruiter.
+        3.  **Format the Output:** Present the findings as a clean, bulleted markdown list. Each item should include the **Job Title**, **Company**, and a **direct markdown link** to the application page. For example: "- **Warehouse Associate** at Amazon: [Apply Here](https://amazon.jobs/...)".
+        4.  **No Results:** If you cannot find any matching jobs, state that clearly and apologize, then provide a link to the main TASK job board. Do not invent jobs.
+        5.  **Stay Focused:** Only respond with job listings related to the user's query.`;
+
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: {
+                parts: [{ text: jobSearchSystemPrompt }]
+            },
+            tools: [{ "google_search": {} }]
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+            }
+
+            const result = await response.json();
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (text) {
+                return { text };
+            } else {
+                return { text: `I'm sorry, I couldn't find any specific results for "${prompt}" right now. You can check all available listings on the [TASK Job Board](${ENGAGE.jobOpenings}).` };
+            }
+        } catch (error) {
+            console.error("Gemini Live Job Search failed:", error);
+            throw error;
+        }
+    }
+
+
     async function getGenerativeResponse(prompt) {
         const apiKey = ""; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
