@@ -2,8 +2,13 @@
   "name": "task-assistant",
   "private": true,
   "version": "1.0.0",
+  "description": "TASK Assistant – Vercel serverless API for Gemini-backed chat and jobs.",
+  "license": "UNLICENSED",
+  "engines": { "node": ">=20" },
   "scripts": {
-    "start": "serve ."
+    "start": "vercel dev",
+    "build": "echo 'Static front-end; serverless functions built by Vercel.'"
   },
+  "dependencies": {},
   "devDependencies": {}
 }
