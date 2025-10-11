@@ -135,7 +135,7 @@
       </div>
     </main>
 
-    <!-- Mobile slide-over menu -->
+    <!-- Mobile slide-over menu (optional) -->
     <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
       <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
         <div class="flex items-center justify-between">
@@ -146,17 +146,10 @@
           <span>New Chat</span>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
         </button>
-
-        <div class="px-2 mt-6">
-          <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
-          <div id="quickActionsContainerMobile" class="mt-2 space-y-1"></div>
-        </div>
-
         <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
           <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
           <div id="historyContainerMobile" class="mt-2 space-y-1"></div>
         </div>
-
         <div class="p-2 border-t border-gray-200 dark:border-gray-700">
           <button id="themeToggleMobile" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
             <svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -168,11 +161,12 @@
   </div>
 
 <script type="module">
-/* ----- Supabase: import & silent smoke test ----- */
+/* ---------------- Supabase smoke test ---------------- */
 import { getSupabase } from './supabase.js';
 (async () => {
   try {
     const sb = await getSupabase();
+    // Query a tiny, safe table to validate connectivity (ignore errors silently)
     const { error } = await sb.from('knowledge_base').select('id').limit(1);
     if (error) console.warn('Supabase check:', error.message);
   } catch (e) {
@@ -180,7 +174,7 @@ import { getSupabase } from './supabase.js';
   }
 })();
 
-/* External links only in sidebar */
+/* ---------------- External links (sidebar only) ---------------- */
 const ENGAGE = {
   appointment:"https://bycell.co/ddncs",
   jobOpenings:"https://bycell.co/ddmtq",
@@ -188,28 +182,28 @@ const ENGAGE = {
   communityResources:"https://bycell.co/ddmua"
 };
 
-/* API base (same-host when deployed on Vercel with the same domain) */
+/* ---------------- API base ---------------- */
 const DEPLOY_BASE='https://task-assistant-xi.vercel.app';
 const ON_SAME_SITE = typeof location!=='undefined'&&(location.hostname==='localhost'||location.hostname.endsWith('task-assistant-xi.vercel.app'));
 const API_BASE = ON_SAME_SITE ? '' : DEPLOY_BASE;
 const api = (p)=>`${API_BASE}${p}`;
 
-/* Theme */
+/* ---------------- Theme ---------------- */
 const sunIcon=`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 0 0 1 8 0z"></path></svg>`;
 const moonIcon=`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
 function applyTheme(theme){
   document.documentElement.classList.toggle('dark',theme==='dark');
   localStorage.setItem('theme',theme);
   const isDark = theme==='dark';
-  const is = document.getElementById('themeIconSplash'); if(is) is.innerHTML=isDark?sunIcon:moonIcon;
+  const is = document.getElementById('themeIconSplash'); if (is) is.innerHTML = isDark ? sunIcon : moonIcon;
   const ia = document.getElementById('themeIconApp'); const ta=document.getElementById('themeTextApp');
-  if(ia&&ta){ ia.innerHTML=isDark?sunIcon:moonIcon; ta.textContent=isDark?'Light Mode':'Dark Mode'; }
+  if (ia&&ta){ ia.innerHTML = isDark ? sunIcon : moonIcon; ta.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
   const im = document.getElementById('themeIconMobile'); const tm=document.getElementById('themeTextMobile');
-  if(im&&tm){ im.innerHTML=isDark?sunIcon:moonIcon; tm.textContent=isDark?'Light Mode':'Dark Mode'; }
+  if (im&&tm){ im.innerHTML = isDark ? sunIcon : moonIcon; tm.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
 }
-function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark'); }
+function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark' ? 'light' : 'dark'); }
 
-/* Language */
+/* ---------------- Language ---------------- */
 function setLanguage(lang){
   const code=(lang||'en').slice(0,2).toLowerCase();
   const normalized=['en','es','ht'].includes(code)?code:'en';
@@ -223,17 +217,17 @@ function setLanguage(lang){
   document.getElementById('splashTitle').textContent=strings.title;
   document.getElementById('splashSubtitle').textContent=strings.subtitle;
   document.getElementById('start').textContent=strings.start;
-  const sel=document.getElementById('languageSelector'); if(sel && sel.value!==normalized) sel.value=normalized;
+  const sel=document.getElementById('languageSelector'); if (sel && sel.value!==normalized) sel.value=normalized;
 }
 
-/* Minimal chat state */
+/* ---------------- Minimal chat state ---------------- */
 let currentChatId=null, allChats={};
 function saveChats(){ localStorage.setItem('allChats',JSON.stringify(allChats)); }
 function loadChats(){ const s=localStorage.getItem('allChats'); if(s) allChats=JSON.parse(s); renderHistory(); }
 function startNewChat(){ currentChatId=`chat_${Date.now()}`; allChats[currentChatId]={id:currentChatId,title:'New Chat',history:[]}; saveChats(); renderHistory(); renderChat(); }
 function addMessageToHistory(role,text){ if(!currentChatId||!allChats[currentChatId]) return; allChats[currentChatId].history.push({role,text}); saveChats(); }
 
-/* UI painters */
+/* ---------------- UI renderers ---------------- */
 function renderHistory(){
   const c=document.getElementById('historyContainer'); if(!c) return; c.innerHTML='';
   Object.values(allChats).sort((a,b)=>(b.id||'').localeCompare(a.id||'')).forEach(chat=>{
@@ -279,7 +273,7 @@ function renderQuickActions(){
   });
 }
 
-/* API → /api/ai (your server code should read Supabase first) */
+/* ---------------- AI call (your server reads Supabase first) ---------------- */
 async function fetchAI(prompt){
   const r=await fetch(api('/api/ai'),{
     method:'POST',
@@ -290,7 +284,7 @@ async function fetchAI(prompt){
   const j=await r.json(); return j?.reply||'Sorry, no answer.';
 }
 
-/* Boot */
+/* ---------------- Boot ---------------- */
 document.addEventListener('DOMContentLoaded',()=>{
   // Theme & language
   const savedTheme=localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); applyTheme(savedTheme);
@@ -303,7 +297,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('start')?.addEventListener('click',()=>{
     document.getElementById('splash')?.classList.add('hidden');
     document.getElementById('app')?.classList.remove('hidden');
-    renderQuickActions(); loadChats(); if(!Object.keys(allChats).length) startNewChat(); else renderChat();
+    renderQuickActions();
+    loadChats();
+    if (!Object.keys(allChats).length) startNewChat(); else renderChat();
   });
 
   // New Chat
