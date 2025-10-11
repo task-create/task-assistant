@@ -27,7 +27,7 @@
 </head>
 <body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 font-sans antialiased">
 
-  <!-- Splash (no links; working buttons only) -->
+  <!-- Splash (buttons only; no external links) -->
   <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
     <div class="w-full max-w-md p-8 text-center bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1f2937] relative">
       <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]" title="Toggle theme">
@@ -59,11 +59,14 @@
     </div>
   </div>
 
-  <!-- App Shell -->
-  <div id="app" class="hidden h-screen w-screen lg:grid lg:grid-cols-[280px_1fr] transition-all duration-300">
-    <!-- Sidebar -->
-    <aside class="flex-col hidden h-full p-3 bg-white lg:flex dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] w-[280px]">
-      <div class="flex items-center gap-3 p-2">
+  <!-- App Shell (no grid; we use fixed sidebar like ChatGPT) -->
+  <div id="app" class="hidden h-screen w-screen">
+
+    <!-- FIXED LEFT SIDEBAR -->
+    <aside
+      class="fixed left-0 top-0 z-40 hidden h-screen w-[280px] flex-col overflow-y-auto custom-scrollbar
+             bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] lg:flex">
+      <div class="flex items-center gap-3 p-3">
         <div class="relative w-10 h-10">
           <div class="absolute inset-[-8px] rounded-full sparkle"></div>
           <div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">S</div>
@@ -71,19 +74,21 @@
         <span class="text-xl font-semibold">Solace</span>
       </div>
 
-      <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+      <button id="newChat"
+        class="flex items-center justify-between w-full p-3 mt-2 text-left bg-gray-100 rounded-lg
+               dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
         <span>New Chat</span>
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
       </button>
 
-      <div class="px-2 mt-6">
+      <div class="px-2 mt-4">
         <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
         <div id="quickActionsContainer" class="mt-2 space-y-1"></div>
       </div>
 
       <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-        <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
-        <div id="historyContainer" class="mt-2 space-y-1"></div>
+        <h3 class="px-4 text-sm font-semibold text-gray-500">Recent</h3>
+        <div id="historyContainer" class="mt-2 space-y-1 px-2"></div>
       </div>
 
       <div class="p-2 border-t border-gray-200 dark:border-gray-700">
@@ -94,70 +99,63 @@
       </div>
     </aside>
 
-    <!-- Main -->
-    <main class="relative flex flex-col h-full bg-gray-100 dark:bg-[#0b1220]">
-      <!-- Sticky toggle so it follows as chat grows -->
-      <button id="toggleSidebarBtn" class="sticky top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand translate-x-[-12px]">
-        <svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-      </button>
-
-      <div class="flex flex-col flex-1 w-full max-width mx-auto" style="max-width: 64rem;">
-        <!-- Mobile header -->
-        <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
-          <div class="flex items-center gap-3">
-            <div class="relative w-8 h-8">
-              <div class="absolute inset-[-6px] rounded-full sparkle"></div>
-              <div class="relative z-10 flex items-center justify-center w-8 h-8 text-lg font-bold text-black bg-brand rounded-md">S</div>
-            </div>
-            <span class="text-lg font-semibold">Solace</span>
+    <!-- MAIN (shifted right of fixed sidebar) -->
+    <main class="relative flex flex-col h-screen lg:ml-[280px] bg-gray-100 dark:bg-[#0b1220]">
+      <!-- Mobile header -->
+      <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
+        <div class="flex items-center gap-3">
+          <div class="relative w-8 h-8">
+            <div class="absolute inset-[-6px] rounded-full sparkle"></div>
+            <div class="relative z-10 flex items-center justify-center w-8 h-8 text-lg font-bold text-black bg-brand rounded-md">S</div>
           </div>
-          <button id="menuBtn" class="p-2 rounded-md lg:hidden" title="Menu">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-          </button>
-        </header>
+          <span class="text-lg font-semibold">Solace</span>
+        </div>
+        <button id="menuBtn" class="p-2 rounded-md lg:hidden" title="Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+      </header>
 
-        <!-- Chat scroll region -->
-        <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
-          <div id="chatBody" class="w-full">
-            <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
-              <div class="relative w-20 h-20 mx-auto mb-4">
-                <div class="absolute inset-[-12px] rounded-full sparkle"></div>
-                <div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div>
-              </div>
-              <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>
+      <!-- Chat scroll region -->
+      <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
+        <div id="chatBody" class="w-full max-w-3xl mx-auto">
+          <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
+            <div class="relative w-20 h-20 mx-auto mb-4">
+              <div class="absolute inset-[-12px] rounded-full sparkle"></div>
+              <div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div>
             </div>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>
           </div>
         </div>
+      </div>
 
-        <!-- Composer (sticky) -->
-        <div class="composer-shell px-4 pb-4 md:px-6 md:pb-6">
-          <div id="suggestions" class="flex flex-wrap gap-2 mb-3"></div>
-          <form id="composer" class="relative" autocomplete="off">
-            <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
-            <div class="absolute bottom-2.5 right-3 flex items-center gap-2">
-              <button id="mic" type="button" class="p-2 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Dictate">
-                <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-              </button>
-              <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-              </button>
-            </div>
-          </form>
-          <div id="status" class="mt-2 text-sm text-center text-gray-500"></div>
+      <!-- Composer (sticky) -->
+      <div class="composer-shell px-4 pb-4 md:px-6 md:pb-6">
+        <div id="suggestions" class="flex flex-wrap gap-2 mb-3"></div>
+        <form id="composer" class="relative" autocomplete="off">
+          <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
+          <div class="absolute bottom-2.5 right-3 flex items-center gap-2">
+            <button id="mic" type="button" class="p-2 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Dictate">
+              <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+            </button>
+            <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+              <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+            </button>
+          </div>
+        </form>
+        <div id="status" class="mt-2 text-sm text-center text-gray-500"></div>
 
-          <div class="mt-3 text-xs text-center text-gray-500 dark:text-gray-400 space-y-1.5">
-            <p><span class="font-semibold">Disclaimer:</span> This AI assistant can make mistakes. Please verify important information.</p>
-            <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
-              <p><span class="font-semibold">Crisis?</span> Call/Text <a href="tel:988" class="underline hover:text-brand">988</a></p>
-              <p><span class="font-semibold">Emergencies:</span> <a href="tel:911" class="underline hover:text-brand">911</a></p>
-              <p><span class="font-semibold">Appointments:</span> <a href="tel:+16093371624" class="underline hover:text-brand">609-337-1624</a></p>
-            </div>
+        <div class="mt-3 text-xs text-center text-gray-500 dark:text-gray-400 space-y-1.5">
+          <p><span class="font-semibold">Disclaimer:</span> This AI assistant can make mistakes. Please verify important information.</p>
+          <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
+            <p><span class="font-semibold">Crisis?</span> Call/Text <a href="tel:988" class="underline hover:text-brand">988</a></p>
+            <p><span class="font-semibold">Emergencies:</span> <a href="tel:911" class="underline hover:text-brand">911</a></p>
+            <p><span class="font-semibold">Appointments:</span> <a href="tel:+16093371624" class="underline hover:text-brand">609-337-1624</a></p>
           </div>
         </div>
       </div>
     </main>
 
-    <!-- Mobile menu -->
+    <!-- Mobile slide-over menu (unchanged behavior) -->
     <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
       <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
         <div class="flex items-center justify-between">
@@ -207,7 +205,6 @@ import { getSupabase } from './supabase.js';
 (async () => {
   try {
     const sb = await getSupabase();
-    // Silent smoke test; remove if undesired
     const { error } = await sb.from('knowledge_base').select('id').limit(1);
     if (error) console.warn('Supabase client check:', error.message);
   } catch (e) {
@@ -231,11 +228,11 @@ const ENGAGE = {
   trainings: "https://bycell.co/ddmtn"
 };
 
-const SYSTEM_PROMPT = `You are Solace, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on employment topics (resume, interviews, job search, career development). Be encouraging and break complex topics into simple steps. Use markdown (bold, bullets) for readability. If the user asks for official actions (apply, appointments, forms), guide them to the Engage by Cell portal. When users mention crisis or self-harm, share 988 immediately. When users are frustrated, apologize empathetically and offer options. Do NOT invent URLs or contacts.
+const SYSTEM_PROMPT = `You are Solace, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on employment topics (resume, interviews, job search, career development). Be encouraging and break complex topics into simple steps. Use markdown for readability. If the user asks for official actions (apply, appointments, forms), guide them to the Engage by Cell portal. When users mention crisis or self-harm, share 988 immediately. When users are frustrated, apologize empathetically and offer options. Do NOT invent URLs or contacts.
 
 When asked about trainings, jobs, resources, or events, first try to read them from the server context (API endpoints). If there’s an error, clearly say so and provide the Engage by Cell link as fallback.`;
 
-/* If you deploy this on a different host than your API, update DEPLOY_BASE. */
+/* If your static page and APIs are on the same host, API_BASE = '' */
 const DEPLOY_BASE = 'https://task-assistant-xi.vercel.app';
 const ON_SAME_SITE = typeof location !== 'undefined' &&
   (location.hostname === 'localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
@@ -250,24 +247,24 @@ function applyTheme(theme) {
   document.documentElement.classList.toggle('dark', theme === 'dark');
   localStorage.setItem('theme', theme);
   const isDark = theme === 'dark';
-  const themeIconSplash = document.getElementById('themeIconSplash');
-  if (themeIconSplash) themeIconSplash.innerHTML = isDark ? sunIcon : moonIcon;
-  const themeIconApp = document.getElementById('themeIconApp');
-  const themeTextApp = document.getElementById('themeTextApp');
-  if (themeIconApp && themeTextApp) {
-    themeIconApp.innerHTML = isDark ? sunIcon : moonIcon;
-    themeTextApp.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  const iconSplash = document.getElementById('themeIconSplash');
+  if (iconSplash) iconSplash.innerHTML = isDark ? sunIcon : moonIcon;
+  const iconApp = document.getElementById('themeIconApp');
+  const textApp = document.getElementById('themeTextApp');
+  if (iconApp && textApp) {
+    iconApp.innerHTML = isDark ? sunIcon : moonIcon;
+    textApp.textContent = isDark ? 'Light Mode' : 'Dark Mode';
   }
-  const themeIconMobile = document.getElementById('themeIconMobile');
-  const themeTextMobile = document.getElementById('themeTextMobile');
-  if (themeIconMobile && themeTextMobile) {
-    themeIconMobile.innerHTML = isDark ? sunIcon : moonIcon;
-    themeTextMobile.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  const iconMobile = document.getElementById('themeIconMobile');
+  const textMobile = document.getElementById('themeTextMobile');
+  if (iconMobile && textMobile) {
+    iconMobile.innerHTML = isDark ? sunIcon : moonIcon;
+    textMobile.textContent = isDark ? 'Light Mode' : 'Dark Mode';
   }
 }
 function toggleTheme() {
-  const currentTheme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
-  applyTheme(currentTheme);
+  const current = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(current);
 }
 
 /* ---------------- Language ---------------- */
@@ -275,11 +272,9 @@ function setLanguage(lang) {
   const normalized = (lang || 'en').slice(0,2) === 'es' ? 'es' : 'en';
   localStorage.setItem('lang', normalized);
   document.documentElement.setAttribute('lang', normalized);
-
   const splashTitle = document.getElementById('splashTitle');
   const splashSubtitle = document.getElementById('splashSubtitle');
   const startButton = document.getElementById('start');
-
   if (normalized === 'es') {
     if (splashTitle) splashTitle.textContent = 'Solace';
     if (splashSubtitle) splashSubtitle.textContent = 'Su guía de recursos profesionales y comunitarios.';
@@ -289,7 +284,6 @@ function setLanguage(lang) {
     if (splashSubtitle) splashSubtitle.textContent = 'Your guide to career and community resources.';
     if (startButton) startButton.textContent = 'Start';
   }
-
   const selector = document.getElementById('languageSelector');
   if (selector && selector.value !== normalized) selector.value = normalized;
 }
@@ -303,38 +297,16 @@ let recognition = null, listening = false;
 /* ---------------- Helpers ---------------- */
 function autosize() { const i=document.getElementById('input'); if(i){i.style.height='auto'; i.style.height=i.scrollHeight+'px';} }
 function updateSendState() { const i=document.getElementById('input'), s=document.getElementById('send'); if(i&&s){const h=i.value.trim().length>0; s.disabled=!h; s.setAttribute('aria-disabled', String(!h));} }
-function setSidebarState(isCollapsed) {
-  const asideEl = document.querySelector('aside');
-  const toggleSidebarIcon = document.getElementById('toggleSidebarIcon');
-  const app = document.getElementById('app');
-  if (app) app.classList.toggle('sidebar-collapsed', isCollapsed);
-  if (asideEl) {
-    asideEl.classList.toggle('w-[280px]', !isCollapsed);
-    asideEl.classList.toggle('w-0', isCollapsed);
-    asideEl.classList.toggle('p-3', !isCollapsed);
-    asideEl.classList.toggle('p-0', isCollapsed);
-  }
-  if (toggleSidebarIcon) {
-    toggleSidebarIcon.innerHTML = isCollapsed
-      ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`
-      : `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
-  }
-  localStorage.setItem('sidebarCollapsed', String(isCollapsed));
-}
 function saveChats() { localStorage.setItem('allChats', JSON.stringify(allChats)); }
 function loadChats() { const saved = localStorage.getItem('allChats'); if(saved) allChats = JSON.parse(saved); renderHistory(); }
 function loadChat(chatId) { currentChatId = chatId; resetConversationState(); renderChat(); renderHistory(); scrollToBottom(true); }
 function startNewChat() {
-  const existingEmptyChat = Object.values(allChats).find(chat => chat.title === "New Chat" && chat.history.length === 0);
-  if (existingEmptyChat) { loadChat(existingEmptyChat.id); document.getElementById('mobileMenu')?.classList.add('hidden'); return; }
+  const existingEmpty = Object.values(allChats).find(c => c.title === "New Chat" && c.history.length === 0);
+  if (existingEmpty) { loadChat(existingEmpty.id); document.getElementById('mobileMenu')?.classList.add('hidden'); return; }
   currentChatId = `chat_${Date.now()}`;
   allChats[currentChatId] = { id: currentChatId, title: "New Chat", history: [] };
-  resetConversationState();
-  renderChat();
-  renderHistory();
-  saveChats();
-  const input = document.getElementById('input'); if (input) input.value = '';
-  updateSendState();
+  resetConversationState(); renderChat(); renderHistory(); saveChats();
+  const input = document.getElementById('input'); if (input) input.value = ''; updateSendState();
   showChips([
     {type: 'prompt', text: 'Help me with my resume'},
     {type: 'prompt', text: 'How do I prepare for an interview?'},
@@ -343,442 +315,289 @@ function startNewChat() {
 }
 function resetConversationState() { conversationState = { mode: null, step: 0, data: {} }; }
 function addMessageToHistory(role, text) { if(!currentChatId || !allChats[currentChatId]) return; allChats[currentChatId].history.push({ role, text }); saveChats(); }
-function updateChatTitle(prompt) { if (allChats[currentChatId] && allChats[currentChatId].title === "New Chat") { const newTitle = prompt.split(' ').slice(0, 4).join(' '); allChats[currentChatId].title = newTitle; saveChats(); renderHistory(); } }
+function updateChatTitle(prompt) { if (allChats[currentChatId] && allChats[currentChatId].title === "New Chat") { const t = prompt.split(' ').slice(0, 4).join(' '); allChats[currentChatId].title = t; saveChats(); renderHistory(); } }
 function renameChat(chatId, newTitle) { if(allChats[chatId]) { allChats[chatId].title = newTitle; saveChats(); renderHistory(); } }
-function deleteChat(chatId) { delete allChats[chatId]; saveChats(); if (currentChatId === chatId) { currentChatId = null; const sortedChats = Object.values(allChats).sort((a, b) => (b.id||'').localeCompare(a.id||'')); if (sortedChats.length > 0) { loadChat(sortedChats[0].id); } else { startNewChat(); } } else { renderHistory(); } }
-function setStatus(msg, isError=false) { const el = document.getElementById('status'); if(el) { el.textContent = msg; el.className = `mt-2 text-sm text-center ${isError ? 'text-red-500' : 'text-gray-500'}`; } }
-function scrollToBottom(instant = false) { const chat = document.getElementById('chat'); if(chat) chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' }); }
+function deleteChat(chatId) { delete allChats[chatId]; saveChats(); const keys = Object.keys(allChats); if (currentChatId === chatId) { currentChatId = null; if (keys.length) loadChat(keys.sort((a,b)=>b.split('_')[1]-a.split('_')[1])[0]); else startNewChat(); } else renderHistory(); }
+function setStatus(msg, isError=false) { const el = document.getElementById('status'); if(el){ el.textContent = msg; el.className = `mt-2 text-sm text-center ${isError?'text-red-500':'text-gray-500'}`; } }
+function scrollToBottom(instant=false) { const chat = document.getElementById('chat'); if(chat) chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' }); }
 async function safeGetJSON(url) {
-  try {
-    const r = await fetch(url);
-    if (!r.ok) return { ok: false, error: `HTTP ${r.status}` };
-    const j = await r.json();
-    return { ok: true, ...j };
-  } catch (e) { return { ok: false, error: e?.message || 'network' }; }
+  try { const r = await fetch(url); if(!r.ok) return { ok:false, error:`HTTP ${r.status}` }; const j = await r.json(); return { ok:true, ...j }; }
+  catch(e){ return { ok:false, error:e?.message||'network' }; }
 }
 function renderSmart(text) {
-  const esc = (s) => s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+  const esc = (s)=>s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
   let html = esc(text);
   html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, `<a class="underline" href="$2" target="_blank" rel="noopener noreferrer">$1</a>`);
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
+  html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  html = html.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('');
   return html;
 }
-function bubbleMe(text, doScroll = true) {
-  const chatBody = document.getElementById('chatBody'); if (!chatBody) return;
+function bubbleMe(text, doScroll=true) {
+  const body = document.getElementById('chatBody'); if(!body) return;
   document.getElementById('welcomeScreen')?.remove();
-  const wrap = document.createElement('div');
-  wrap.className = 'mb-3 flex justify-end';
-  wrap.innerHTML = `<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${renderSmart(text)}</div>`;
-  chatBody.appendChild(wrap);
-  if (doScroll) scrollToBottom();
+  const wrap=document.createElement('div'); wrap.className='mb-3 flex justify-end';
+  wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${renderSmart(text)}</div>`;
+  body.appendChild(wrap); if(doScroll) scrollToBottom();
 }
-function bubbleBot(text, doScroll = true) {
-  const chatBody = document.getElementById('chatBody'); if (!chatBody) return;
+function bubbleBot(text, doScroll=true) {
+  const body = document.getElementById('chatBody'); if(!body) return;
   document.getElementById('welcomeScreen')?.remove();
-  const wrap = document.createElement('div');
-  wrap.className = 'group mb-3 flex justify-start';
-  wrap.innerHTML = `<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow prose dark:prose-invert prose-p:my-2 first:prose-p:mt-0 last:prose-p:mb-0">${renderSmart(text)}</div>`;
-  chatBody.appendChild(wrap);
-  if (doScroll) scrollToBottom();
+  const wrap=document.createElement('div'); wrap.className='group mb-3 flex justify-start';
+  wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow prose dark:prose-invert prose-p:my-2">${renderSmart(text)}</div>`;
+  body.appendChild(wrap); if(doScroll) scrollToBottom();
 }
-function createTypingIndicator() {
+function createTypingIndicator(){
   const i=document.createElement('div'); i.className='flex items-center gap-2 ml-11';
   i.innerHTML=`<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`;
   return i;
 }
-function showChips(chips = []) {
-  const s = document.getElementById('suggestions');
-  if (!s) return; s.innerHTML = '';
-  chips.forEach(c => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50';
-    btn.textContent = c.text;
-    btn.addEventListener('click', () => { const input = document.getElementById('input'); if (input) input.value = c.text; updateSendState(); input?.focus(); });
-    s.appendChild(btn);
+function showChips(chips=[]){
+  const s=document.getElementById('suggestions'); if(!s) return; s.innerHTML='';
+  chips.forEach(c=>{
+    const b=document.createElement('button'); b.type='button';
+    b.className='px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50';
+    b.textContent=c.text; b.addEventListener('click',()=>{ const i=document.getElementById('input'); if(i) i.value=c.text; updateSendState(); i?.focus(); });
+    s.appendChild(b);
   });
 }
-function initSTT() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return null;
-  const r = new SR();
-  r.lang = (localStorage.getItem('lang') || 'en') === 'es' ? 'es-ES' : 'en-US';
-  r.interimResults = true; r.continuous = false;
-  r.onstart = () => { document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle></svg>`; };
-  r.onend = () => { document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
-  r.onresult = (e) => {
-    let txt = ''; for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
-    const inputEl = document.getElementById('input'); if (inputEl) inputEl.value = txt;
-    updateSendState(); autosize();
-  };
+function initSTT(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
+  const r=new SR(); r.lang=(localStorage.getItem('lang')||'en')==='es'?'es-ES':'en-US'; r.interimResults=true; r.continuous=false;
+  r.onstart=()=>{ listening=true; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle></svg>`; };
+  r.onend=()=>{ listening=false; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
+  r.onresult=(e)=>{ let txt=''; for(let i=e.resultIndex;i<e.results.length;i++) txt+=e.results[i][0].transcript; const el=document.getElementById('input'); if(el) el.value=txt; updateSendState(); autosize(); };
   return r;
 }
 
 /* ---------------- Guided Flows ---------------- */
-async function handleGuidedConversation(prompt) {
-  if (conversationState.mode === 'TRIP_PLANNER') return handleTripPlanner(prompt);
-  resetConversationState();
-  return getGenerativeResponse(prompt);
-}
-function buildNJTransitURL(originText, destText) {
-  const origin = encodeURIComponent(originText || '');
-  const dest = encodeURIComponent(destText || '');
-  return `https://www.njtransit.com/trip-planner-to?origin=DEFAULT_ORIGIN&destination=DEFAULT_DESTINATION&origin_text=${origin}&destination_text=${dest}`;
-}
-async function handleTripPlanner(prompt) {
-  const step = conversationState.step;
-  if (step === 1) {
-    conversationState.data.origin = prompt;
-    conversationState.step = 2;
-    return { text: "Great—what’s the destination (address or landmark)?" };
-  }
-  if (step === 2) {
-    conversationState.data.destination = prompt;
-    const url = buildNJTransitURL(conversationState.data.origin, conversationState.data.destination);
-    const gmaps = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(conversationState.data.origin)}&destination=${encodeURIComponent(conversationState.data.destination)}&travelmode=transit`;
-    resetConversationState();
-    return { text: `Here are your transit directions:\n\n- [Open in NJ Transit](${url})\n- [Open in Google Maps (Transit)](${gmaps})` };
-  }
+async function handleGuidedConversation(prompt){ if(conversationState.mode==='TRIP_PLANNER') return handleTripPlanner(prompt); resetConversationState(); return getGenerativeResponse(prompt); }
+function buildNJTransitURL(o,d){ return `https://www.njtransit.com/trip-planner-to?origin=DEFAULT_ORIGIN&destination=DEFAULT_DESTINATION&origin_text=${encodeURIComponent(o||'')}&destination_text=${encodeURIComponent(d||'')}`; }
+async function handleTripPlanner(prompt){
+  const step=conversationState.step;
+  if(step===1){ conversationState.data.origin=prompt; conversationState.step=2; return { text:"Great—what’s the destination (address or landmark)?" }; }
+  if(step===2){ conversationState.data.destination=prompt; const url=buildNJTransitURL(conversationState.data.origin, conversationState.data.destination);
+    const g=`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(conversationState.data.origin)}&destination=${encodeURIComponent(conversationState.data.destination)}&travelmode=transit`;
+    resetConversationState(); return { text:`Here are your transit directions:\n\n- [Open in NJ Transit](${url})\n- [Open in Google Maps (Transit)](${g})` }; }
 }
 
 /* ---------------- Router ---------------- */
-async function getSmartResponse(prompt) {
-  const p = prompt.toLowerCase();
-  const hasWord = (words) => words.some(word => new RegExp(`\\b${word}\\b`, 'i').test(p));
+async function getSmartResponse(prompt){
+  const p=prompt.toLowerCase();
+  const has=(words)=>words.some(w=>new RegExp(`\\b${w}\\b`,'i').test(p));
+  if(conversationState.mode) return handleGuidedConversation(prompt);
 
-  if (conversationState.mode) return handleGuidedConversation(prompt);
-
-  const selfHarmKeywords = ['kill myself','hurt myself','suicide','end my life'];
-  if (hasWord(selfHarmKeywords)) {
-    return { text: "**If you’re in immediate danger, call 911.** You can also text/call **988** to reach the Suicide & Crisis Lifeline. You’re not alone, and support is available 24/7." };
+  if(has(['kill myself','hurt myself','suicide','end my life'])) {
+    return { text:"**If you’re in immediate danger, call 911.** You can also text/call **988** to reach the Suicide & Crisis Lifeline. You’re not alone, and support is available 24/7." };
   }
-  const frustrationKeywords = ['hate this','awful','not helpful','useless','stupid','doesn\'t work','frustrated','angry'];
-  if (hasWord(frustrationKeywords)) {
-    return { text: "I’m really sorry for the frustration. I want to fix this quickly—tell me what you were trying to do, and I’ll get you there step-by-step. You can also reach us directly at **(609) 337-1624**." };
+  if(has(['hate this','awful','not helpful','useless','stupid','doesn\'t work','frustrated','angry'])) {
+    return { text:"I’m really sorry for the frustration. I want to fix this quickly—tell me what you were trying to do, and I’ll get you there step-by-step. You can also reach us directly at **(609) 337-1624**." };
   }
 
-  // Trip planner
-  if (hasWord(['trip','directions','bus route','transit','get to'])) {
-    conversationState.mode = 'TRIP_PLANNER';
-    conversationState.step = 1;
-    return { text: "I can help with that. What’s your starting point (address or landmark)?" };
+  if(has(['trip','directions','bus route','transit','get to'])) {
+    conversationState.mode='TRIP_PLANNER'; conversationState.step=1;
+    return { text:"I can help with that. What’s your starting point (address or landmark)?" };
   }
 
-  // Trainings
-  if (hasWord(['training','trainings','class','classes','culinary','sora','forklift','certification'])) {
+  if(has(['training','trainings','class','classes','culinary','sora','forklift','certification'])) {
     setStatus('Checking our program schedule...');
-    const result = await safeGetJSON(api('/api/trainings'));
-    let context = "There are currently no training programs scheduled.";
-    if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
-      context = "Here are current training programs:\n\n" + result.data.map(t => (
-        `• **${t.name || t.title || 'Training'}** — ${t.description || 'Details coming soon.'}\n   Schedule: ${t.schedule || 'TBA'}\n   Next Start: ${t.next_start_date ? new Date(t.next_start_date).toLocaleDateString() : (t.start_date ? new Date(t.start_date).toLocaleDateString() : 'TBA')}\n   Apply Window: ${t.app_window_start ? new Date(t.app_window_start).toLocaleDateString() : 'TBA'} → ${t.app_window_end ? new Date(t.app_window_end).toLocaleDateString() : 'TBA'}\n   Requirements: ${t.requirements || 'None listed'}`
+    const r=await safeGetJSON(api('/api/trainings'));
+    let context="There are currently no training programs scheduled.";
+    if(r.ok && Array.isArray(r.data) && r.data.length>0){
+      context="Here are current training programs:\n\n"+r.data.map(t=>(
+        `• **${t.name||t.title||'Training'}** — ${t.description||'Details coming soon.'}\n   Schedule: ${t.schedule||'TBA'}\n   Next Start: ${t.next_start_date?new Date(t.next_start_date).toLocaleDateString():(t.start_date?new Date(t.start_date).toLocaleDateString():'TBA')}\n   Apply Window: ${t.app_window_start?new Date(t.app_window_start).toLocaleDateString():'TBA'} → ${t.app_window_end?new Date(t.app_window_end).toLocaleDateString():'TBA'}\n   Requirements: ${t.requirements||'None listed'}`
       )).join('\n\n');
-    } else if (!result.ok) {
-      context = `Couldn’t load the live schedule (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.trainings}).`;
-    }
-    const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question: "${prompt}"`;
+    } else if (!r.ok) { context=`Couldn’t load the live schedule (reason: ${r.error}). Please check the Engage portal.`; }
+    const finalPrompt=`CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question: "${prompt}"`;
     return getGenerativeResponse(finalPrompt);
   }
 
-  // Jobs
-  if (hasWord(['job','jobs','opening','hiring','apply'])) {
+  if(has(['job','jobs','opening','hiring','apply'])) {
     setStatus('Checking featured jobs...');
-    const result = await safeGetJSON(api('/api/jobs'));
-    let context = "There are currently no featured jobs from our partners.";
-    if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
-      context = "Here are featured jobs:\n\n" + result.data.map(job => (
-        `• **${job.title || 'Job'}**${job.company ? ` at ${job.company}` : ''}\n   ${job.apply_link ? `[Apply Here](${job.apply_link})` : ''}`
+    const r=await safeGetJSON(api('/api/jobs'));
+    let context="There are currently no featured jobs from our partners.";
+    if(r.ok && Array.isArray(r.data) && r.data.length>0){
+      context="Here are featured jobs:\n\n"+r.data.map(j=>(
+        `• **${j.title||'Job'}**${j.company?` at ${j.company}`:''}\n   ${j.apply_link?`[Apply Here](${j.apply_link})`:''}`
       )).join('\n');
-    } else if (!result.ok) {
-      context = `Couldn’t load featured jobs (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.jobOpenings}).`;
-    }
-    const finalPrompt = `A user is asking about jobs. Present the featured jobs from the context. Then, ask if they want a broader search.\n\nCONTEXT:\n${context}\n\nUSER'S QUESTION: "${prompt}"`;
+    } else if (!r.ok) { context=`Couldn’t load featured jobs (reason: ${r.error}). Please check the portal.`; }
+    const finalPrompt=`A user is asking about jobs. Present the featured jobs from the context. Then, ask if they want a broader search.\n\nCONTEXT:\n${context}\n\nUSER'S QUESTION: "${prompt}"`;
     return getGenerativeResponse(finalPrompt);
   }
 
-  // Resources
-  if (hasWord(['resource','resources','food','pantry','housing','shelter','legal','support'])) {
+  if(has(['resource','resources','food','pantry','housing','shelter','legal','support'])) {
     setStatus('Looking up community resources...');
-    const result = await safeGetJSON(api('/api/resources'));
-    let context = "No community resources are listed right now.";
-    if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
-      context = "Community resources:\n\n" + result.data.map(r => (
-        `• **${r.name || r.title || 'Resource'}**${r.provider ? ` (${r.provider})` : ''} — ${r.description || 'Details coming soon.'}\n   Website: ${r.website ? r.website : 'N/A'}`
+    const r=await safeGetJSON(api('/api/resources'));
+    let context="No community resources are listed right now.";
+    if(r.ok && Array.isArray(r.data) && r.data.length>0){
+      context="Community resources:\n\n"+r.data.map(x=>(
+        `• **${x.name||x.title||'Resource'}**${x.provider?` (${x.provider})`:''} — ${x.description||'Details coming soon.'}\n   Website: ${x.website?x.website:'N/A'}`
       )).join('\n\n');
-    } else if (!result.ok) {
-      context = `Couldn’t load resources (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.communityResources}).`;
-    }
-    const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about resources: "${prompt}"`;
+    } else if (!r.ok) { context=`Couldn’t load resources (reason: ${r.error}). Please check the portal.`; }
+    const finalPrompt=`CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about resources: "${prompt}"`;
     return getGenerativeResponse(finalPrompt);
   }
 
-  // Events
-  if (hasWord(['event','events','job fair','workshop'])) {
+  if(has(['event','events','job fair','workshop'])) {
     setStatus('Checking for upcoming events...');
-    const result = await safeGetJSON(api('/api/events'));
-    let context = "There are currently no events scheduled.";
-    if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
-      context = "Upcoming events:\n\n" + result.data.map(e => (
-        `• **${e.name || e.title || 'Event'}** — ${e.event_date ? new Date(e.event_date).toLocaleString() : (e.start_at ? new Date(e.start_at).toLocaleString() : 'TBA')}`
+    const r=await safeGetJSON(api('/api/events'));
+    let context="There are currently no events scheduled.";
+    if(r.ok && Array.isArray(r.data) && r.data.length>0){
+      context="Upcoming events:\n\n"+r.data.map(e=>(
+        `• **${e.name||e.title||'Event'}** — ${e.event_date?new Date(e.event_date).toLocaleString():(e.start_at?new Date(e.start_at).toLocaleString():'TBA')}`
       )).join('\n');
-    } else if (!result.ok) {
-      context = `Couldn’t load events (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.events}).`;
-    }
-    const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about events: "${prompt}"`;
+    } else if (!r.ok) { context=`Couldn’t load events (reason: ${r.error}). Please check the portal.`; }
+    const finalPrompt=`CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about events: "${prompt}"`;
     return getGenerativeResponse(finalPrompt);
   }
 
-  // Default: send to model
   return getGenerativeResponse(prompt);
 }
 
 /* ---------------- AI Call ---------------- */
-async function getGenerativeResponse(prompt) {
-  try {
-    const response = await fetch(api('/api/ai'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      // systemPrompt is optional — your /api/ai can ignore it safely
-      body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
-    });
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`API Error: ${response.status} - ${errorBody}`);
-    }
-    const result = await response.json();
-    // Your /api/ai returns { reply, source } per the server file we wrote
-    const text = result?.reply || "I'm sorry, I couldn't generate a response.";
+async function getGenerativeResponse(prompt){
+  try{
+    const r=await fetch(api('/api/ai'),{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })});
+    if(!r.ok){ const t=await r.text(); throw new Error(`API Error: ${r.status} - ${t}`); }
+    const j=await r.json(); const text=j?.reply || "I'm sorry, I couldn't generate a response.";
     return { text };
-  } catch (error) {
-    console.error("Generative API call failed:", error);
-    throw error;
-  }
+  }catch(e){ console.error("Generative API call failed:", e); throw e; }
 }
 
 /* ---------------- UI Renderers ---------------- */
-function renderQuickActions() {
-  const actions = [
-    { label: 'Schedule Appointment', key: 'appointment', icon: '📅', href: ENGAGE.appointment },
-    { label: 'Find Jobs', key: 'jobOpenings', icon: '🔎', href: ENGAGE.jobOpenings },
-    { label: 'Training Programs', key: 'trainings', icon: '🎓', href: ENGAGE.trainings },
-    { label: 'Community Resources', key: 'communityResources', icon: '🏥', href: ENGAGE.communityResources },
-    { label: 'Plan a Trip', key: 'trip', icon: '🚌' }
+function renderQuickActions(){
+  const actions=[
+    { label:'Schedule Appointment', icon:'📅', href:ENGAGE.appointment },
+    { label:'Find Jobs',           icon:'🔎', href:ENGAGE.jobOpenings },
+    { label:'Training Programs',   icon:'🎓', href:ENGAGE.trainings },
+    { label:'Community Resources', icon:'🏥', href:ENGAGE.communityResources },
+    { label:'Plan a Trip',         icon:'🚌', href:null }
   ];
-  const renderInto = (containerId) => {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-    el.innerHTML = '';
-    actions.forEach(({label, key, icon, href}) => {
-      if (key === 'trip') {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-        btn.innerHTML = `<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-        btn.addEventListener('click', () => {
-          conversationState.mode = 'TRIP_PLANNER';
-          conversationState.step = 1;
+  const render=(id)=>{
+    const el=document.getElementById(id); if(!el) return; el.innerHTML='';
+    actions.forEach(a=>{
+      if(a.href){
+        const link=document.createElement('a');
+        link.href=a.href; link.target='_blank'; link.rel='noopener noreferrer';
+        link.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+        link.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+        el.appendChild(link);
+      }else{
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+        btn.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+        btn.addEventListener('click',()=>{
+          conversationState.mode='TRIP_PLANNER'; conversationState.step=1;
           bubbleBot("I can help with that. What’s your starting point (address or landmark)?");
         });
         el.appendChild(btn);
-      } else {
-        const a = document.createElement('a');
-        a.href = href;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.className = 'flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-        a.innerHTML = `<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-        el.appendChild(a);
       }
     });
   };
-  renderInto('quickActionsContainer');
-  renderInto('quickActionsContainerMobile');
+  render('quickActionsContainer');
+  render('quickActionsContainerMobile');
 }
-function renderChat() {
-  const chatBody = document.getElementById('chatBody');
-  if (!chatBody) return;
-  chatBody.innerHTML = '';
-  const history = (currentChatId && allChats[currentChatId]) ? allChats[currentChatId].history : [];
-  if (!history || history.length === 0) {
-    const welcome = document.createElement('div');
-    welcome.id = 'welcomeScreen';
-    welcome.className = 'flex flex-col items-center justify-center h-full text-center';
-    welcome.innerHTML = `<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div></div><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>`;
-    chatBody.appendChild(welcome);
-    return;
+function renderChat(){
+  const body=document.getElementById('chatBody'); if(!body) return; body.innerHTML='';
+  const history=(currentChatId && allChats[currentChatId])?allChats[currentChatId].history:[];
+  if(!history || history.length===0){
+    const w=document.createElement('div'); w.id='welcomeScreen'; w.className='flex flex-col items-center justify-center h-full text-center';
+    w.innerHTML=`<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div></div><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>`;
+    body.appendChild(w); return;
   }
-  history.forEach(msg => { if (msg.role === 'user') bubbleMe(msg.text, false); else bubbleBot(msg.text, false); });
-  scrollToBottom(true);
+  history.forEach(m=>{ if(m.role==='user') bubbleMe(m.text,false); else bubbleBot(m.text,false); }); scrollToBottom(true);
 }
-function renderHistory() {
-  const container = document.getElementById('historyContainer');
-  const mobile    = document.getElementById('historyContainerMobile');
-  const items = Object.values(allChats).sort((a,b) => (b.id||'').localeCompare(a.id||''));
-  const draw = (el) => {
-    if (!el) return;
-    el.innerHTML = '';
-    items.forEach(chat => {
-      const row = document.createElement('div');
-      row.className = `history-item group flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${chat.id === currentChatId ? 'bg-brand/20' : ''}`;
-      row.innerHTML = `<button class="text-left flex-1 truncate" title="${chat.title}">${chat.title}</button><div class="history-item-actions flex gap-2 opacity-0 group-hover:opacity-100"><button class="rename-btn text-xs underline">Rename</button><button class="delete-btn text-xs text-red-600 underline">Delete</button></div>`;
-      row.querySelector('button.truncate')?.addEventListener('click', () => loadChat(chat.id));
-      row.querySelector('.rename-btn')?.addEventListener('click', () => { const newTitle = prompt('Rename chat:', chat.title); if (newTitle) renameChat(chat.id, newTitle); });
-      row.querySelector('.delete-btn')?.addEventListener('click', () => { if (confirm('Are you sure you want to delete this chat?')) deleteChat(chat.id); });
-      el.appendChild(row);
-    });
-  };
-  draw(container);
-  draw(mobile);
+function renderHistory(){
+  const container=document.getElementById('historyContainer');
+  const mobile=document.getElementById('historyContainerMobile');
+  const items=Object.values(allChats).sort((a,b)=>(b.id||'').localeCompare(a.id||''));
+  const paint=(el)=>{ if(!el) return; el.innerHTML=''; items.forEach(chat=>{
+    const row=document.createElement('div');
+    row.className=`history-item group flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${chat.id===currentChatId?'bg-brand/20':''}`;
+    row.innerHTML=`<button class="text-left flex-1 truncate" title="${chat.title}">${chat.title}</button><div class="history-item-actions flex gap-2 opacity-0 group-hover:opacity-100"><button class="rename-btn text-xs underline">Rename</button><button class="delete-btn text-xs text-red-600 underline">Delete</button></div>`;
+    row.querySelector('button.truncate')?.addEventListener('click',()=>loadChat(chat.id));
+    row.querySelector('.rename-btn')?.addEventListener('click',()=>{ const nt=prompt('Rename chat:',chat.title); if(nt) renameChat(chat.id,nt); });
+    row.querySelector('.delete-btn')?.addEventListener('click',()=>{ if(confirm('Delete this chat?')) deleteChat(chat.id); });
+    el.appendChild(row);
+  }); };
+  paint(container); paint(mobile);
 }
 
 /* ---------------- DOM Ready ---------------- */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Theme boot
-  const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  applyTheme(savedTheme);
-
-  // Language boot
-  const languageSelector = document.getElementById('languageSelector');
-  const savedLang = localStorage.getItem('lang');
-  const initialLang = savedLang ? savedLang : (navigator.language || 'en').slice(0,2);
-  setLanguage(initialLang);
-  if (languageSelector) {
-    languageSelector.value = (initialLang.slice(0,2) === 'es') ? 'es' : 'en';
-    languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
-  }
+  // Theme & language boot
+  const savedTheme=localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); applyTheme(savedTheme);
+  const languageSelector=document.getElementById('languageSelector');
+  const savedLang=localStorage.getItem('lang');
+  const initialLang=savedLang ? savedLang : (navigator.language||'en').slice(0,2); setLanguage(initialLang);
+  if(languageSelector){ languageSelector.value=(initialLang.slice(0,2)==='es')?'es':'en'; languageSelector.addEventListener('change',(e)=>setLanguage(e.target.value)); }
 
   // Elements
-  const splash = document.getElementById('splash'), app = document.getElementById('app');
-  const startBtn = document.getElementById('start');
-  const splashPlanTrip = document.getElementById('splashPlanTrip');
-  const splashFindJobs = document.getElementById('splashFindJobs');
+  const splash=document.getElementById('splash'), app=document.getElementById('app');
+  const startBtn=document.getElementById('start');
+  const splashPlanTrip=document.getElementById('splashPlanTrip');
+  const splashFindJobs=document.getElementById('splashFindJobs');
 
-  const chatBody = document.getElementById('chatBody');
-  const form = document.getElementById('composer'), input = document.getElementById('input'), sendBtn = document.getElementById('send');
-  const micBtn = document.getElementById('mic');
-  const newChatBtn = document.getElementById('newChat'), newChatMobileBtn = document.getElementById('newChatMobile');
-  const menuBtn = document.getElementById('menuBtn'), mobileMenu = document.getElementById('mobileMenu'), closeMenuBtn = document.getElementById('closeMenuBtn');
-  const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
-  const deleteModal = document.getElementById('deleteModal'), confirmDeleteBtn = document.getElementById('confirmDelete'), cancelDeleteBtn = document.getElementById('cancelDelete');
-  const themeToggleSplash = document.getElementById('themeToggleSplash');
-  const themeToggleApp = document.getElementById('themeToggleApp');
-  const themeToggleMobile = document.getElementById('themeToggleMobile');
+  const chatBody=document.getElementById('chatBody');
+  const form=document.getElementById('composer'), input=document.getElementById('input'), sendBtn=document.getElementById('send');
+  const newChatBtn=document.getElementById('newChat'), newChatMobileBtn=document.getElementById('newChatMobile');
+  const menuBtn=document.getElementById('menuBtn'), mobileMenu=document.getElementById('mobileMenu'), closeMenuBtn=document.getElementById('closeMenuBtn');
+  const deleteModal=document.getElementById('deleteModal'), confirmDeleteBtn=document.getElementById('confirmDelete'), cancelDeleteBtn=document.getElementById('cancelDelete');
+  const themeToggleSplash=document.getElementById('themeToggleSplash');
+  const themeToggleApp=document.getElementById('themeToggleApp');
+  const themeToggleMobile=document.getElementById('themeToggleMobile');
 
   // Splash actions
-  function openApp() {
-    if (splash) splash.classList.add('hidden');
-    if (app) app.classList.remove('hidden');
-    renderQuickActions();
-    loadChats();
-    const savedSidebarState = localStorage.getItem('sidebarCollapsed') === 'true';
-    setSidebarState(savedSidebarState);
-    if (Object.keys(allChats).length === 0) startNewChat();
-    else {
-      const latestChatId = Object.keys(allChats).sort((a,b) => b.split('_')[1] - a.split('_')[1])[0];
-      loadChat(latestChatId);
-    }
-    if (input) input.focus();
+  function openApp(){
+    splash?.classList.add('hidden'); app?.classList.remove('hidden');
+    renderQuickActions(); loadChats();
+    if(Object.keys(allChats).length===0) startNewChat();
+    else { const latest=Object.keys(allChats).sort((a,b)=>b.split('_')[1]-a.split('_')[1])[0]; loadChat(latest); }
+    input?.focus();
   }
-  if (startBtn) startBtn.addEventListener('click', openApp);
-  if (splashPlanTrip) splashPlanTrip.addEventListener('click', () => {
-    openApp();
-    conversationState.mode = 'TRIP_PLANNER';
-    conversationState.step = 1;
-    bubbleBot("I can help with that. What’s your starting point (address or landmark)?");
-  });
-  if (splashFindJobs) splashFindJobs.addEventListener('click', async () => {
-    openApp();
-    addMessageToHistory('user', 'Show me jobs');
-    bubbleMe('Show me jobs');
-    const typing = createTypingIndicator(); chatBody?.appendChild(typing);
-    try {
-      const resp = await getSmartResponse('jobs');
-      typing?.remove(); addMessageToHistory('assistant', resp.text); bubbleBot(resp.text);
-    } catch (e) {
-      typing?.remove(); bubbleBot('Sorry — I could not reach the service.');
-    }
-  });
+  startBtn?.addEventListener('click', openApp);
+  splashPlanTrip?.addEventListener('click', ()=>{ openApp(); conversationState.mode='TRIP_PLANNER'; conversationState.step=1; bubbleBot("I can help with that. What’s your starting point (address or landmark)?"); });
+  splashFindJobs?.addEventListener('click', async ()=>{ openApp(); addMessageToHistory('user','Show me jobs'); bubbleMe('Show me jobs'); const t=createTypingIndicator(); chatBody?.appendChild(t); try{ const r=await getSmartResponse('jobs'); t?.remove(); addMessageToHistory('assistant',r.text); bubbleBot(r.text);}catch{ t?.remove(); bubbleBot('Sorry — I could not reach the service.'); }});
 
-  // Event listeners
-  if(themeToggleSplash) themeToggleSplash.addEventListener('click', toggleTheme);
-  if(themeToggleApp) themeToggleApp.addEventListener('click', toggleTheme);
-  if(themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
+  // Theme toggles
+  themeToggleSplash?.addEventListener('click', toggleTheme);
+  themeToggleApp?.addEventListener('click', toggleTheme);
+  themeToggleMobile?.addEventListener('click', toggleTheme);
 
-  if (input) {
-    ['input','change','keyup','paste'].forEach(ev => {
-      input.addEventListener(ev, () => { updateSendState(); autosize(); });
-    });
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (form) form.requestSubmit(); }
-    });
-  }
-  if (sendBtn) sendBtn.addEventListener('click', (e) => { e.preventDefault(); if (form) form.requestSubmit(); });
-  if (newChatBtn) newChatBtn.addEventListener('click', startNewChat);
-  if (newChatMobileBtn) newChatMobileBtn.addEventListener('click', () => { startNewChat(); if (mobileMenu) mobileMenu.classList.add('hidden'); });
-  if (menuBtn) menuBtn.addEventListener('click', () => { if (mobileMenu) mobileMenu.classList.remove('hidden'); });
-  if (closeMenuBtn) closeMenuBtn.addEventListener('click', () => { if (mobileMenu) mobileMenu.classList.add('hidden'); });
-  if (mobileMenu) mobileMenu.addEventListener('click', (e) => { if (e.target === mobileMenu) mobileMenu.classList.add('hidden'); });
-  if (toggleSidebarBtn) toggleSidebarBtn.addEventListener('click', () => {
-    const isCurrentlyCollapsed = app?.classList.contains('sidebar-collapsed');
-    setSidebarState(!isCurrentlyCollapsed);
-  });
-  if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => {
-    if (deleteModal) { deleteModal.classList.add('hidden'); deleteModal.classList.remove('flex'); }
-  });
-  if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', () => {
-    const chatToDelete = currentChatId;
-    if(chatToDelete) deleteChat(chatToDelete);
-    if (deleteModal) { deleteModal.classList.add('hidden'); deleteModal.classList.remove('flex'); }
-  });
+  // Mobile menu
+  menuBtn?.addEventListener('click', ()=> mobileMenu?.classList.remove('hidden'));
+  closeMenuBtn?.addEventListener('click', ()=> mobileMenu?.classList.add('hidden'));
+  mobileMenu?.addEventListener('click', (e)=>{ if(e.target===mobileMenu) mobileMenu.classList.add('hidden'); });
 
-  if (form) form.addEventListener('submit', async (e) => {
+  // New chat
+  newChatBtn?.addEventListener('click', startNewChat);
+  newChatMobileBtn?.addEventListener('click', ()=>{ startNewChat(); mobileMenu?.classList.add('hidden'); });
+
+  // Delete modal
+  cancelDeleteBtn?.addEventListener('click', ()=>{ deleteModal?.classList.add('hidden'); deleteModal?.classList.remove('flex'); });
+  confirmDeleteBtn?.addEventListener('click', ()=>{ if(currentChatId) deleteChat(currentChatId); deleteModal?.classList.add('hidden'); deleteModal?.classList.remove('flex'); });
+
+  // Composer
+  function autosizeHook(){ updateSendState(); autosize(); }
+  if(input){ ['input','change','keyup','paste'].forEach(ev=> input.addEventListener(ev, autosizeHook)); input.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); form?.requestSubmit(); }}); }
+  sendBtn?.addEventListener('click',(e)=>{ e.preventDefault(); form?.requestSubmit(); });
+
+  // Speech
+  const micBtn=document.getElementById('mic');
+  micBtn?.addEventListener('click', ()=>{ if(!window._recognition) window._recognition=initSTT(); if(!window._recognition){ setStatus('Voice input not supported in this browser.', true); return; } if(!listening) window._recognition.start(); else window._recognition.stop(); });
+
+  if(form) form.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    const prompt = (input?.value || '').trim();
-    if (!prompt) { updateSendState(); return; }
-
-    if (!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length === 0)) {
-      if (!currentChatId) startNewChat();
-      addMessageToHistory('assistant', "Hello! I'm Solace. How can I help you?");
-      renderChat();
-    }
-
-    addMessageToHistory('user', prompt);
-    bubbleMe(prompt);
-    if (input) input.value = '';
-    autosize();
-    updateSendState();
-    showChips([]);
-    setStatus('Thinking…');
-    const typingIndicator = createTypingIndicator();
-    if (chatBody) chatBody.appendChild(typingIndicator);
-    scrollToBottom();
-
-    try {
-      const response = await getSmartResponse(prompt);
-      typingIndicator?.remove();
-      addMessageToHistory('assistant', response.text);
-      bubbleBot(response.text);
-      updateChatTitle(prompt);
-      setStatus('');
-    } catch (err) {
-      console.error(err);
-      typingIndicator?.remove();
-      setStatus(`Error: ${err.message}.`, true);
-      bubbleBot('Sorry — I could not reach the service. Please try again.');
-      resetConversationState();
-    }
+    const prompt=(input?.value||'').trim();
+    if(!prompt){ updateSendState(); return; }
+    if(!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length===0)){ if(!currentChatId) startNewChat(); addMessageToHistory('assistant',"Hello! I'm Solace. How can I help you?"); renderChat(); }
+    addMessageToHistory('user', prompt); bubbleMe(prompt); if(input) input.value=''; autosize(); updateSendState(); showChips([]); setStatus('Thinking…');
+    const typing=createTypingIndicator(); chatBody?.appendChild(typing); scrollToBottom();
+    try{ const r=await getSmartResponse(prompt); typing?.remove(); addMessageToHistory('assistant', r.text); bubbleBot(r.text); updateChatTitle(prompt); setStatus(''); }
+    catch(err){ console.error(err); typing?.remove(); setStatus(`Error: ${err.message}.`, true); bubbleBot('Sorry — I could not reach the service. Please try again.'); resetConversationState(); }
   });
 
-  const micBtn = document.getElementById('mic');
-  if (micBtn) micBtn.addEventListener('click', () => {
-    if (!window._recognition) window._recognition = initSTT();
-    if (!window._recognition) { setStatus('Voice input not supported in this browser.', true); return; }
-    if (!listening) window._recognition.start(); else window._recognition.stop();
-  });
-
-  updateSendState();
-  autosize();
+  updateSendState(); autosize();
 });
 </script>
 </body>
