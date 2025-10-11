@@ -1,22 +1,23 @@
-// api/jobs.js
-export const config = { runtime: 'nodejs' };
-import { getSupabase, ok, err } from './_supabase.js';
+// /api/jobs.js
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
+function withCORS(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') return ok(res, []);
-  if (req.method !== 'GET') return err(res, 405, 'Method Not Allowed');
+  withCORS(res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
 
-  try {
-    const supabase = getSupabase();
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('id,title,company,location,description,apply_link')
-      .order('created_at', { ascending: false })
-      .limit(50);
+  const q = (req.query.q || '').trim();
+  let query = SUPABASE.from('jobs').select('*').order('posted_at', { ascending: false });
+  if (q) query = query.ilike('title', `%${q}%`);
 
-    if (error) return err(res, 500, error);
-    return ok(res, data || []);
-  } catch (e) {
-    return err(res, 500, e);
-  }
+  const { data, error } = await query.limit(100);
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(200).json({ data });
 }
