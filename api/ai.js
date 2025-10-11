@@ -1,15 +1,17 @@
 // /api/ai.js
 export const config = { runtime: 'nodejs' };
 
-async function readJson(req) {
-  const chunks = [];
-  for await (const c of req) chunks.push(c);
-  try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); }
-  catch { return {}; }
+function readJson(req) {
+  return new Promise((resolve, reject) => {
+    let b = '';
+    req.on('data', (c) => (b += c));
+    req.on('end', () => {
+      try { resolve(b ? JSON.parse(b) : {}); } catch (e) { reject(e); }
+    });
+  });
 }
 
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -17,46 +19,40 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok:false, error:'Method Not Allowed' });
 
   try {
-    const { prompt = '', systemPrompt = '' } = await readJson(req);
+    const { prompt = '', systemPrompt = '', language = 'en' } = await readJson(req);
 
     if (!process.env.GEMINI_API_KEY) {
-      const friendly = "Thanks for your message. I’m not connected to the AI service yet. Please set GEMINI_API_KEY.";
-      return res.status(200).json({ ok:true, text: friendly });
+      return res.status(200).json({ ok:true, text:
+        (language === 'es'
+          ? "Gracias por tu mensaje. Todavía no estoy conectado al servicio de IA."
+          : "Thanks for your message. I’m not connected to the AI service yet.")
+      });
     }
 
     const rawModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-    const MODEL = rawModel.replace(/^models\//, '').trim();
-
+    const MODEL = rawModel.replace(/^models\//, '').trim(); // <-- fixes “unexpected model name format”
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL)}:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
+    const sys = `${systemPrompt}\n\nRespond in ${language === 'es' ? 'Spanish' : 'English'} unless the user explicitly requests another language.`;
+
     const body = {
-      contents: [
-        ...(systemPrompt ? [{ role: "user", parts: [{ text: `SYSTEM:\n${systemPrompt}` }] }] : []),
-        { role: "user", parts: [{ text: prompt }] }
-      ],
-      generationConfig: { temperature: 0.7, topP: 0.95 }
+      contents: [{ role: 'user', parts: [{ text: `${sys}\n\nUSER:\n${prompt}` }] }],
+      generationConfig: { temperature: 0.7 }
     };
 
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json();
 
-    const data = await r.json();
     if (!r.ok) {
-      console.error('Gemini API Error:', data);
-      return res.status(500).json({ ok:false, error:`Gemini error: ${JSON.stringify(data, null, 2)}` });
+      // Normalize Gemini error to your frontend
+      return res.status(500).json({ ok:false, error:`Gemini error: ${JSON.stringify(j)}` });
     }
 
-    const text =
-      data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') ||
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "I'm sorry, I couldn't generate a response.";
+    const text = j?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+    return res.status(200).json({ ok:true, text: text || (language==='es' ? "Lo siento, no pude generar una respuesta." : "Sorry, I couldn’t generate a response.") });
 
-    return res.status(200).json({ ok:true, text });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ ok:false, error: err?.message || 'Unknown error' });
+    return res.status(500).json({ ok:false, error: err.message || 'Unknown error' });
   }
 }
