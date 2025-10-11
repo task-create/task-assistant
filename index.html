@@ -12,7 +12,7 @@
     .custom-scrollbar::-webkit-scrollbar-track{background:transparent}
     .custom-scrollbar::-webkit-scrollbar-thumb{background:#4a5568;border-radius:3px}
     .custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#718096}
-    @media (prefers-reduced-motion: reduce){ .animate-spin, .animate-bounce, .transition-all { transition: none !important } }
+    @media (prefers-reduced-motion: reduce){ .animate-spin,.animate-bounce,.transition-all{transition:none!important} }
     .sparkle{background:conic-gradient(from 0deg,var(--brand) 0%,var(--brand-light) 25%,transparent 40%,transparent 60%,var(--brand-light) 75%,var(--brand) 100%);filter:blur(14px) saturate(1.2)}
     .composer-shell{position:sticky;bottom:0;background:linear-gradient(to top,rgba(255,255,255,0.9),rgba(255,255,255,0))}
     .dark .composer-shell{background:linear-gradient(to top,rgba(15,23,42,0.95),rgba(15,23,42,0))}
@@ -21,11 +21,11 @@
 </head>
 <body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 font-sans antialiased">
 
-  <!-- Splash: ONLY Start + theme + languages -->
+  <!-- Splash (ONLY Start + Theme + Language) -->
   <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
     <div class="w-full max-w-md p-8 text-center bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1f2937] relative">
       <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]" title="Toggle theme">
-        <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
       </button>
 
       <div class="absolute top-4 left-4">
@@ -53,11 +53,8 @@
   <!-- App Shell -->
   <div id="app" class="hidden h-screen w-screen">
 
-    <!-- FIXED Sidebar -->
-    <aside
-      class="fixed left-0 top-0 z-40 hidden h-screen w-[280px] lg:flex flex-col bg-white dark:bg-[#0f172a]
-             border-r border-gray-200 dark:border-[#1f2937]">
-
+    <!-- FIXED Left Sidebar (ChatGPT-style) -->
+    <aside class="fixed left-0 top-0 z-40 hidden h-screen w-[280px] lg:flex flex-col bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
       <div class="flex items-center gap-3 p-3">
         <div class="relative w-10 h-10">
           <div class="absolute inset-[-8px] rounded-full sparkle"></div>
@@ -66,14 +63,12 @@
         <span class="text-xl font-semibold">Solace</span>
       </div>
 
-      <button id="newChat"
-        class="mx-3 flex items-center justify-between w-auto p-3 mt-2 text-left bg-gray-100 rounded-lg
-               dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+      <button id="newChat" class="mx-3 flex items-center justify-between w-auto p-3 mt-2 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
         <span>New Chat</span>
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
       </button>
 
-      <!-- Quick Actions (links only here) -->
+      <!-- Quick Actions (links live ONLY here) -->
       <div class="px-3 mt-4">
         <h3 class="px-1 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
         <div id="quickActionsContainer" class="mt-2 space-y-2"></div>
@@ -86,13 +81,13 @@
 
       <div class="p-3 border-t border-gray-200 dark:border-gray-700">
         <button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-          <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
           <span id="themeTextApp" class="text-sm font-medium">Dark Mode</span>
         </button>
       </div>
     </aside>
 
-    <!-- MAIN (shifted to the right of fixed sidebar) -->
+    <!-- MAIN (pushed right of fixed sidebar) -->
     <main class="relative flex flex-col h-screen lg:ml-[280px] bg-gray-100 dark:bg-[#0b1220]">
       <!-- Mobile header -->
       <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
@@ -104,7 +99,7 @@
           <span class="text-lg font-semibold">Solace</span>
         </div>
         <button id="menuBtn" class="p-2 rounded-md lg:hidden" title="Menu">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
         </button>
       </header>
 
@@ -127,7 +122,7 @@
           <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
           <div class="absolute bottom-2.5 right-3">
             <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-              <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+              <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
             </button>
           </div>
         </form>
@@ -135,7 +130,7 @@
       </div>
     </main>
 
-    <!-- Mobile slide-over menu (optional) -->
+    <!-- Mobile slide-over (optional) -->
     <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
       <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
         <div class="flex items-center justify-between">
@@ -144,7 +139,7 @@
         </div>
         <button id="newChatMobile" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
           <span>New Chat</span>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
         </button>
         <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
           <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
@@ -152,7 +147,7 @@
         </div>
         <div class="p-2 border-t border-gray-200 dark:border-gray-700">
           <button id="themeToggleMobile" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-            <svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            <svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
             <span id="themeTextMobile" class="text-sm font-medium">Dark Mode</span>
           </button>
         </div>
@@ -161,20 +156,15 @@
   </div>
 
 <script type="module">
-/* ---------------- Supabase smoke test ---------------- */
+/* --- Supabase smoke test --- */
 import { getSupabase } from './supabase.js';
-(async () => {
-  try {
-    const sb = await getSupabase();
-    // Query a tiny, safe table to validate connectivity (ignore errors silently)
-    const { error } = await sb.from('knowledge_base').select('id').limit(1);
-    if (error) console.warn('Supabase check:', error.message);
-  } catch (e) {
-    console.warn('Supabase init failed:', e?.message || e);
-  }
-})();
+(async () => { try {
+  const sb = await getSupabase();
+  const { error } = await sb.from('knowledge_base').select('id').limit(1);
+  if (error) console.warn('Supabase check:', error.message);
+} catch(e){ console.warn('Supabase init failed:', e?.message || e); }})();
 
-/* ---------------- External links (sidebar only) ---------------- */
+/* --- Quick Actions (sidebar only) --- */
 const ENGAGE = {
   appointment:"https://bycell.co/ddncs",
   jobOpenings:"https://bycell.co/ddmtq",
@@ -182,28 +172,28 @@ const ENGAGE = {
   communityResources:"https://bycell.co/ddmua"
 };
 
-/* ---------------- API base ---------------- */
+/* --- API base --- */
 const DEPLOY_BASE='https://task-assistant-xi.vercel.app';
 const ON_SAME_SITE = typeof location!=='undefined'&&(location.hostname==='localhost'||location.hostname.endsWith('task-assistant-xi.vercel.app'));
 const API_BASE = ON_SAME_SITE ? '' : DEPLOY_BASE;
 const api = (p)=>`${API_BASE}${p}`;
 
-/* ---------------- Theme ---------------- */
-const sunIcon=`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 0 0 1 8 0z"></path></svg>`;
-const moonIcon=`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
+/* --- Theme --- */
+const sunIcon=`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 0 0 1 8 0z"/></svg>`;
+const moonIcon=`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
 function applyTheme(theme){
   document.documentElement.classList.toggle('dark',theme==='dark');
   localStorage.setItem('theme',theme);
   const isDark = theme==='dark';
-  const is = document.getElementById('themeIconSplash'); if (is) is.innerHTML = isDark ? sunIcon : moonIcon;
-  const ia = document.getElementById('themeIconApp'); const ta=document.getElementById('themeTextApp');
-  if (ia&&ta){ ia.innerHTML = isDark ? sunIcon : moonIcon; ta.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
-  const im = document.getElementById('themeIconMobile'); const tm=document.getElementById('themeTextMobile');
-  if (im&&tm){ im.innerHTML = isDark ? sunIcon : moonIcon; tm.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
+  const is=document.getElementById('themeIconSplash'); if (is) is.innerHTML=isDark?sunIcon:moonIcon;
+  const ia=document.getElementById('themeIconApp'); const ta=document.getElementById('themeTextApp');
+  if (ia&&ta){ ia.innerHTML=isDark?sunIcon:moonIcon; ta.textContent=isDark?'Light Mode':'Dark Mode'; }
+  const im=document.getElementById('themeIconMobile'); const tm=document.getElementById('themeTextMobile');
+  if (im&&tm){ im.innerHTML=isDark?sunIcon:moonIcon; tm.textContent=isDark?'Light Mode':'Dark Mode'; }
 }
-function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark' ? 'light' : 'dark'); }
+function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark'); }
 
-/* ---------------- Language ---------------- */
+/* --- Language --- */
 function setLanguage(lang){
   const code=(lang||'en').slice(0,2).toLowerCase();
   const normalized=['en','es','ht'].includes(code)?code:'en';
@@ -220,14 +210,14 @@ function setLanguage(lang){
   const sel=document.getElementById('languageSelector'); if (sel && sel.value!==normalized) sel.value=normalized;
 }
 
-/* ---------------- Minimal chat state ---------------- */
+/* --- Chat state --- */
 let currentChatId=null, allChats={};
 function saveChats(){ localStorage.setItem('allChats',JSON.stringify(allChats)); }
 function loadChats(){ const s=localStorage.getItem('allChats'); if(s) allChats=JSON.parse(s); renderHistory(); }
 function startNewChat(){ currentChatId=`chat_${Date.now()}`; allChats[currentChatId]={id:currentChatId,title:'New Chat',history:[]}; saveChats(); renderHistory(); renderChat(); }
 function addMessageToHistory(role,text){ if(!currentChatId||!allChats[currentChatId]) return; allChats[currentChatId].history.push({role,text}); saveChats(); }
 
-/* ---------------- UI renderers ---------------- */
+/* --- Renderers --- */
 function renderHistory(){
   const c=document.getElementById('historyContainer'); if(!c) return; c.innerHTML='';
   Object.values(allChats).sort((a,b)=>(b.id||'').localeCompare(a.id||'')).forEach(chat=>{
@@ -240,7 +230,7 @@ function renderHistory(){
 }
 function renderChat(){
   const body=document.getElementById('chatBody'); if(!body) return; body.innerHTML='';
-  const hist=(currentChatId && allChats[currentChatId])?allChats[currentChatId].history:[];
+  const hist=(currentChatId&&allChats[currentChatId])?allChats[currentChatId].history:[];
   if(hist.length===0){
     const w=document.createElement('div'); w.id='welcomeScreen'; w.className='flex flex-col items-center justify-center h-full text-center';
     w.innerHTML=`<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div></div><h1 class="text-2xl font-bold">How can I help you today?</h1>`;
@@ -249,7 +239,7 @@ function renderChat(){
   hist.forEach(m=>{
     const wrap=document.createElement('div');
     wrap.className=`mb-3 flex ${m.role==='user'?'justify-end':'justify-start'}`;
-    const bubble = m.role==='user'
+    const bubble=m.role==='user'
       ? `<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${m.text}</div>`
       : `<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow">${m.text}</div>`;
     wrap.innerHTML=bubble; body.appendChild(wrap);
@@ -268,12 +258,12 @@ function renderQuickActions(){
     const link=document.createElement('a');
     link.href=a.href; link.target='_blank'; link.rel='noopener noreferrer';
     link.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-    link.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+    link.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
     el.appendChild(link);
   });
 }
 
-/* ---------------- AI call (your server reads Supabase first) ---------------- */
+/* --- AI call (your /api/ai reads Supabase first) --- */
 async function fetchAI(prompt){
   const r=await fetch(api('/api/ai'),{
     method:'POST',
@@ -284,10 +274,10 @@ async function fetchAI(prompt){
   const j=await r.json(); return j?.reply||'Sorry, no answer.';
 }
 
-/* ---------------- Boot ---------------- */
+/* --- Boot --- */
 document.addEventListener('DOMContentLoaded',()=>{
-  // Theme & language
-  const savedTheme=localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); applyTheme(savedTheme);
+  // Theme & Language
+  const savedTheme=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); applyTheme(savedTheme);
   const sel=document.getElementById('languageSelector'); const savedLang=localStorage.getItem('lang')||(navigator.language||'en'); setLanguage(savedLang);
   sel?.addEventListener('change',e=>setLanguage(e.target.value));
   document.getElementById('themeToggleSplash')?.addEventListener('click',toggleTheme);
@@ -299,7 +289,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('app')?.classList.remove('hidden');
     renderQuickActions();
     loadChats();
-    if (!Object.keys(allChats).length) startNewChat(); else renderChat();
+    if(!Object.keys(allChats).length) startNewChat(); else renderChat();
   });
 
   // New Chat
