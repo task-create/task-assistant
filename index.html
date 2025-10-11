@@ -6,52 +6,47 @@
   <title>TASK Assistant</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:'#ff8a00'}}}}</script>
   <style>
-    :root { --brand: #ff8a00; --brand-light: #ffd088; }
-    .prose { color: inherit; } .prose strong { color: inherit; } .prose a { color: #3b82f6; text-decoration: underline; } .dark .prose a { color: #93c5fd; }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; } .custom-scrollbar::-webkit-scrollbar-track { background: transparent; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; } .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
-    @media (prefers-reduced-motion: reduce){ .animate-spin, .animate-bounce, .transition-all { transition: none !important } }
-    .sparkle { background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-light) 25%, transparent 40%, transparent 60%, var(--brand-light) 75%, var(--brand) 100%); filter: blur(14px) saturate(1.2); }
-    .history-item-actions { opacity: 0; transition: opacity .2s; } .history-item:hover .history-item-actions { opacity: 1; }
-    aside { overflow-x: hidden; transition: width .3s ease-in-out; }
-    @media (min-width:1024px){ #app.sidebar-collapsed { grid-template-columns: 0 1fr; } }
-    /* Keep the composer visible while chat scrolls */
-    #composerWrap { position: sticky; bottom: 0; background: transparent; }
+    :root { --brand:#ff8a00; --brand-light:#ffd088; }
+    .prose { color: inherit; }
+    .prose a { text-decoration: underline; }
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:#94a3b8; border-radius:6px; }
+    .sparkle { background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-light) 25%, transparent 40%, transparent 60%, var(--brand-light) 75%, var(--brand) 100%); filter: blur(12px) saturate(1.2); }
+    @media (min-width:1024px){ #app.sidebar-collapsed{ grid-template-columns:0 1fr; } }
+    /* keep composer visible */
+    #composerWrap { position: sticky; bottom: 0; z-index: 10; backdrop-filter: blur(6px); }
   </style>
-  <script>
-    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: 'var(--brand)' } } } }
-  </script>
 </head>
-<body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 font-sans antialiased">
+<body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 antialiased">
 
   <!-- Splash -->
   <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
     <div class="w-full max-w-md p-8 text-center bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1f2937] relative">
       <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]">
-        <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
       </button>
-      <div class="absolute top-4 left-4">
+      <div class="absolute top-4 left-4 space-x-2">
         <select id="languageSelector" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-[#1f2937] rounded-md p-1 text-sm">
+          <option value="auto">Auto</option>
           <option value="en">English</option>
           <option value="es">Español</option>
         </select>
       </div>
       <div class="relative w-24 h-24 mx-auto mb-6">
-        <div class="absolute inset-[-16px] rounded-full sparkle animate-spin [animation-duration:4s]"></div>
+        <div class="absolute inset-[-14px] rounded-full sparkle animate-spin [animation-duration:4s]"></div>
         <div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
       </div>
-      <h1 id="splashTitle" class="text-3xl font-extrabold text-gray-900 dark:text-white">TASK Assistant</h1>
+      <h1 id="splashTitle" class="text-3xl font-extrabold">TASK Assistant</h1>
       <p id="splashSubtitle" class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Your guide to career and community resources.</p>
-      <div class="mt-8">
-        <button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button>
-      </div>
+      <div class="mt-8"><button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90">Start</button></div>
     </div>
   </div>
 
-  <!-- App -->
-  <div id="app" class="hidden h-screen w-screen lg:grid lg:grid-cols-[280px_1fr] transition-all duration-300">
+  <div id="app" class="hidden h-screen w-screen lg:grid lg:grid-cols-[280px_1fr]">
     <!-- Sidebar -->
-    <aside class="flex-col hidden h-full p-3 bg-white lg:flex dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] w-[280px]">
+    <aside class="hidden lg:flex flex-col h-full p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] w-[280px]">
       <div class="flex items-center gap-3 p-2">
         <div class="relative w-10 h-10">
           <div class="absolute inset-[-8px] rounded-full sparkle"></div>
@@ -61,8 +56,7 @@
       </div>
 
       <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
-        <span>New Chat</span>
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <span>New Chat</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12M6 12h12"/></svg>
       </button>
 
       <div class="px-2 mt-6">
@@ -77,7 +71,7 @@
 
       <div class="p-2 border-t border-gray-200 dark:border-gray-700">
         <button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-          <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
           <span id="themeTextApp" class="text-sm font-medium">Dark Mode</span>
         </button>
       </div>
@@ -85,12 +79,12 @@
 
     <!-- Main -->
     <main class="relative flex flex-col h-full bg-gray-100 dark:bg-[#0b1220]">
-      <button id="toggleSidebarBtn" class="absolute top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand">
-        <svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      <button id="toggleSidebarBtn" class="absolute top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md">
+        <svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
 
       <div class="flex flex-col flex-1 w-full max-w-4xl mx-auto">
-        <!-- Mobile header -->
+        <!-- mobile header -->
         <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
           <div class="flex items-center gap-3">
             <div class="relative w-8 h-8">
@@ -99,12 +93,10 @@
             </div>
             <span class="text-lg font-semibold">TASK Assistant</span>
           </div>
-          <button id="menuBtn" class="p-2 rounded-md lg:hidden">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-          </button>
+          <button id="menuBtn" class="p-2 rounded-md lg:hidden"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg></button>
         </header>
 
-        <!-- Chat area -->
+        <!-- chat area -->
         <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
           <div id="chatBody" class="w-full">
             <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
@@ -117,17 +109,17 @@
           </div>
         </div>
 
-        <!-- Composer (sticky) -->
-        <div id="composerWrap" class="px-4 pb-4 md:px-6 md:pb-6">
+        <!-- composer (sticky) -->
+        <div id="composerWrap" class="px-4 pb-4 md:px-6 md:pb-6 bg-gradient-to-t from-gray-100/90 dark:from-[#0b1220]/90 to-transparent">
           <div id="suggestions" class="flex flex-wrap gap-2 mb-3"></div>
           <form id="composer" class="relative" autocomplete="off">
             <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
             <div class="absolute bottom-2.5 right-3 flex items-center gap-2">
               <button id="mic" type="button" class="p-2 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Dictate">
-                <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
               </button>
               <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
               </button>
             </div>
           </form>
@@ -144,35 +136,24 @@
       </div>
     </main>
 
-    <!-- Mobile menu -->
-    <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
+    <!-- simple mobile drawer -->
+    <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden" role="dialog" aria-modal="true">
       <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
         <div class="flex items-center justify-between">
           <span class="text-xl font-semibold">Menu</span>
-          <button id="closeMenuBtn" class="p-2 rounded-md">&times;</button>
+          <button id="closeMenuBtn" class="p-2 rounded-md" aria-label="Close">&times;</button>
         </div>
         <button id="newChatMobile" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
           <span>New Chat</span>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12M6 12h12"/></svg>
         </button>
-        <div class="px-2 mt-6">
-          <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
-          <div id="quickActionsContainerMobile" class="mt-2 space-y-1"></div>
-        </div>
-        <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-          <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
-          <div id="historyContainerMobile" class="mt-2 space-y-1"></div>
-        </div>
-        <div class="p-2 border-t border-gray-200 dark:border-gray-700">
-          <button id="themeToggleMobile" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-            <svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            <span id="themeTextMobile" class="text-sm font-medium">Dark Mode</span>
-          </button>
-        </div>
+        <div class="px-2 mt-6"><h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3><div id="quickActionsContainerMobile" class="mt-2 space-y-1"></div></div>
+        <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar"><h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3><div id="historyContainerMobile" class="mt-2 space-y-1"></div></div>
+        <div class="p-2 border-t border-gray-200 dark:border-gray-700"><button id="themeToggleMobile" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"><svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg><span id="themeTextMobile" class="text-sm font-medium">Dark Mode</span></button></div>
       </div>
     </div>
 
-    <!-- Delete modal -->
+    <!-- delete modal -->
     <div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50">
       <div class="w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
         <h2 class="text-lg font-bold">Delete Chat?</h2>
@@ -186,484 +167,426 @@
   </div>
 
 <script type="module">
-  /* ------------------ Links & Config ------------------ */
-  const ENGAGE = {
-    landing: "https://bycell.co/ddmnx",
-    jobAssistance: "https://bycell.co/ddnke",
-    trainingOpps: "https://bycell.co/ddnki",
-    resources: "https://bycell.co/ddnkj",
-    careerTips: "https://bycell.co/ddmui",
-    communityResources: "https://bycell.co/ddmua",
-    employmentVerification: "https://bycell.co/ddmwm",
-    events: "https://bycell.co/ddmul",
-    jobOpenings: "https://bycell.co/ddmtq",
-    appointment: "https://bycell.co/ddncs",
-    otherServices: "https://bycell.co/ddmud",
-    trainings: "https://bycell.co/ddmtn"
-  };
+/* ---------------- Config ---------------- */
+const ENGAGE = {
+  landing:"https://bycell.co/ddmnx",
+  jobAssistance:"https://bycell.co/ddnke",
+  trainingOpps:"https://bycell.co/ddnki",
+  resources:"https://bycell.co/ddnkj",
+  careerTips:"https://bycell.co/ddmui",
+  communityResources:"https://bycell.co/ddmua",
+  employmentVerification:"https://bycell.co/ddmwm",
+  events:"https://bycell.co/ddmul",
+  jobOpenings:"https://bycell.co/ddmtq",
+  appointment:"https://bycell.co/ddncs",
+  otherServices:"https://bycell.co/ddmud",
+  trainings:"https://bycell.co/ddmtn"
+};
 
-  const SYSTEM_PROMPT = `You are the TASK Assistant, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on all employment-related topics, including resume writing, interview preparation, job searching, and career development. Be encouraging and break down complex topics into simple steps. You are an expert in techniques like the STAR method. For specific actions like applying for jobs, scheduling appointments, or accessing official resources, guide the user to the 'Engage by Cell' portal.\n\nSpecial Instructions:\n- If a user expresses frustration, anger, uses curse words, or insults you, respond with empathy and understanding. Apologize for their negative experience and gently try to get the conversation back on track.\n- If the user's language suggests a mental health crisis (mentions of self-harm, severe depression), immediately provide the 988 Suicide & Crisis Lifeline number and express care.\n- Use markdown (like **bolding** and bullet points) to make your answers easy to read.\n- When you mention 'Engage by Cell', make it a clickable markdown link like this: [Engage by Cell portal](https://bycell.co/ddmnx).\n- Do not invent URLs or contact information.`;
+const SYSTEM_PROMPT = `You are the TASK Assistant, a friendly, empathetic, professional career guide for Task Employment Services. Use clear, stepwise, practical advice. Use **bold** and bullets for readability. If a user is in crisis, provide 988 and 911. Link to the [Engage by Cell portal](https://bycell.co/ddmnx) when appropriate. Answer in the user's language (English or Spanish).`;
 
-  /* API base (works on localhost and deployed) */
-  const DEPLOY_BASE = 'https://task-assistant-xi.vercel.app';
-  const ON_SAME_SITE = typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
-  const API_BASE = ON_SAME_SITE ? '' : DEPLOY_BASE;
-  const api = (path) => `${API_BASE}${path}`;
+/* API base (works locally and on vercel) */
+const DEPLOY_BASE = 'https://task-assistant-xi.vercel.app';
+const ON_SAME_SITE = typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
+const api = (path) => `${ON_SAME_SITE ? '' : DEPLOY_BASE}${path}`;
 
-  /* ------------------ Theme ------------------ */
-  const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
-  const moonIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
+/* ---------------- Theme ---------------- */
+const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
+const moonIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
 
-  function applyTheme(theme) {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('theme', theme);
-    const isDark = theme === 'dark';
-    const s = document.getElementById('themeIconSplash'); if (s) s.innerHTML = isDark ? sunIcon : moonIcon;
-    const a = document.getElementById('themeIconApp'); const at = document.getElementById('themeTextApp');
-    if (a && at) { a.innerHTML = isDark ? sunIcon : moonIcon; at.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
-    const m = document.getElementById('themeIconMobile'); const mt = document.getElementById('themeTextMobile');
-    if (m && mt) { m.innerHTML = isDark ? sunIcon : moonIcon; mt.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
-  }
-  function toggleTheme(){ applyTheme(localStorage.getItem('theme') === 'dark' ? 'light' : 'dark'); }
+function applyTheme(theme){
+  document.documentElement.classList.toggle('dark', theme==='dark');
+  localStorage.setItem('theme', theme);
+  const isDark = theme==='dark';
+  const i1=document.getElementById('themeIconSplash'); if(i1) i1.innerHTML = isDark?sunIcon:moonIcon;
+  const i2=document.getElementById('themeIconApp'); const t2=document.getElementById('themeTextApp');
+  if(i2&&t2){ i2.innerHTML=isDark?sunIcon:moonIcon; t2.textContent=isDark?'Light Mode':'Dark Mode'; }
+  const i3=document.getElementById('themeIconMobile'); const t3=document.getElementById('themeTextMobile');
+  if(i3&&t3){ i3.innerHTML=isDark?sunIcon:moonIcon; t3.textContent=isDark?'Light Mode':'Dark Mode'; }
+}
+function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark'); }
 
-  /* ------------------ State ------------------ */
-  let currentChatId = null;
-  let allChats = {};
-  let conversationState = { mode: null, step: 0, data: {} };
-  let recognition = null, listening = false;
+/* ---------------- State ---------------- */
+let currentChatId=null;
+let allChats={};
+let conversationState={ mode:null, step:0, data:{} };
+let recognition=null, listening=false;
+let chatToDelete=null;
+let uiLang='en'; // 'en' or 'es' (auto-detected)
 
-  /* ------------------ Boot ------------------ */
-  document.addEventListener('DOMContentLoaded', () => {
-    // Auto language detection (ES if browser language starts with 'es')
-    const langGuess = (navigator?.language || 'en').toLowerCase().startsWith('es') ? 'es' : 'en';
-    setLanguage(localStorage.getItem('lang') || langGuess);
+/* ---------------- Init ---------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(savedTheme);
 
-    // Theme init
-    const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    applyTheme(savedTheme);
+  wireEvents();
+  autosize();
+  updateSendState();
+});
 
-    /* DOM refs */
-    const splash = document.getElementById('splash'), app = document.getElementById('app');
-    const startBtn = document.getElementById('start');
-    const chatBody = document.getElementById('chatBody');
-    const form = document.getElementById('composer'), input = document.getElementById('input'), sendBtn = document.getElementById('send');
-    const micBtn = document.getElementById('mic');
-    const newChatBtn = document.getElementById('newChat'), newChatMobileBtn = document.getElementById('newChatMobile');
-    const menuBtn = document.getElementById('menuBtn'), mobileMenu = document.getElementById('mobileMenu'), closeMenuBtn = document.getElementById('closeMenuBtn');
-    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
-    const deleteModal = document.getElementById('deleteModal'), confirmDeleteBtn = document.getElementById('confirmDelete'), cancelDeleteBtn = document.getElementById('cancelDelete');
-    const themeToggleSplash = document.getElementById('themeToggleSplash');
-    const themeToggleApp = document.getElementById('themeToggleApp');
-    const themeToggleMobile = document.getElementById('themeToggleMobile');
-    const languageSelector = document.getElementById('languageSelector');
+/* ---------------- Events ---------------- */
+function wireEvents(){
+  const splash = document.getElementById('splash'); const app = document.getElementById('app');
+  const startBtn = document.getElementById('start');
+  const input = document.getElementById('input'); const form = document.getElementById('composer'); const sendBtn=document.getElementById('send');
+  const micBtn=document.getElementById('mic');
+  const themeToggleSplash=document.getElementById('themeToggleSplash');
+  const themeToggleApp=document.getElementById('themeToggleApp'); const themeToggleMobile=document.getElementById('themeToggleMobile');
+  const languageSelector=document.getElementById('languageSelector');
+  const newChatBtn=document.getElementById('newChat'); const newChatMobileBtn=document.getElementById('newChatMobile');
+  const menuBtn=document.getElementById('menuBtn'); const mobileMenu=document.getElementById('mobileMenu'); const closeMenuBtn=document.getElementById('closeMenuBtn');
+  const toggleSidebarBtn=document.getElementById('toggleSidebarBtn');
 
-    if(startBtn){
-      startBtn.addEventListener('click', () => {
-        splash?.classList.add('hidden');
-        app?.classList.remove('hidden');
-        renderQuickActions();
-        loadChats();
-        const savedSidebarState = localStorage.getItem('sidebarCollapsed') === 'true';
-        setSidebarState(savedSidebarState);
-        if (Object.keys(allChats).length === 0) startNewChat();
-        else {
-          const latest = Object.keys(allChats).sort((a,b)=> b.split('_')[1]-a.split('_')[1])[0];
-          loadChat(latest);
-        }
-        input?.focus();
-      });
+  startBtn?.addEventListener('click', () => {
+    splash?.classList.add('hidden');
+    app?.classList.remove('hidden');
+    renderQuickActions();
+    loadChats();
+    const savedSidebarState = localStorage.getItem('sidebarCollapsed')==='true';
+    setSidebarState(savedSidebarState);
+    if(Object.keys(allChats).length===0) startNewChat(); else {
+      const latest=Object.keys(allChats).sort((a,b)=>b.split('_')[1]-a.split('_')[1])[0]; loadChat(latest);
     }
-
-    // Listeners
-    themeToggleSplash?.addEventListener('click', toggleTheme);
-    themeToggleApp?.addEventListener('click', toggleTheme);
-    themeToggleMobile?.addEventListener('click', toggleTheme);
-    languageSelector?.addEventListener('change', e => setLanguage(e.target.value));
-
-    if (input) {
-      ['input','change','keyup','paste'].forEach(ev => input.addEventListener(ev, ()=>{ updateSendState(); autosize(); }));
-      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); form?.requestSubmit(); }});
-    }
-    sendBtn?.addEventListener('click', (e)=>{ e.preventDefault(); form?.requestSubmit(); });
-    newChatBtn?.addEventListener('click', startNewChat);
-    newChatMobileBtn?.addEventListener('click', ()=>{ startNewChat(); mobileMenu?.classList.add('hidden'); });
-    menuBtn?.addEventListener('click', ()=> mobileMenu?.classList.remove('hidden'));
-    closeMenuBtn?.addEventListener('click', ()=> mobileMenu?.classList.add('hidden'));
-    mobileMenu?.addEventListener('click', (e)=>{ if(e.target===mobileMenu) mobileMenu.classList.add('hidden'); });
-
-    toggleSidebarBtn?.addEventListener('click', ()=> {
-      const isCollapsed = app?.classList.contains('sidebar-collapsed');
-      setSidebarState(!isCollapsed);
-    });
-
-    cancelDeleteBtn?.addEventListener('click', ()=>{ hideDeleteModal(); });
-    confirmDeleteBtn?.addEventListener('click', ()=> {
-      if (deleteModal.dataset.chatId) deleteChat(deleteModal.dataset.chatId);
-      hideDeleteModal();
-    });
-
-    function hideDeleteModal(){ deleteModal?.classList.add('hidden'); deleteModal?.classList.remove('flex'); deleteModal.dataset.chatId = ''; }
-
-    form?.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const prompt = (input?.value || '').trim();
-      if(!prompt){ updateSendState(); return; }
-
-      if (!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length === 0)) {
-        if (!currentChatId) startNewChat();
-        addMessageToHistory('assistant', "Hello! I'm the TASK Assistant. How can I help you?");
-        renderChat();
-      }
-
-      addMessageToHistory('user', prompt);
-      bubbleMe(prompt);
-      if (input) input.value = '';
-      autosize(); updateSendState(); showChips([]);
-      setStatus('Thinking…');
-      const typing = createTypingIndicator();
-      chatBody?.appendChild(typing);
-      scrollToBottom();
-
-      try {
-        const response = await getSmartResponse(prompt);
-        typing?.remove();
-        addMessageToHistory('assistant', response.text);
-        bubbleBot(response.text);
-        updateChatTitle(prompt);
-        setStatus('');
-      } catch(err){
-        console.error(err);
-        typing?.remove();
-        setStatus(`Error: ${err.message || err}. Please try again.`, true);
-        bubbleBot('Sorry — I could not reach the service. Please try again.');
-        resetConversationState();
-      }
-    });
-
-    micBtn?.addEventListener('click', ()=>{
-      if(!recognition) recognition = initSTT();
-      if(!recognition){ setStatus('Voice input not supported in this browser.', true); return; }
-      if(!listening) recognition.start(); else recognition.stop();
-    });
-
-    updateSendState(); autosize();
+    input?.focus();
   });
 
-  /* ------------------ Helpers ------------------ */
-  function autosize(){ const i=document.getElementById('input'); if(i){ i.style.height='auto'; i.style.height=i.scrollHeight+'px'; } }
-  function updateSendState(){ const i=document.getElementById('input'), s=document.getElementById('send'); if(i&&s){ const h=i.value.trim().length>0; s.disabled=!h; s.setAttribute('aria-disabled', String(!h)); } }
-  function setSidebarState(collapse){
-    const aside=document.querySelector('aside'); const icon=document.getElementById('toggleSidebarIcon'); const app=document.getElementById('app');
-    app?.classList.toggle('sidebar-collapsed', collapse);
-    if(aside){ aside.classList.toggle('w-[280px]', !collapse); aside.classList.toggle('w-0', collapse); aside.classList.toggle('p-3', !collapse); aside.classList.toggle('p-0', collapse); }
-    if(icon){ icon.innerHTML = collapse
-      ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`
-      : `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`; }
-    localStorage.setItem('sidebarCollapsed', String(collapse));
-  }
-  function saveChats(){ localStorage.setItem('allChats', JSON.stringify(allChats)); }
-  function loadChats(){ const saved=localStorage.getItem('allChats'); if(saved) allChats=JSON.parse(saved); renderHistory(); }
-  function loadChat(id){ currentChatId=id; resetConversationState(); renderChat(); renderHistory(); scrollToBottom(true); }
-  function startNewChat(){
-    const exists = Object.values(allChats).find(c=> c.title==='New Chat' && c.history.length===0);
-    if(exists){ loadChat(exists.id); document.getElementById('mobileMenu')?.classList.add('hidden'); return; }
-    currentChatId = `chat_${Date.now()}`;
-    allChats[currentChatId] = { id: currentChatId, title:'New Chat', history:[] };
-    resetConversationState(); renderChat(); renderHistory(); saveChats();
-    const i=document.getElementById('input'); if(i) i.value=''; updateSendState();
-    showChips([
-      { text: 'Help me with my resume' },
-      { text: 'How do I prepare for an interview?' },
-      { text: 'What jobs are available?' }
-    ]);
-  }
-  function resetConversationState(){ conversationState = { mode:null, step:0, data:{} }; }
-  function addMessageToHistory(role, text){ if(!currentChatId||!allChats[currentChatId]) return; allChats[currentChatId].history.push({ role, text }); saveChats(); }
-  function updateChatTitle(prompt){ if(allChats[currentChatId] && allChats[currentChatId].title==='New Chat'){ allChats[currentChatId].title = prompt.split(' ').slice(0,4).join(' '); saveChats(); renderHistory(); } }
-  function renameChat(id, title){ if(allChats[id]){ allChats[id].title = title; saveChats(); renderHistory(); } }
-  function deleteChat(id){ delete allChats[id]; saveChats(); if(currentChatId===id){ currentChatId=null; const sorted=Object.values(allChats).sort((a,b)=> b.id.split('_')[1]-a.id.split('_')[1]); if(sorted.length>0) loadChat(sorted[0].id); else startNewChat(); } else renderHistory(); }
+  themeToggleSplash?.addEventListener('click', toggleTheme);
+  themeToggleApp?.addEventListener('click', toggleTheme);
+  themeToggleMobile?.addEventListener('click', toggleTheme);
 
-  function setStatus(msg, isError=false){ const el=document.getElementById('status'); if(el){ el.textContent=msg; el.className=`mt-2 text-sm text-center ${isError?'text-red-500':'text-gray-500'}`; } }
-  function scrollToBottom(instant=false){ const chat=document.getElementById('chat'); if(chat) chat.scrollTo({ top: chat.scrollHeight, behavior: instant?'instant':'smooth' }); }
-  function setLanguage(lang){
-    localStorage.setItem('lang', lang);
-    const splashTitle=document.getElementById('splashTitle');
-    const splashSubtitle=document.getElementById('splashSubtitle');
-    const startButton=document.getElementById('start');
-    if(lang==='es'){
-      if(splashTitle) splashTitle.textContent='Asistente de TASK';
-      if(splashSubtitle) splashSubtitle.textContent='Su guía de recursos profesionales y comunitarios.';
-      if(startButton) startButton.textContent='Empezar';
-    } else {
-      if(splashTitle) splashTitle.textContent='TASK Assistant';
-      if(splashSubtitle) splashSubtitle.textContent='Your guide to career and community resources.';
-      if(startButton) startButton.textContent='Start';
+  languageSelector?.addEventListener('change', (e)=> setLanguage(e.target.value));
+
+  ['input','change','keyup','paste'].forEach(ev=>{
+    input?.addEventListener(ev, ()=>{ updateSendState(); autosize(); });
+  });
+  input?.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); form?.requestSubmit(); }});
+  sendBtn?.addEventListener('click',(e)=>{ e.preventDefault(); form?.requestSubmit(); });
+
+  form?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const text=(input?.value||'').trim();
+    if(!text) return;
+    // auto language detect on very first user message in this chat if 'auto'
+    if(uiLang==='auto' || uiLang==='pending'){ uiLang = detectLang(text); }
+    if(!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length===0)){
+      if(!currentChatId) startNewChat();
+      addMessageToHistory('assistant', uiLang==='es' ? '¡Hola! Soy el Asistente de TASK. ¿En qué puedo ayudarte?' : "Hello! I'm the TASK Assistant. How can I help you?");
+      renderChat();
     }
-    const sel=document.getElementById('languageSelector'); if(sel) sel.value=lang;
-  }
+    addMessageToHistory('user', text);
+    bubbleMe(text);
+    if(input) input.value='';
+    autosize(); updateSendState(); showChips([]); setStatus('Thinking…');
+    const typing = createTypingIndicator(); document.getElementById('chatBody')?.appendChild(typing); scrollToBottom();
 
-  async function safeGetJSON(url){
-    try{ const r=await fetch(url); if(!r.ok) return { ok:false, error:`HTTP ${r.status}` }; return await r.json(); }
-    catch(e){ return { ok:false, error: e?.message || 'network' }; }
-  }
+    try{
+      const response = await getSmartResponse(text);
+      typing?.remove();
+      addMessageToHistory('assistant', response.text);
+      bubbleBot(response.text);
+      updateChatTitle(text);
+      setStatus('');
+    } catch(err){
+      console.error(err);
+      typing?.remove();
+      setStatus(`Error: ${err.message}. Please try again.`, true);
+      bubbleBot('Sorry — I could not reach the service. Please try again.');
+      resetConversationState();
+    }
+  });
 
-  /* ------------------ Rendering ------------------ */
-  function renderQuickActions(){
-    const actions = [
-      { label:'Schedule Appointment', key:'appointment', icon:'📅' },
-      { label:'Find Jobs', key:'jobOpenings', icon:'🔎' },
-      { label:'Training Programs', key:'trainings', icon:'🎓' },
-      { label:'Community Resources', key:'communityResources', icon:'🏥' },
-      { label:'Plan a Trip', key:'trip', icon:'🚌' }
-    ];
-    const renderInto = (id)=>{
-      const el=document.getElementById(id); if(!el) return; el.innerHTML='';
-      actions.forEach(({label,key,icon})=>{
-        if(key==='trip'){
-          const btn=document.createElement('button');
-          btn.type='button';
-          btn.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-          btn.innerHTML=`<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-          btn.addEventListener('click', ()=>{
-            conversationState.mode='TRIP_PLANNER';
-            conversationState.step=1;
-            bubbleBot('I can help with that. Where are you starting from (origin address or landmark)?');
-          });
-          el.appendChild(btn);
-          return;
-        }
+  micBtn?.addEventListener('click', ()=>{
+    if(!recognition) recognition = initSTT();
+    if(!recognition){ setStatus('Voice input not supported in this browser.', true); return; }
+    if(!listening) recognition.start(); else recognition.stop();
+  });
+
+  newChatBtn?.addEventListener('click', startNewChat);
+  newChatMobileBtn?.addEventListener('click', ()=>{ startNewChat(); mobileMenu?.classList.add('hidden'); });
+  menuBtn?.addEventListener('click', ()=> mobileMenu?.classList.remove('hidden'));
+  closeMenuBtn?.addEventListener('click', ()=> mobileMenu?.classList.add('hidden'));
+  mobileMenu?.addEventListener('click', (e)=> { if(e.target===mobileMenu) mobileMenu.classList.add('hidden'); });
+
+  toggleSidebarBtn?.addEventListener('click', ()=>{
+    const isCollapsed = document.getElementById('app')?.classList.contains('sidebar-collapsed');
+    setSidebarState(!isCollapsed);
+  });
+}
+
+/* ---------------- Language ---------------- */
+function setLanguage(value){
+  // splash copy
+  const t=document.getElementById('splashTitle'), s=document.getElementById('splashSubtitle'), b=document.getElementById('start');
+  uiLang = value==='auto' ? 'pending' : value;
+  if(uiLang==='es'){ if(t) t.textContent='Asistente de TASK'; if(s) s.textContent='Su guía de recursos profesionales y comunitarios.'; if(b) b.textContent='Empezar'; }
+  else { if(t) t.textContent='TASK Assistant'; if(s) s.textContent='Your guide to career and community resources.'; if(b) b.textContent='Start'; }
+}
+function detectLang(text){
+  const esHits = (text.match(/[áéíóúñ¿¡]/gi)||[]).length +
+                 (text.match(/\b(que|para|con|gracias|hola|buen[oa]s|quiero|necesito|dónde|cómo|cuándo|por favor)\b/gi)||[]).length;
+  return esHits>=1 ? 'es' : 'en';
+}
+
+/* ---------------- Helpers ---------------- */
+function autosize(){ const i=document.getElementById('input'); if(i){ i.style.height='auto'; i.style.height=i.scrollHeight+'px'; } }
+function updateSendState(){ const i=document.getElementById('input'), s=document.getElementById('send'); if(i&&s){ const ok=i.value.trim().length>0; s.disabled=!ok; s.setAttribute('aria-disabled', String(!ok)); } }
+function setStatus(msg, isError=false){ const el=document.getElementById('status'); if(el){ el.textContent=msg; el.className=`mt-2 text-sm text-center ${isError?'text-red-500':'text-gray-500'}`; } }
+function saveChats(){ localStorage.setItem('allChats', JSON.stringify(allChats)); }
+function loadChats(){ const saved=localStorage.getItem('allChats'); if(saved) allChats=JSON.parse(saved); renderHistory(); }
+function loadChat(id){ currentChatId=id; resetConversationState(); renderChat(); renderHistory(); scrollToBottom(true); }
+function startNewChat(){
+  currentChatId=`chat_${Date.now()}`;
+  allChats[currentChatId]={ id:currentChatId, title:'New Chat', history:[] };
+  resetConversationState(); renderChat(); renderHistory(); saveChats();
+  document.getElementById('input').value=''; updateSendState();
+  showChips([
+    {text: 'Help me with my resume'},
+    {text: 'How do I prepare for an interview?'},
+    {text: 'What jobs are available?'},
+    {text: 'Plan a bus/train trip'}
+  ]);
+}
+function resetConversationState(){ conversationState={ mode:null, step:0, data:{} }; }
+function addMessageToHistory(role,text){ if(!currentChatId||!allChats[currentChatId]) return; allChats[currentChatId].history.push({role,text}); saveChats(); }
+function updateChatTitle(prompt){ if(allChats[currentChatId] && allChats[currentChatId].title==='New Chat'){ allChats[currentChatId].title = prompt.split(' ').slice(0,4).join(' '); saveChats(); renderHistory(); } }
+function renameChat(id,title){ if(allChats[id]){ allChats[id].title=title; saveChats(); renderHistory(); } }
+function deleteChat(id){ delete allChats[id]; saveChats(); if(currentChatId===id){ const sorted=Object.values(allChats).sort((a,b)=>b.id.split('_')[1]-a.id.split('_')[1]); if(sorted.length>0) loadChat(sorted[0].id); else startNewChat(); } else renderHistory(); }
+function scrollToBottom(instant=false){ const c=document.getElementById('chat'); if(c) c.scrollTo({ top:c.scrollHeight, behavior: instant?'instant':'smooth' }); }
+async function safeGetJSON(url){ try{ const r=await fetch(url); if(!r.ok) return {ok:false, error:`HTTP ${r.status}`}; return await r.json(); }catch(e){ return {ok:false, error:e?.message||'network'}; } }
+function setSidebarState(collapsed){
+  const app=document.getElementById('app'); if(app) app.classList.toggle('sidebar-collapsed', collapsed);
+  localStorage.setItem('sidebarCollapsed', String(collapsed));
+  const icon=document.getElementById('toggleSidebarIcon'); if(icon) icon.innerHTML = collapsed
+    ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`
+    : `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`;
+}
+
+/* ---------------- Rendering ---------------- */
+function renderQuickActions(){
+  const actions = [
+    { label:'Schedule Appointment', key:'appointment', icon:'📅' },
+    { label:'Find Jobs', key:'jobOpenings', icon:'🔎' },
+    { label:'Training Programs', key:'trainings', icon:'🎓' },
+    { label:'Community Resources', key:'communityResources', icon:'🏥' },
+    { label:'Plan a Trip', key:'trip', icon:'🚌' }
+  ];
+  const renderInto = (id)=>{
+    const el=document.getElementById(id); if(!el) return; el.innerHTML='';
+    actions.forEach(({label,key,icon})=>{
+      if(key==='trip'){
+        const btn=document.createElement('button'); btn.type='button';
+        btn.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+        btn.innerHTML=`<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+        btn.addEventListener('click', ()=>{
+          conversationState.mode='TRIP_PLANNER'; conversationState.step=1;
+          bubbleBot('I can help with that. Where are you starting from (origin address or landmark)?');
+        });
+        el.appendChild(btn);
+      }else{
         const href=ENGAGE[key]; if(!href) return;
         const a=document.createElement('a');
         a.href=href; a.target='_blank'; a.rel='noopener noreferrer';
         a.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-        a.innerHTML=`<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+        a.innerHTML=`<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
         el.appendChild(a);
-      });
-    };
-    renderInto('quickActionsContainer');
-    renderInto('quickActionsContainerMobile');
-  }
-
-  function renderChat(){
-    const body=document.getElementById('chatBody'); if(!body) return;
-    body.innerHTML='';
-    const history=(currentChatId && allChats[currentChatId]) ? allChats[currentChatId].history : [];
-    if(!history || history.length===0){
-      const welcome=document.createElement('div');
-      welcome.id='welcomeScreen';
-      welcome.className='flex flex-col items-center justify-center h-full text-center';
-      welcome.innerHTML=`<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>`;
-      body.appendChild(welcome);
-      return;
-    }
-    history.forEach(m => { if(m.role==='user') bubbleMe(m.text,false); else bubbleBot(m.text,false); });
-    scrollToBottom(true);
-  }
-
-  function renderHistory(){
-    const pc=document.getElementById('historyContainer');
-    const mob=document.getElementById('historyContainerMobile');
-    const items = Object.values(allChats).sort((a,b)=> (b.id||'').localeCompare(a.id||''));
-    const draw = (el)=>{
-      if(!el) return; el.innerHTML='';
-      items.forEach(chat=>{
-        const row=document.createElement('div');
-        row.className=`history-item group flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${chat.id===currentChatId?'bg-brand/20':''}`;
-        row.innerHTML=`<button class="title text-left flex-1 truncate" title="${chat.title}">${chat.title}</button><div class="history-item-actions flex gap-2"><button class="rename-btn text-xs underline">Rename</button><button class="delete-btn text-xs text-red-600 underline">Delete</button></div>`;
-        row.querySelector('.title')?.addEventListener('click', ()=> loadChat(chat.id));
-        row.querySelector('.rename-btn')?.addEventListener('click', ()=>{ const t=prompt('Rename chat:', chat.title); if(t) renameChat(chat.id, t); });
-        row.querySelector('.delete-btn')?.addEventListener('click', ()=>{ const m=document.getElementById('deleteModal'); if(m){ m.classList.remove('hidden'); m.classList.add('flex'); m.dataset.chatId = chat.id; } });
-        el.appendChild(row);
-      });
-    };
-    draw(pc); draw(mob);
-  }
-
-  function bubbleMe(text, doScroll=true){
-    const body=document.getElementById('chatBody'); if(!body) return;
-    document.getElementById('welcomeScreen')?.remove();
-    const wrap=document.createElement('div');
-    wrap.className='mb-3 flex justify-end';
-    wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${renderSmart(text)}</div>`;
-    body.appendChild(wrap);
-    if(doScroll) scrollToBottom();
-  }
-  function bubbleBot(text, doScroll=true){
-    const body=document.getElementById('chatBody'); if(!body) return;
-    document.getElementById('welcomeScreen')?.remove();
-    const wrap=document.createElement('div');
-    wrap.className='group mb-3 flex justify-start';
-    wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow prose dark:prose-invert prose-p:my-2 first:prose-p:mt-0 last:prose-p:mb-0">${renderSmart(text)}</div>`;
-    body.appendChild(wrap);
-    if(doScroll) scrollToBottom();
-  }
-  function showChips(chips=[]){
-    const s=document.getElementById('suggestions'); if(!s) return; s.innerHTML='';
-    chips.forEach(c=>{
-      const btn=document.createElement('button');
-      btn.type='button';
-      btn.className='px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50';
-      btn.textContent=c.text;
-      btn.addEventListener('click', ()=>{ const i=document.getElementById('input'); if(i) i.value=c.text; updateSendState(); i?.focus(); });
-      s.appendChild(btn);
+      }
     });
+  };
+  renderInto('quickActionsContainer'); renderInto('quickActionsContainerMobile');
+}
+
+function renderHistory(){
+  const cont=document.getElementById('historyContainer'); const mob=document.getElementById('historyContainerMobile');
+  const items=Object.values(allChats).sort((a,b)=>(b.id||'').localeCompare(a.id||''));
+  const draw=(el)=>{ if(!el) return; el.innerHTML=''; items.forEach(chat=>{
+    const row=document.createElement('div');
+    row.className=`history-item group flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${chat.id===currentChatId?'bg-brand/20':''}`;
+    row.innerHTML=`<button class="text-left flex-1 truncate" title="${chat.title}">${chat.title}</button>
+                   <div class="flex gap-2 opacity-100"><button class="rename-btn text-xs underline">Rename</button><button class="delete-btn text-xs text-red-600 underline">Delete</button></div>`;
+    row.querySelector('button.truncate')?.addEventListener('click', ()=>loadChat(chat.id));
+    row.querySelector('.rename-btn')?.addEventListener('click', ()=>{ const t=prompt('Rename chat:',chat.title); if(t) renameChat(chat.id,t); });
+    row.querySelector('.delete-btn')?.addEventListener('click', ()=>{ if(confirm('Delete this chat?')) deleteChat(chat.id); });
+    el.appendChild(row);
+  });};
+  draw(cont); draw(mob);
+}
+
+function renderChat(){
+  const body=document.getElementById('chatBody'); if(!body) return;
+  body.innerHTML='';
+  const history=allChats[currentChatId]?.history||[];
+  if(history.length===0){
+    const welcome=document.createElement('div'); welcome.id='welcomeScreen';
+    welcome.className='flex flex-col items-center justify-center h-full text-center';
+    welcome.innerHTML=`<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div><h1 class="text-2xl font-bold">How can I help you today?</h1>`;
+    body.appendChild(welcome); return;
   }
-  function createTypingIndicator(){ const i=document.createElement('div'); i.className='flex items-center gap-2 ml-11'; i.innerHTML=`<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`; return i; }
-  function renderSmart(text){
-    const esc=s=>s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
-    let html=esc(text);
-    html=html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, `<a class="underline" href="$2" target="_blank" rel="noopener noreferrer">$1</a>`);
-    html=html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    html=html.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('');
-    return html;
+  history.forEach(m=>{ if(m.role==='user') bubbleMe(m.text,false); else bubbleBot(m.text,false); });
+  scrollToBottom(true);
+}
+
+function bubbleMe(text, doScroll=true){
+  const body=document.getElementById('chatBody'); if(!body) return; document.getElementById('welcomeScreen')?.remove();
+  const wrap=document.createElement('div'); wrap.className='mb-3 flex justify-end';
+  wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${renderSmart(text)}</div>`;
+  body.appendChild(wrap); if(doScroll) scrollToBottom();
+}
+function bubbleBot(text, doScroll=true){
+  const body=document.getElementById('chatBody'); if(!body) return; document.getElementById('welcomeScreen')?.remove();
+  const wrap=document.createElement('div'); wrap.className='mb-3 flex justify-start';
+  wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow prose dark:prose-invert">${renderSmart(text)}</div>`;
+  body.appendChild(wrap); if(doScroll) scrollToBottom();
+}
+function createTypingIndicator(){ const i=document.createElement('div'); i.className='flex items-center gap-2 ml-2'; i.innerHTML=`<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`; return i; }
+function showChips(chips=[]){ const s=document.getElementById('suggestions'); if(!s) return; s.innerHTML=''; chips.forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.className='px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50'; b.textContent=c.text; b.addEventListener('click',()=>{ const i=document.getElementById('input'); if(i){ i.value=c.text; updateSendState(); i.focus(); } }); s.appendChild(b); }); }
+
+/* Markdown-lite renderer with headings/lists */
+function renderSmart(text){
+  const esc=(s)=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+  let t=esc(text).trim();
+  t=t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a class="underline" href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  t=t.replace(/^### (.+)$/gm,'<h3 class="font-semibold mt-2 mb-1">$1</h3>');
+  t=t.replace(/^## (.+)$/gm,'<h2 class="font-bold text-lg mt-2 mb-1">$1</h2>');
+  t=t.replace(/^# (.+)$/gm,'<h1 class="font-extrabold text-xl mt-2 mb-1">$1</h1>');
+  t=t.replace(/(^|\n)(\d+)\. (.*?)(?=\n\d+\. |\n*$)/gs,(m,a,n,block)=>{ const items=block.split(/\n\d+\. /g).map(li=>li.trim()).filter(Boolean).map(li=>`<li class="ml-5">${li}</li>`).join(''); return `${a}<ol class="list-decimal pl-5 my-2">${items}</ol>`; });
+  t=t.replace(/(^|\n)([*-]) (.*?)(?=\n[*-] |\n\d+\. |\n*$)/gs,(m,a,b,block)=>{ const items=block.split(/\n[*-] /g).map(li=>li.trim()).filter(Boolean).map(li=>`<li class="ml-5">${li}</li>`).join(''); return `${a}<ul class="list-disc pl-5 my-2">${items}</ul>`; });
+  t=t.split(/\n{2,}/).map(p=>{ if(/^<h\d|^<ul|^<ol/.test(p.trim())) return p; return `<p class="my-2">${p.trim().replace(/\n/g,'<br/>')}</p>`; }).join('');
+  return t;
+}
+
+/* ---------------- Conversation Router ---------------- */
+async function getSmartResponse(prompt){
+  const p=prompt.toLowerCase();
+  const has=(words)=>words.some(w=>new RegExp(`\\b${w}\\b`,'i').test(p));
+
+  if(conversationState.mode) return handleGuidedConversation(prompt);
+
+  // safety/compassion cues
+  if(has(['suicide','kill myself','hurt myself','end my life'])){
+    return { text: uiLang==='es'
+      ? '**Si estás en peligro inmediato, llama al 911.** También puedes llamar o enviar un mensaje al **988** para hablar con alguien ahora mismo. Estoy aquí para ayudarte.'
+      : '**If you\'re in immediate danger, call 911.** You can also call or text **988** to talk with someone right now. I\'m here with you and want to help.' };
   }
 
-  function initSTT(){
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR) return null;
-    const r=new SR(); r.lang='en-US'; r.interimResults=true; r.continuous=false;
-    r.onstart=()=>{ listening=true; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>`; };
-    r.onend=()=>{ listening=false; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
-    r.onresult=e=>{ let txt=''; for(let i=e.resultIndex;i<e.results.length;i++) txt+=e.results[i][0].transcript; const inp=document.getElementById('input'); if(inp){ inp.value=txt; updateSendState(); autosize(); } };
-    return r;
+  // Trip planner intent
+  if(has(['trip','directions','bus route','transit','get to','plan a trip'])){
+    conversationState.mode='TRIP_PLANNER'; conversationState.step=1;
+    return { text: 'I can help with that. Where are you starting from (origin address or landmark)?' };
   }
 
-  /* ------------------ Guided Flows ------------------ */
-  async function handleGuidedConversation(prompt){
-    if(conversationState.mode==='TRIP_PLANNER') return handleTripPlanner(prompt);
+  // Trainings
+  if(has(['training','trainings','class','classes','culinary','sora','forklift','certification'])){
+    setStatus('Checking our program schedule...');
+    const result = await safeGetJSON(api('/api/trainings'));
+    let context = 'There are currently no training programs scheduled.';
+    if(result.ok && Array.isArray(result.data) && result.data.length>0){
+      context = 'Here is a list of our current training programs:\n\n' + result.data.map(t=>(
+        `* **${t.name}** — ${t.description || 'Details coming soon.'}\n  * Schedule: ${t.schedule || 'N/A'}\n  * Next start: ${t.next_start_date ? new Date(t.next_start_date).toLocaleDateString() : 'TBA'}\n  * Apply: ${t.signup_link || 'Contact TASK'}\n`
+      )).join('\n');
+    } else if(!result.ok){
+      context = `Couldn’t load the live schedule (reason: ${result.error}). Point users to ${ENGAGE.trainings}`;
+    }
+    const finalPrompt = `LANG=${uiLang}\nCONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question: "${prompt}" with clear bullets.`;
+    return getGenerativeResponse(finalPrompt);
+  }
+
+  // Jobs
+  if(has(['job','jobs','opening','hiring','apply'])){
+    setStatus('Checking our featured jobs list...');
+    const result = await safeGetJSON(api('/api/jobs'));
+    let context = 'There are currently no featured jobs from our partners.';
+    if(result.ok && Array.isArray(result.data) && result.data.length>0){
+      context = 'Here are our current featured jobs:\n\n' + result.data.map(j=>(
+        `* **${j.title}** at ${j.company}${j.location?` (${j.location})`:''}. ${j.apply_link?`[Apply Here](${j.apply_link})`:''}`
+      )).join('\n');
+    } else if(!result.ok){
+      context = `Couldn’t load the featured jobs (reason: ${result.error}). Link users to ${ENGAGE.jobOpenings}`;
+    }
+    const finalPrompt = `LANG=${uiLang}\n${context}\n\nSummarize the jobs and offer next steps.`;
+    return getGenerativeResponse(finalPrompt);
+  }
+
+  // Resources
+  if(has(['resource','resources','food','pantry','housing','shelter','legal','support'])){
+    setStatus('Looking up community resources...');
+    const result = await safeGetJSON(api('/api/resources'));
+    let context = 'No community resources are listed at this time.';
+    if(result.ok && Array.isArray(result.data) && result.data.length>0){
+      context = 'Here is a list of community resources:\n\n' + result.data.map(r=>(
+        `* **${r.name}** (${r.category}) — ${r.description || ''} ${r.website?`[Website](${r.website})`:''} ${r.phone_number?`Tel: ${r.phone_number}`:''}`
+      )).join('\n');
+    } else if(!result.ok){
+      context = `Couldn’t load community resources (reason: ${result.error}). Suggest ${ENGAGE.communityResources}`;
+    }
+    const finalPrompt = `LANG=${uiLang}\n${context}\n\nAnswer the user's question about resources with clear bullets and links.`;
+    return getGenerativeResponse(finalPrompt);
+  }
+
+  // Events
+  if(has(['event','events','job fair','workshop'])){
+    setStatus('Checking for upcoming events...');
+    const result = await safeGetJSON(api('/api/events'));
+    let context = 'There are currently no events scheduled.';
+    if(result.ok && Array.isArray(result.data) && result.data.length>0){
+      context = 'Upcoming events:\n\n' + result.data.map(e=>(
+        `* **${e.name}** — ${e.event_date ? new Date(e.event_date).toLocaleString() : ''} ${e.description?`— ${e.description}`:''}`
+      )).join('\n');
+    } else if(!result.ok){
+      context = `Couldn’t load events (reason: ${result.error}). Link users to ${ENGAGE.events}`;
+    }
+    const finalPrompt = `LANG=${uiLang}\n${context}\n\nSummarize in the chosen language.`;
+    return getGenerativeResponse(finalPrompt);
+  }
+
+  return getGenerativeResponse(prompt);
+}
+
+/* Guided flows */
+async function handleGuidedConversation(prompt){
+  if(conversationState.mode==='TRIP_PLANNER') return handleTripPlanner(prompt);
+  resetConversationState(); return getGenerativeResponse(prompt);
+}
+async function handleTripPlanner(prompt){
+  const step=conversationState.step;
+  if(step===1){
+    conversationState.data.origin=prompt; conversationState.step=2;
+    return { text:'Got it. And where are you trying to go (destination address or landmark)?' };
+  }
+  if(step===2){
+    conversationState.data.destination=prompt;
+    const origin=encodeURIComponent(conversationState.data.origin);
+    const destination=encodeURIComponent(conversationState.data.destination);
+    const njt = `https://www.njtransit.com/trip-planner-to?origin_text=${origin}&destination_text=${destination}`;
+    const gmaps = `https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=${origin}&destination=${destination}`;
+    const text = `Great! Here are your options:\n\n- [Open in NJ Transit Trip Planner](${njt})\n- [Open in Google Maps (Transit)](${gmaps})`;
     resetConversationState();
-    return getGenerativeResponse(prompt);
+    return { text };
   }
+}
 
-  // NJ Transit trip planner deep-linking
-  async function handleTripPlanner(prompt){
-    const step = conversationState.step;
-    if(step===1){
-      conversationState.data.origin = prompt;
-      conversationState.step = 2;
-      return { text: "Got it. And where are you trying to go (destination address or landmark)?" };
-    }
-    if(step===2){
-      conversationState.data.destination = prompt;
-
-      // Build a robust link. NJT reads *_text reliably; we also pass origin/destination for good measure.
-      const origin = encodeURIComponent(conversationState.data.origin);
-      const destination = encodeURIComponent(conversationState.data.destination);
-      const now = new Date();
-      const date = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()}`;
-      const time = now.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-
-      const tripUrl = `https://www.njtransit.com/trip-planner-to?origin=${origin}&origin_text=${origin}&destination=${destination}&destination_text=${destination}&depart_at=${encodeURIComponent(`${date} ${time}`)}`;
-
-      const text = `Great! Here is the link to see the best routes on the official NJ Transit website with your trip details pre-filled:\n\n[View my trip directions](${tripUrl})`;
-      resetConversationState();
-      return { text };
-    }
+/* ---------------- AI call ---------------- */
+async function getGenerativeResponse(prompt){
+  const body = { prompt, systemPrompt: SYSTEM_PROMPT, lang: uiLang };
+  const r = await fetch(api('/api/ai'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if(!r.ok){
+    const errTxt = await r.text().catch(()=>r.statusText);
+    throw new Error(`API Error ${r.status}: ${errTxt}`);
   }
+  const result = await r.json();
+  return result.ok && result.text ? { text: result.text } : { text: "I'm sorry, I couldn't generate a response." };
+}
 
-  /* ------------------ Router ------------------ */
-  async function getSmartResponse(prompt){
-    const p = prompt.toLowerCase();
-    const hasWord = (words)=> words.some(w=> new RegExp(`\\b${w}\\b`, 'i').test(p));
-
-    if(conversationState.mode) return handleGuidedConversation(prompt);
-
-    // Safety/Empathy
-    if(hasWord(['kill myself','hurt myself','suicide','end my life'])){
-      return { text: "It sounds like you’re in immediate distress. You matter and you’re not alone. Please call 911 for emergencies, or call/text **988** to reach the Suicide & Crisis Lifeline right now. If you’d like, I can also share local support resources." };
-    }
-    if(hasWord(['hate this','awful','not helpful','useless','stupid',"doesn't work",'frustrated','angry'])){
-      return { text: "I’m really sorry this has been frustrating. I appreciate you sticking with it—let me try again in a clearer way, or you can call us directly at **(609) 337-1624** for help right away. What would you like to do next?" };
-    }
-
-    // Trip planner
-    if(hasWord(['trip','directions','bus route','transit','get to','plan a trip','route'])){
-      conversationState.mode = 'TRIP_PLANNER';
-      conversationState.step = 1;
-      return { text: "I can help with that. Where are you starting from (origin address or landmark)?" };
-    }
-
-    // Trainings
-    if(hasWord(['training','trainings','class','classes','culinary','sora','forklift','certification'])){
-      setStatus('Checking our program schedule...');
-      const result = await safeGetJSON(api('/api/trainings'));
-      let context = "There are currently no training programs scheduled.";
-      if(result.ok && result.data?.length){
-        context = "Here is a list of our current training programs:\n\n" + result.data.map(t => {
-          const nsd = t.next_start_date ? new Date(t.next_start_date).toLocaleDateString('en-US',{month:'long', day:'numeric', year:'numeric'}) : 'TBD';
-          const aws = t.app_window_start ? new Date(t.app_window_start).toLocaleDateString('en-US',{month:'short', day:'numeric'}) : 'TBD';
-          const awe = t.app_window_end ? new Date(t.app_window_end).toLocaleDateString('en-US',{month:'short', day:'numeric'}) : 'TBD';
-          return `* **${t.name}** — ${t.description || 'No description.'}\n  * Schedule: ${t.schedule || 'TBD'}\n  * Next Start Date: ${nsd}. ${t.start_date_note || ''}\n  * Application Window: ${aws} → ${awe}\n  * Requirements: ${t.requirements || 'N/A'}\n  * Signup: ${t.signup_link || 'Contact TASK'}`;
-        }).join('\n');
-      } else if (!result.ok) {
-        context = `Couldn’t load the live schedule (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.trainings}`;
-      }
-      const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question: "${prompt}"`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    // Jobs
-    if(hasWord(['job','jobs','opening','hiring','apply'])){
-      setStatus('Checking our featured jobs list...');
-      const result = await safeGetJSON(api('/api/jobs'));
-      let context = "There are currently no featured jobs from our partners.";
-      if(result.ok && result.data?.length){
-        context = "Here are our current featured jobs:\n\n" + result.data.map(j => `* **${j.title}** at ${j.company}${j.location ? ' ('+j.location+')' : ''}. ${j.apply_link ? `[Apply here](${j.apply_link})` : ''}`).join('\n');
-      } else if (!result.ok) {
-        context = `Couldn’t load the featured jobs (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.jobOpenings}`;
-      }
-      const finalPrompt = `A user is asking about jobs. Present the featured jobs from the context. Then, ask if they want you to perform a broader, live search for more jobs online.\n\nCONTEXT:\n${context}\n\nUSER'S QUESTION: "${prompt}"`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    // Resources
-    if(hasWord(['resource','resources','food','pantry','housing','shelter','legal','support'])){
-      setStatus('Looking up community resources...');
-      const result = await safeGetJSON(api('/api/resources'));
-      let context = "No community resources are listed at this time.";
-      if(result.ok && result.data?.length){
-        context = "Here is a list of community resources:\n\n" + result.data.map(r => `* **${r.name}** (${r.category || r.provider || 'Resource'}): ${r.description || ''} ${r.website ? `Website: ${r.website}` : ''} ${r.phone_number ? `Phone: ${r.phone_number}` : ''}`).join('\n');
-      } else if (!result.ok) {
-        context = `Couldn’t load community resources (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.communityResources}`;
-      }
-      const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about resources: "${prompt}"`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    // Events
-    if(hasWord(['event','events','job fair','workshop'])){
-      setStatus('Checking for upcoming events...');
-      const result = await safeGetJSON(api('/api/events'));
-      let context = "There are currently no events scheduled.";
-      if(result.ok && result.data?.length){
-        context = "Here are the upcoming events:\n\n" + result.data.map(e => {
-          const dt = e.event_date ? new Date(e.event_date) : null;
-          return `* **${e.name}**${dt ? ` on ${dt.toLocaleString('en-US',{ dateStyle:'full', timeStyle:'short' })}` : ''}. ${e.signup_link ? `[Sign up](${e.signup_link})` : ''}`;
-        }).join('\n');
-      } else if (!result.ok) {
-        context = `Couldn’t load the event schedule (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.events}`;
-      }
-      const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about events: "${prompt}"`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    // Default: model
-    return getGenerativeResponse(prompt);
-  }
-
-  /* ------------------ Generative API ------------------ */
-  async function getGenerativeResponse(prompt){
-    const r = await fetch(api('/api/ai'), {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
-    });
-    if(!r.ok){
-      const body = await r.text();
-      throw new Error(`API Error ${r.status}: ${body}`);
-    }
-    const data = await r.json();
-    return data.ok && data.text ? { text: data.text } : { text: "I'm sorry, I couldn't generate a response." };
-  }
+/* ---------------- Speech ---------------- */
+function initSTT(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return null;
+  const r=new SR(); r.lang = uiLang==='es'?'es-ES':'en-US'; r.interimResults=true; r.continuous=false;
+  r.onstart=()=>{ listening=true; document.getElementById('micIcon').classList.add('text-red-500'); };
+  r.onend=()=>{ listening=false; document.getElementById('micIcon').classList.remove('text-red-500'); };
+  r.onresult=(e)=>{ let txt=''; for(let i=e.resultIndex;i<e.results.length;i++) txt+=e.results[i][0].transcript; const input=document.getElementById('input'); input.value=txt; updateSendState(); autosize(); };
+  return r;
+}
 </script>
 </body>
 </html>
