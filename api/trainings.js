@@ -1,25 +1,20 @@
-import { getSupabase } from './_supabase';
-export const config = { runtime: 'nodejs' };
+// /api/trainings.js
+import { getServiceClient } from './supabase';
+export const config = { runtime: 'edge' };
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ ok:false, error:'Method Not Allowed' });
-
+export default async function handler() {
   try {
-    const supabase = getSupabase();
+    const supabase = getServiceClient();
     const { data, error } = await supabase
       .from('trainings')
-      .select('*')
+      .select('id,name,description,schedule,next_start_date,app_window_start,app_window_end,requirements,signup_link,is_active,start_date_note')
       .eq('is_active', true)
       .order('next_start_date', { ascending: true })
-      .limit(50);
+      .limit(25);
 
     if (error) throw error;
-    res.status(200).json({ ok:true, data: data ?? [] });
+    return new Response(JSON.stringify({ ok: true, data }), { status: 200 });
   } catch (e) {
-    res.status(500).json({ ok:false, error: e.message || 'server_error' });
+    return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 500 });
   }
 }
