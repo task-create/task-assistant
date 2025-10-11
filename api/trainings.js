@@ -1,20 +1,22 @@
-import { createClient } from '@supabase/supabase-js';
+import { getClient, setCors } from './_db';
+
 export const config = { runtime: 'nodejs' };
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method Not Allowed' });
+  setCors(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
+    const supabase = getClient();
+    // adjust table/columns to your schema
     const { data, error } = await supabase
       .from('trainings')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .select('id,name,description,schedule,next_start_date,app_window_start,app_window_end,requirements,start_date_note')
+      .order('next_start_date', { ascending: true });
+
     if (error) throw error;
-    return res.status(200).json({ ok: true, data });
-  } catch (error) {
-    console.error('Error fetching trainings:', error.message);
-    return res.status(500).json({ ok: false, error: error.message });
+    res.status(200).json({ ok: true, data: data || [] });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
   }
 }
