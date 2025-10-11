@@ -1,19 +1,53 @@
 // /api/jobs.js
 export const config = { runtime: 'nodejs' };
-import { sb, withCors } from './_supabase';
+
+function setCors(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+}
+
+async function pgSelect(path) {
+  const url = process.env.SUPABASE_URL;
+  const anon = process.env.SUPABASE_ANON_KEY;
+  if (!url || !anon) throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY');
+
+  const r = await fetch(`${url}/rest/v1/${path}`, {
+    headers: {
+      apikey: anon,
+      Authorization: `Bearer ${anon}`,
+      Prefer: 'count=exact',
+    },
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error(`PostgREST ${r.status}: ${t}`);
+  }
+  return r.json();
+}
 
 export default async function handler(req, res) {
-  withCors(res);
+  setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+
   try {
-    const { data, error } = await sb()
-      .from('jobs')
-      .select('title, company, apply_link')
-      .order('created_at', { ascending: false })
-      .limit(25);
-    if (error) throw error;
-    return res.status(200).json({ ok: true, data });
+    // Show active jobs first, then recent
+    const rows = await pgSelect('jobs?select=*&order=is_active.desc,created_at.desc');
+
+    const data = (rows || []).map((j) => ({
+      title: j.title || '',
+      company: j.company || '',
+      location: j.location || '',
+      description: j.description || '',
+      apply_link: j.apply_link || '',
+      is_active: j.is_active ?? true,
+      expiration_date: j.expiration_dat ?? j.expiration_date ?? null,
+      created_at: j.created_at || null,
+    }));
+
+    res.status(200).json({ ok: true, data });
   } catch (e) {
-    return res.status(500).json({ ok:false, error: e.message });
+    res.status(500).json({ ok: false, error: e.message || 'query failed' });
   }
 }
