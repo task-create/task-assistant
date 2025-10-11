@@ -1,45 +1,52 @@
-// /api/ai.js
+// /api/ai.js  (Edge function)
 export const config = { runtime: 'edge' };
 
-export default async function handler(req) {
-  try {
-    if (req.method !== 'POST') {
-      return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), { status: 405 });
-    }
+const MODEL = 'gemini-1.5-flash-latest'; // or 'gemini-1.5-pro-latest'
+const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
+export default async function handler(req) {
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), { status: 405 });
+  }
+
+  try {
     const { prompt, systemPrompt } = await req.json();
 
-    const API_KEY = process.env.GEMINI_API_KEY;
-    if (!API_KEY) {
-      return new Response(JSON.stringify({ ok: false, error: 'Missing GEMINI_API_KEY' }), { status: 500 });
+    if (!process.env.GOOGLE_API_KEY) {
+      return new Response(JSON.stringify({ ok: false, error: 'Missing GOOGLE_API_KEY' }), { status: 500 });
     }
     if (!prompt || typeof prompt !== 'string') {
       return new Response(JSON.stringify({ ok: false, error: 'Missing prompt' }), { status: 400 });
     }
 
-    const model = 'gemini-1.5-flash'; // change to gemini-1.5-pro if you prefer
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+    // Build a simple, valid payload for v1beta generateContent
+    const userText = systemPrompt
+      ? `SYSTEM INSTRUCTIONS:\n${systemPrompt}\n\nUSER:\n${prompt}`
+      : prompt;
 
-    // VALID ROLES ONLY: "user" and "model"
-    const body = {
-      system_instruction: systemPrompt ? { parts: [{ text: systemPrompt }] } : undefined,
-      contents: [{ role: 'user', parts: [{ text: prompt }] }]
-    };
-
-    const r = await fetch(url, {
+    const r = await fetch(`${ENDPOINT}?key=${process.env.GOOGLE_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        contents: [
+          { role: 'user', parts: [{ text: userText }] } // valid roles: user|model
+        ],
+        generationConfig: {
+          temperature: 0.6,
+          topP: 0.95,
+        }
+      })
     });
 
-    const data = await r.json();
     if (!r.ok) {
-      return new Response(
-        JSON.stringify({ ok: false, error: `Gemini error ${r.status}: ${JSON.stringify(data)}` }),
-        { status: 502 }
-      );
+      const body = await r.text();
+      return new Response(JSON.stringify({
+        ok: false,
+        error: `Gemini error ${r.status}: ${body}`
+      }), { status: 502 });
     }
 
+    const data = await r.json();
     const text =
       data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') ||
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
