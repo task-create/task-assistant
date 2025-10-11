@@ -1,14 +1,39 @@
-// /supabase.js  — runs in the browser (ESM)
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// /api/supabase.js
+import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://yamqxbmckcaaltswxmny.supabase.co';
-// anon key is client-safe (RLS protects data)
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhbXF4Ym1ja2NhYWx0c3d4bW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMTcxODEsImV4cCI6MjA3NTY5MzE4MX0.KqBwtiCFsu6mwFqiSIV5wmuh7C00-uPK4CADY29r0ws';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; // optional (for ingest/cron)
 
-let _sb;
-export async function getSupabase() {
-  if (_sb) return _sb;
-  _sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-  return _sb;
+function assertEnv(url, key) {
+  if (!url || !key) {
+    throw new Error('Missing Supabase environment variables (SUPABASE_URL / SUPABASE_ANON_KEY).');
+  }
+}
+
+/**
+ * getSupabase('anon')   -> RLS-safe reads (default)
+ * getSupabase('service')-> privileged writes/ingest (requires SERVICE_ROLE_KEY)
+ */
+export function getSupabase(role = 'anon') {
+  if (role === 'service') {
+    assertEnv(SUPABASE_URL, SERVICE_KEY);
+    return createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+  }
+  assertEnv(SUPABASE_URL, ANON_KEY);
+  return createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false } });
+}
+
+// Small helpers for consistent responses
+export function ok(data) {
+  return new Response(JSON.stringify({ ok: true, data }), {
+    status: 200,
+    headers: { 'content-type': 'application/json' }
+  });
+}
+export function fail(status, message) {
+  return new Response(JSON.stringify({ ok: false, error: message }), {
+    status,
+    headers: { 'content-type': 'application/json' }
+  });
 }
