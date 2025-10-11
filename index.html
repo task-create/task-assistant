@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { --brand: #ff8a00; --brand-light: #ffd088; }
-    .prose { color: inherit; } .prose strong { color: inherit; } .prose a { color: #3b82f6; text-decoration: underline; }
+    .prose { color: inherit; } .prose a { color: #3b82f6; text-decoration: underline; }
     .dark .prose a { color: #93c5fd; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -27,7 +27,7 @@
 </head>
 <body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 font-sans antialiased">
 
-  <!-- Splash (buttons only; no external links) -->
+  <!-- Splash: ONLY Start + Theme + Languages -->
   <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
     <div class="w-full max-w-md p-8 text-center bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1f2937] relative">
       <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]" title="Toggle theme">
@@ -39,6 +39,7 @@
         <select id="languageSelector" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-[#1f2937] rounded-md p-1 text-sm">
           <option value="en">English</option>
           <option value="es">Español</option>
+          <option value="ht">Kreyòl Ayisyen</option>
         </select>
       </div>
 
@@ -49,20 +50,16 @@
       <h1 id="splashTitle" class="text-3xl font-extrabold text-gray-900 dark:text-white">Solace</h1>
       <p id="splashSubtitle" class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Your guide to career and community resources.</p>
 
-      <div class="mt-8 space-y-3">
+      <div class="mt-8">
         <button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button>
-        <div class="grid grid-cols-2 gap-2">
-          <button id="splashPlanTrip" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">Plan a Trip</button>
-          <button id="splashFindJobs" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">Find Jobs</button>
-        </div>
       </div>
     </div>
   </div>
 
-  <!-- App Shell (no grid; we use fixed sidebar like ChatGPT) -->
+  <!-- App Shell -->
   <div id="app" class="hidden h-screen w-screen">
 
-    <!-- FIXED LEFT SIDEBAR -->
+    <!-- FIXED LEFT SIDEBAR (ChatGPT-style) -->
     <aside
       class="fixed left-0 top-0 z-40 hidden h-screen w-[280px] flex-col overflow-y-auto custom-scrollbar
              bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] lg:flex">
@@ -81,6 +78,7 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
       </button>
 
+      <!-- Quick Actions (links only here) -->
       <div class="px-2 mt-4">
         <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
         <div id="quickActionsContainer" class="mt-2 space-y-1"></div>
@@ -99,7 +97,7 @@
       </div>
     </aside>
 
-    <!-- MAIN (shifted right of fixed sidebar) -->
+    <!-- MAIN shifted to the right of fixed sidebar -->
     <main class="relative flex flex-col h-screen lg:ml-[280px] bg-gray-100 dark:bg-[#0b1220]">
       <!-- Mobile header -->
       <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
@@ -155,7 +153,7 @@
       </div>
     </main>
 
-    <!-- Mobile slide-over menu (unchanged behavior) -->
+    <!-- Mobile slide-over menu -->
     <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
       <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
         <div class="flex items-center justify-between">
@@ -200,7 +198,7 @@
   </div>
 
 <script type="module">
-/* ---------------- Supabase connectivity (silent) ---------------- */
+/* --------- Supabase connectivity (silent smoke test) --------- */
 import { getSupabase } from './supabase.js';
 (async () => {
   try {
@@ -228,11 +226,9 @@ const ENGAGE = {
   trainings: "https://bycell.co/ddmtn"
 };
 
-const SYSTEM_PROMPT = `You are Solace, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on employment topics (resume, interviews, job search, career development). Be encouraging and break complex topics into simple steps. Use markdown for readability. If the user asks for official actions (apply, appointments, forms), guide them to the Engage by Cell portal. When users mention crisis or self-harm, share 988 immediately. When users are frustrated, apologize empathetically and offer options. Do NOT invent URLs or contacts.
+const SYSTEM_PROMPT = `You are Solace, a friendly, empathetic, and professional career guide for Task Employment Services. Use markdown for clarity. If the user asks for official actions (apply, appointments, forms), guide them to the Engage by Cell portal. If crisis/self-harm, share 988 immediately. When asked about trainings, jobs, resources, or events, first use server endpoints; if unavailable, say that and offer Engage links.`;
 
-When asked about trainings, jobs, resources, or events, first try to read them from the server context (API endpoints). If there’s an error, clearly say so and provide the Engage by Cell link as fallback.`;
-
-/* If your static page and APIs are on the same host, API_BASE = '' */
+/* If static page and APIs are same host, API_BASE = '' */
 const DEPLOY_BASE = 'https://task-assistant-xi.vercel.app';
 const ON_SAME_SITE = typeof location !== 'undefined' &&
   (location.hostname === 'localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
@@ -269,21 +265,24 @@ function toggleTheme() {
 
 /* ---------------- Language ---------------- */
 function setLanguage(lang) {
-  const normalized = (lang || 'en').slice(0,2) === 'es' ? 'es' : 'en';
+  const code = (lang || 'en').slice(0,2).toLowerCase();
+  const normalized = ['en','es','ht'].includes(code) ? code : 'en';
   localStorage.setItem('lang', normalized);
   document.documentElement.setAttribute('lang', normalized);
+
+  const T = {
+    en: { title: 'Solace', subtitle: 'Your guide to career and community resources.', start: 'Start' },
+    es: { title: 'Solace', subtitle: 'Su guía de recursos profesionales y comunitarios.', start: 'Empezar' },
+    ht: { title: 'Solace', subtitle: 'Gid ou pou karyè ak resous kominotè yo.', start: 'Kòmanse' }
+  }[normalized];
+
   const splashTitle = document.getElementById('splashTitle');
   const splashSubtitle = document.getElementById('splashSubtitle');
   const startButton = document.getElementById('start');
-  if (normalized === 'es') {
-    if (splashTitle) splashTitle.textContent = 'Solace';
-    if (splashSubtitle) splashSubtitle.textContent = 'Su guía de recursos profesionales y comunitarios.';
-    if (startButton) startButton.textContent = 'Empezar';
-  } else {
-    if (splashTitle) splashTitle.textContent = 'Solace';
-    if (splashSubtitle) splashSubtitle.textContent = 'Your guide to career and community resources.';
-    if (startButton) startButton.textContent = 'Start';
-  }
+  if (splashTitle) splashTitle.textContent = T.title;
+  if (splashSubtitle) splashSubtitle.textContent = T.subtitle;
+  if (startButton) startButton.textContent = T.start;
+
   const selector = document.getElementById('languageSelector');
   if (selector && selector.value !== normalized) selector.value = normalized;
 }
@@ -307,11 +306,6 @@ function startNewChat() {
   allChats[currentChatId] = { id: currentChatId, title: "New Chat", history: [] };
   resetConversationState(); renderChat(); renderHistory(); saveChats();
   const input = document.getElementById('input'); if (input) input.value = ''; updateSendState();
-  showChips([
-    {type: 'prompt', text: 'Help me with my resume'},
-    {type: 'prompt', text: 'How do I prepare for an interview?'},
-    {type: 'prompt', text: 'What jobs are available?'}
-  ]);
 }
 function resetConversationState() { conversationState = { mode: null, step: 0, data: {} }; }
 function addMessageToHistory(role, text) { if(!currentChatId || !allChats[currentChatId]) return; allChats[currentChatId].history.push({ role, text }); saveChats(); }
@@ -320,10 +314,7 @@ function renameChat(chatId, newTitle) { if(allChats[chatId]) { allChats[chatId].
 function deleteChat(chatId) { delete allChats[chatId]; saveChats(); const keys = Object.keys(allChats); if (currentChatId === chatId) { currentChatId = null; if (keys.length) loadChat(keys.sort((a,b)=>b.split('_')[1]-a.split('_')[1])[0]); else startNewChat(); } else renderHistory(); }
 function setStatus(msg, isError=false) { const el = document.getElementById('status'); if(el){ el.textContent = msg; el.className = `mt-2 text-sm text-center ${isError?'text-red-500':'text-gray-500'}`; } }
 function scrollToBottom(instant=false) { const chat = document.getElementById('chat'); if(chat) chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' }); }
-async function safeGetJSON(url) {
-  try { const r = await fetch(url); if(!r.ok) return { ok:false, error:`HTTP ${r.status}` }; const j = await r.json(); return { ok:true, ...j }; }
-  catch(e){ return { ok:false, error:e?.message||'network' }; }
-}
+async function safeGetJSON(url) { try { const r = await fetch(url); if(!r.ok) return { ok:false, error:`HTTP ${r.status}` }; const j = await r.json(); return { ok:true, ...j }; } catch(e){ return { ok:false, error:e?.message||'network' }; } }
 function renderSmart(text) {
   const esc = (s)=>s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
   let html = esc(text);
@@ -351,53 +342,22 @@ function createTypingIndicator(){
   i.innerHTML=`<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`;
   return i;
 }
-function showChips(chips=[]){
-  const s=document.getElementById('suggestions'); if(!s) return; s.innerHTML='';
-  chips.forEach(c=>{
-    const b=document.createElement('button'); b.type='button';
-    b.className='px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50';
-    b.textContent=c.text; b.addEventListener('click',()=>{ const i=document.getElementById('input'); if(i) i.value=c.text; updateSendState(); i?.focus(); });
-    s.appendChild(b);
-  });
-}
-function initSTT(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
-  const r=new SR(); r.lang=(localStorage.getItem('lang')||'en')==='es'?'es-ES':'en-US'; r.interimResults=true; r.continuous=false;
-  r.onstart=()=>{ listening=true; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle></svg>`; };
-  r.onend=()=>{ listening=false; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
-  r.onresult=(e)=>{ let txt=''; for(let i=e.resultIndex;i<e.results.length;i++) txt+=e.results[i][0].transcript; const el=document.getElementById('input'); if(el) el.value=txt; updateSendState(); autosize(); };
-  return r;
-}
-
-/* ---------------- Guided Flows ---------------- */
-async function handleGuidedConversation(prompt){ if(conversationState.mode==='TRIP_PLANNER') return handleTripPlanner(prompt); resetConversationState(); return getGenerativeResponse(prompt); }
-function buildNJTransitURL(o,d){ return `https://www.njtransit.com/trip-planner-to?origin=DEFAULT_ORIGIN&destination=DEFAULT_DESTINATION&origin_text=${encodeURIComponent(o||'')}&destination_text=${encodeURIComponent(d||'')}`; }
-async function handleTripPlanner(prompt){
-  const step=conversationState.step;
-  if(step===1){ conversationState.data.origin=prompt; conversationState.step=2; return { text:"Great—what’s the destination (address or landmark)?" }; }
-  if(step===2){ conversationState.data.destination=prompt; const url=buildNJTransitURL(conversationState.data.origin, conversationState.data.destination);
-    const g=`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(conversationState.data.origin)}&destination=${encodeURIComponent(conversationState.data.destination)}&travelmode=transit`;
-    resetConversationState(); return { text:`Here are your transit directions:\n\n- [Open in NJ Transit](${url})\n- [Open in Google Maps (Transit)](${g})` }; }
-}
 
 /* ---------------- Router ---------------- */
 async function getSmartResponse(prompt){
   const p=prompt.toLowerCase();
   const has=(words)=>words.some(w=>new RegExp(`\\b${w}\\b`,'i').test(p));
-  if(conversationState.mode) return handleGuidedConversation(prompt);
+  if(conversationState.mode) return { text: prompt }; // no guided flows in this trimmed version
 
+  // safety & frustration
   if(has(['kill myself','hurt myself','suicide','end my life'])) {
     return { text:"**If you’re in immediate danger, call 911.** You can also text/call **988** to reach the Suicide & Crisis Lifeline. You’re not alone, and support is available 24/7." };
   }
   if(has(['hate this','awful','not helpful','useless','stupid','doesn\'t work','frustrated','angry'])) {
-    return { text:"I’m really sorry for the frustration. I want to fix this quickly—tell me what you were trying to do, and I’ll get you there step-by-step. You can also reach us directly at **(609) 337-1624**." };
+    return { text:"I’m really sorry for the frustration. Tell me what you were trying to do and I’ll get you there step-by-step. You can also call us at **(609) 337-1624**." };
   }
 
-  if(has(['trip','directions','bus route','transit','get to'])) {
-    conversationState.mode='TRIP_PLANNER'; conversationState.step=1;
-    return { text:"I can help with that. What’s your starting point (address or landmark)?" };
-  }
-
+  // domain routes that fetch server context
   if(has(['training','trainings','class','classes','culinary','sora','forklift','certification'])) {
     setStatus('Checking our program schedule...');
     const r=await safeGetJSON(api('/api/trainings'));
@@ -420,7 +380,7 @@ async function getSmartResponse(prompt){
         `• **${j.title||'Job'}**${j.company?` at ${j.company}`:''}\n   ${j.apply_link?`[Apply Here](${j.apply_link})`:''}`
       )).join('\n');
     } else if (!r.ok) { context=`Couldn’t load featured jobs (reason: ${r.error}). Please check the portal.`; }
-    const finalPrompt=`A user is asking about jobs. Present the featured jobs from the context. Then, ask if they want a broader search.\n\nCONTEXT:\n${context}\n\nUSER'S QUESTION: "${prompt}"`;
+    const finalPrompt=`A user is asking about jobs. Present the featured jobs from the context. Then ask if they want a broader search.\n\nCONTEXT:\n${context}\n\nUSER: "${prompt}"`;
     return getGenerativeResponse(finalPrompt);
   }
 
@@ -453,50 +413,47 @@ async function getSmartResponse(prompt){
   return getGenerativeResponse(prompt);
 }
 
-/* ---------------- AI Call ---------------- */
+/* ---------------- AI Call (backs /api/ai that consults Supabase first) ---------------- */
 async function getGenerativeResponse(prompt){
   try{
-    const r=await fetch(api('/api/ai'),{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })});
+    const r=await fetch(api('/api/ai'),{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
+    });
     if(!r.ok){ const t=await r.text(); throw new Error(`API Error: ${r.status} - ${t}`); }
-    const j=await r.json(); const text=j?.reply || "I'm sorry, I couldn't generate a response.";
+    const j=await r.json();
+    const text=j?.reply || "I'm sorry, I couldn't generate a response.";
     return { text };
-  }catch(e){ console.error("Generative API call failed:", e); throw e; }
+  }catch(e){
+    console.error("Generative API call failed:", e);
+    throw e;
+  }
 }
 
-/* ---------------- UI Renderers ---------------- */
+/* ---------------- UI: Quick Actions ---------------- */
 function renderQuickActions(){
   const actions=[
     { label:'Schedule Appointment', icon:'📅', href:ENGAGE.appointment },
     { label:'Find Jobs',           icon:'🔎', href:ENGAGE.jobOpenings },
     { label:'Training Programs',   icon:'🎓', href:ENGAGE.trainings },
-    { label:'Community Resources', icon:'🏥', href:ENGAGE.communityResources },
-    { label:'Plan a Trip',         icon:'🚌', href:null }
+    { label:'Community Resources', icon:'🏥', href:ENGAGE.communityResources }
   ];
   const render=(id)=>{
     const el=document.getElementById(id); if(!el) return; el.innerHTML='';
     actions.forEach(a=>{
-      if(a.href){
-        const link=document.createElement('a');
-        link.href=a.href; link.target='_blank'; link.rel='noopener noreferrer';
-        link.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-        link.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-        el.appendChild(link);
-      }else{
-        const btn=document.createElement('button');
-        btn.type='button';
-        btn.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-        btn.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-        btn.addEventListener('click',()=>{
-          conversationState.mode='TRIP_PLANNER'; conversationState.step=1;
-          bubbleBot("I can help with that. What’s your starting point (address or landmark)?");
-        });
-        el.appendChild(btn);
-      }
+      const link=document.createElement('a');
+      link.href=a.href; link.target='_blank'; link.rel='noopener noreferrer';
+      link.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+      link.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+      el.appendChild(link);
     });
   };
   render('quickActionsContainer');
   render('quickActionsContainerMobile');
 }
+
+/* ---------------- UI: History & Chat ---------------- */
 function renderChat(){
   const body=document.getElementById('chatBody'); if(!body) return; body.innerHTML='';
   const history=(currentChatId && allChats[currentChatId])?allChats[currentChatId].history:[];
@@ -530,14 +487,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const languageSelector=document.getElementById('languageSelector');
   const savedLang=localStorage.getItem('lang');
   const initialLang=savedLang ? savedLang : (navigator.language||'en').slice(0,2); setLanguage(initialLang);
-  if(languageSelector){ languageSelector.value=(initialLang.slice(0,2)==='es')?'es':'en'; languageSelector.addEventListener('change',(e)=>setLanguage(e.target.value)); }
+  if(languageSelector){ languageSelector.value=(['es','ht'].includes(initialLang.slice(0,2))?initialLang.slice(0,2):'en'); languageSelector.addEventListener('change',(e)=>setLanguage(e.target.value)); }
 
   // Elements
   const splash=document.getElementById('splash'), app=document.getElementById('app');
   const startBtn=document.getElementById('start');
-  const splashPlanTrip=document.getElementById('splashPlanTrip');
-  const splashFindJobs=document.getElementById('splashFindJobs');
-
   const chatBody=document.getElementById('chatBody');
   const form=document.getElementById('composer'), input=document.getElementById('input'), sendBtn=document.getElementById('send');
   const newChatBtn=document.getElementById('newChat'), newChatMobileBtn=document.getElementById('newChatMobile');
@@ -556,8 +510,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     input?.focus();
   }
   startBtn?.addEventListener('click', openApp);
-  splashPlanTrip?.addEventListener('click', ()=>{ openApp(); conversationState.mode='TRIP_PLANNER'; conversationState.step=1; bubbleBot("I can help with that. What’s your starting point (address or landmark)?"); });
-  splashFindJobs?.addEventListener('click', async ()=>{ openApp(); addMessageToHistory('user','Show me jobs'); bubbleMe('Show me jobs'); const t=createTypingIndicator(); chatBody?.appendChild(t); try{ const r=await getSmartResponse('jobs'); t?.remove(); addMessageToHistory('assistant',r.text); bubbleBot(r.text);}catch{ t?.remove(); bubbleBot('Sorry — I could not reach the service.'); }});
 
   // Theme toggles
   themeToggleSplash?.addEventListener('click', toggleTheme);
@@ -582,16 +534,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(input){ ['input','change','keyup','paste'].forEach(ev=> input.addEventListener(ev, autosizeHook)); input.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); form?.requestSubmit(); }}); }
   sendBtn?.addEventListener('click',(e)=>{ e.preventDefault(); form?.requestSubmit(); });
 
-  // Speech
-  const micBtn=document.getElementById('mic');
-  micBtn?.addEventListener('click', ()=>{ if(!window._recognition) window._recognition=initSTT(); if(!window._recognition){ setStatus('Voice input not supported in this browser.', true); return; } if(!listening) window._recognition.start(); else window._recognition.stop(); });
-
   if(form) form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     const prompt=(input?.value||'').trim();
     if(!prompt){ updateSendState(); return; }
     if(!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length===0)){ if(!currentChatId) startNewChat(); addMessageToHistory('assistant',"Hello! I'm Solace. How can I help you?"); renderChat(); }
-    addMessageToHistory('user', prompt); bubbleMe(prompt); if(input) input.value=''; autosize(); updateSendState(); showChips([]); setStatus('Thinking…');
+    addMessageToHistory('user', prompt); bubbleMe(prompt); if(input) input.value=''; autosize(); updateSendState(); setStatus('Thinking…');
     const typing=createTypingIndicator(); chatBody?.appendChild(typing); scrollToBottom();
     try{ const r=await getSmartResponse(prompt); typing?.remove(); addMessageToHistory('assistant', r.text); bubbleBot(r.text); updateChatTitle(prompt); setStatus(''); }
     catch(err){ console.error(err); typing?.remove(); setStatus(`Error: ${err.message}.`, true); bubbleBot('Sorry — I could not reach the service. Please try again.'); resetConversationState(); }
