@@ -1,23 +1,30 @@
-// /api/resources.js
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-
-function withCORS(res) {
+function json(res, status, body) {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.end(JSON.stringify(body));
 }
 
 export default async function handler(req, res) {
-  withCORS(res);
-  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method === 'OPTIONS') return json(res, 204, {});
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    return json(res, 200, { ok: false, error: 'Supabase env missing', data: [] });
+  }
 
-  const { data, error } = await SUPABASE
-    .from('resources')         // table name
-    .select('*')
-    .order('priority', { ascending: false });
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(200).json({ data });
+  try {
+    const { data, error } = await supabase
+      .from('trainings')                // <-- your table name
+      .select('*')                      // pick columns you need
+      .order('next_start_date', { ascending: true, nullsFirst: false })
+      .limit(50);
+
+    if (error) return json(res, 200, { ok: false, error: error.message, data: [] });
+    return json(res, 200, { ok: true, data });
+  } catch (e) {
+    return json(res, 200, { ok: false, error: e?.message || 'unknown', data: [] });
+  }
 }
