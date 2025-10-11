@@ -1,36 +1,21 @@
 // /api/resources.js
-function json(res, status, body) {
-  res.statusCode = status;
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (res.req.method === 'OPTIONS') return res.end();
-  res.end(JSON.stringify(body));
-}
+import { getSupabase, ok, fail } from './supabase.js';
 
-async function getClient() {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) return null;
-  const { createClient } = await import('@supabase/supabase-js');
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-}
-
-export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') return json(res, 204, {});
+export default async function handler(req) {
   try {
-    const supabase = await getClient();
-    if (!supabase) return json(res, 200, { ok: false, error: 'Supabase env missing', data: [] });
+    if (req.method !== 'GET') return fail(405, 'Method not allowed');
 
-    // Adjust table/columns if yours differ
+    const supabase = getSupabase('anon');
+
     const { data, error } = await supabase
       .from('resources')
-      .select('*')
-      .order('name', { ascending: true, nullsFirst: true })
-      .limit(100);
+      .select('id,name,provider,website,description,category,updated_at')
+      .order('name', { ascending: true });
 
-    if (error) return json(res, 200, { ok: false, error: error.message, data: [] });
-    return json(res, 200, { ok: true, data });
+    if (error) return fail(500, error.message);
+
+    return ok(data || []);
   } catch (e) {
-    return json(res, 200, { ok: false, error: e?.message || 'unknown', data: [] });
+    return fail(500, e.message || 'Unexpected server error.');
   }
 }
