@@ -1,102 +1,78 @@
 // /api/ai.js
-import { createClient } from '@supabase/supabase-js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getSupabase, ok, fail } from './supabase.js';
 
-const SUPABASE = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
+const VALID_MODELS = new Set([
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-latest',
+  'gemini-1.5-pro',
+  'gemini-1.5-pro-latest'
+]);
 
-function cors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+function pickModel() {
+  const envModel = (process.env.GEMINI_MODEL || '').trim();
+  if (VALID_MODELS.has(envModel)) return envModel;
+  return 'gemini-1.5-flash';
 }
 
-async function readBody(req) {
-  if (req.body && typeof req.body === 'object') return req.body;
-  return await new Promise((resolve, reject) => {
-    let s = ''; req.on('data', c => s += c);
-    req.on('end', () => { try { resolve(s ? JSON.parse(s) : {}); } catch (e) { reject(e); } });
-    req.on('error', reject);
-  });
-}
+async function buildContext() {
+  const supabase = getSupabase('anon');
 
-async function kbLookup(q) {
-  const cleaned = q.trim();
+  const [jobs, resources, events, trainings] = await Promise.all([
+    supabase.from('jobs').select('title,company,apply_link').order('created_at', { ascending: false }).limit(10),
+    supabase.from('resources').select('name,provider,website').order('name', { ascending: true }).limit(10),
+    supabase.from('events').select('name,event_date').order('event_date', { ascending: true }).limit(10),
+    supabase.from('trainings').select('name,description,next_start_date').order('next_start_date', { ascending: true }).limit(10)
+  ]);
 
-  // 1) Exact-ish
-  let query = SUPABASE.from('knowledge_base')
-    .select('answer,priority')
-    .ilike('question', cleaned)
-    .order('priority', { ascending: false })
-    .limit(1);
-  let { data, error } = await query;
-  if (error) console.error('KB exact error', error);
-  if (data?.[0]?.answer) return data[0].answer;
+  const lines = [];
 
-  // 2) Substring match in question/tags
-  ({ data, error } = await SUPABASE
-    .from('knowledge_base')
-    .select('answer,priority')
-    .or(`question.ilike.%${cleaned}%,tags.ilike.%${cleaned}%`)
-    .order('priority', { ascending: false })
-    .limit(1));
-  if (error) console.error('KB ilike error', error);
-  if (data?.[0]?.answer) return data[0].answer;
-
-  // 3) Very simple fallback: look by category keywords
-  const cat = /train(ing|ings|class|culinary|sora|forklift)|job|opening|apply|event|workshop|resource|housing|food|legal/i;
-  if (cat.test(cleaned)) {
-    ({ data, error } = await SUPABASE
-      .from('knowledge_base')
-      .select('answer,priority')
-      .ilike('category', `%${cleaned}%`)
-      .order('priority', { ascending: false })
-      .limit(1));
-    if (!error && data?.[0]?.answer) return data[0].answer;
+  if (!jobs.error && Array.isArray(jobs.data) && jobs.data.length) {
+    lines.push('FEATURED JOBS:');
+    jobs.data.forEach(j => lines.push(`- ${j.title || '—'} @ ${j.company || ''} ${j.apply_link ? `(apply: ${j.apply_link})` : ''}`));
+  }
+  if (!resources.error && Array.isArray(resources.data) && resources.data.length) {
+    lines.push('\nRESOURCES:');
+    resources.data.forEach(r => lines.push(`- ${r.name || ''} (${r.provider || ''}) ${r.website ? r.website : ''}`));
+  }
+  if (!events.error && Array.isArray(events.data) && events.data.length) {
+    lines.push('\nEVENTS:');
+    events.data.forEach(e => lines.push(`- ${e.name || ''} ${e.event_date || ''}`));
+  }
+  if (!trainings.error && Array.isArray(trainings.data) && trainings.data.length) {
+    lines.push('\nTRAININGS:');
+    trainings.data.forEach(t => lines.push(`- ${t.name || ''} ${t.next_start_date || ''}`));
   }
 
-  return null;
+  return lines.join('\n');
 }
 
-export default async function handler(req, res) {
-  cors(res);
-  if (req.method === 'OPTIONS') return res.status(204).end();
-
+export default async function handler(req) {
   try {
-    const { prompt } = await readBody(req);
-    if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
+    if (req.method !== 'POST') return fail(405, 'Method not allowed');
 
-    // --- SUPABASE FIRST ---
-    const kb = await kbLookup(prompt);
-    if (kb) return res.status(200).json({ reply: kb, source: 'kb' });
+    const { prompt, systemPrompt } = await req.json();
+    if (!prompt || typeof prompt !== 'string') return fail(400, 'Missing prompt');
 
-    // --- GEMINI FALLBACK ---
-    if (!GEMINI_KEY) {
-      return res.status(200).json({
-        reply: "I couldn't find this in the knowledge base, and the AI key isn't set.",
-        source: 'none'
-      });
-    }
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return fail(500, 'Missing GEMINI_API_KEY');
 
-    const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(GEMINI_KEY)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }]}]
-        })
-      }
-    );
-    if (!r.ok) {
-      const t = await r.text();
-      return res.status(502).json({ reply: 'Upstream model error.', detail: t, source: 'gemini' });
-    }
-    const j = await r.json();
-    const reply = j?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || 'Sorry, no answer.';
-    return res.status(200).json({ reply, source: 'gemini' });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'Server error' });
+    const modelName = pickModel();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: modelName });
+
+    const context = await buildContext();
+
+    const composed = [
+      systemPrompt ? `SYSTEM:\n${systemPrompt}` : '',
+      context ? `CONTEXT (live data):\n${context}` : '',
+      `USER:\n${prompt}`
+    ].filter(Boolean).join('\n\n---\n\n');
+
+    const result = await model.generateContent(composed);
+    const text = result?.response?.text?.() || 'Sorry, no answer.';
+    return ok({ reply: text });
+  } catch (err) {
+    return fail(502, { reply: 'Upstream model error', detail: String(err?.message || err) });
   }
 }
