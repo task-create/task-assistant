@@ -1,71 +1,52 @@
 // /api/ai.js
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
-async function readJson(req) {
+export default async function handler(req) {
   try {
-    const chunks = [];
-    for await (const c of req) chunks.push(c);
-    const raw = Buffer.concat(chunks).toString('utf8') || '{}';
-    return JSON.parse(raw);
-  } catch {
-    return {};
-  }
-}
-
-function setCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-}
-
-export default async function handler(req, res) {
-  setCors(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
-
-  try {
-    const { prompt = '', systemPrompt = '' } = await readJson(req);
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    const rawModel = (process.env.GEMINI_MODEL || 'gemini-1.5-flash').replace(/^models\//, '').trim();
-    if (!apiKey) {
-      const fallback = "Thanks for your message. I’m not connected to the AI service yet. Please add GEMINI_API_KEY to the environment.";
-      return res.status(200).json({ ok: true, text: fallback });
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ ok: false, error: 'Method not allowed' }), { status: 405 });
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(rawModel)}:generateContent?key=${apiKey}`;
+    const { prompt, systemPrompt } = await req.json();
+
+    const API_KEY = process.env.GEMINI_API_KEY;
+    if (!API_KEY) {
+      return new Response(JSON.stringify({ ok: false, error: 'Missing GEMINI_API_KEY' }), { status: 500 });
+    }
+    if (!prompt || typeof prompt !== 'string') {
+      return new Response(JSON.stringify({ ok: false, error: 'Missing prompt' }), { status: 400 });
+    }
+
+    const model = 'gemini-1.5-flash'; // change to gemini-1.5-pro if you prefer
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+
+    // VALID ROLES ONLY: "user" and "model"
     const body = {
-      contents: [
-        ...(systemPrompt
-          ? [{ role: 'system', parts: [{ text: systemPrompt }] }]
-          : []),
-        { role: 'user', parts: [{ text: String(prompt || '') }] },
-      ],
-      generationConfig: {
-        temperature: 0.5,
-      },
+      system_instruction: systemPrompt ? { parts: [{ text: systemPrompt }] } : undefined,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }]
     };
 
     const r = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body)
     });
 
+    const data = await r.json();
     if (!r.ok) {
-      const errText = await r.text();
-      return res.status(502).json({ ok: false, error: `Gemini error ${r.status}: ${errText}` });
+      return new Response(
+        JSON.stringify({ ok: false, error: `Gemini error ${r.status}: ${JSON.stringify(data)}` }),
+        { status: 502 }
+      );
     }
 
-    const json = await r.json();
     const text =
-      json?.candidates?.[0]?.content?.parts?.map((p) => p?.text || '').join('') ||
-      json?.candidates?.[0]?.output_text ||
+      data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') ||
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       '';
 
-    if (!text) return res.status(200).json({ ok: true, text: "I couldn't generate a response." });
-    return res.status(200).json({ ok: true, text });
-  } catch (e) {
-    return res.status(500).json({ ok: false, error: e?.message || 'Unknown error' });
+    return new Response(JSON.stringify({ ok: true, text }), { status: 200 });
+  } catch (err) {
+    return new Response(JSON.stringify({ ok: false, error: String(err?.message || err) }), { status: 500 });
   }
 }
