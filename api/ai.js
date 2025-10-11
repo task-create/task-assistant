@@ -1,6 +1,12 @@
 // /api/ai.js
 export const config = { runtime: 'edge' };
 
+function sanitizeModel(raw) {
+  const s = (raw || '').trim();
+  const noPrefix = s.replace(/^models\//i, '');
+  return noPrefix || 'gemini-1.5-flash-latest';
+}
+
 export default async function handler(req) {
   // CORS
   if (req.method === 'OPTIONS') {
@@ -32,15 +38,12 @@ export default async function handler(req) {
       });
     }
 
-    // Use env model if provided, else safe default
-    const model =
-      (process.env.GEMINI_MODEL || '').trim() || 'gemini-1.5-flash-latest';
-
+    const model = sanitizeModel(process.env.GEMINI_MODEL);
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
       model
     )}:generateContent?key=${API_KEY}`;
 
-    // Combine system + user safely as a single user role (Gemini expects 'user'/'model')
+    // Put system + user into a single 'user' message (valid roles: user, model)
     const userText = systemPrompt
       ? `SYSTEM:\n${systemPrompt}\n\nUSER:\n${prompt}`
       : prompt;
@@ -64,7 +67,7 @@ export default async function handler(req) {
 
     const data = await r.json();
     const text =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p?.text || '').join('') ||
+      data?.candidates?.[0]?.content?.parts?.map(p => p?.text || '').join('') ||
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       '';
 
