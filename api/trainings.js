@@ -1,20 +1,32 @@
 // /api/trainings.js
-import { getServiceClient } from './supabase';
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
+import { createClient } from '@supabase/supabase-js';
 
-export default async function handler() {
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+
   try {
-    const supabase = getServiceClient();
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnon = process.env.SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnon) {
+      return res.status(500).json({ ok: false, error: 'Missing Supabase env' });
+    }
+    const supabase = createClient(supabaseUrl, supabaseAnon);
+
     const { data, error } = await supabase
       .from('trainings')
-      .select('id,name,description,schedule,next_start_date,app_window_start,app_window_end,requirements,signup_link,is_active,start_date_note')
+      .select('*')
       .eq('is_active', true)
-      .order('next_start_date', { ascending: true })
-      .limit(25);
+      .order('next_start_date', { ascending: true });
 
     if (error) throw error;
-    return new Response(JSON.stringify({ ok: true, data }), { status: 200 });
-  } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 500 });
+    res.status(200).json({ ok: true, data });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err?.message || err) });
   }
 }
