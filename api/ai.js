@@ -1,45 +1,24 @@
-// /api/ai.js — generic chat/generation endpoint
+// /api/ai.js
 export const config = { runtime: 'nodejs' };
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+  // CORS for cross-origin previews
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
-  const GEMINI_KEY = process.env.GEMINI_API_KEY;
-  const GEMINI_MODEL = process.env.GEMINI_MODEL || 'models/gemini-2.0-flash';
-  if (!GEMINI_KEY) {
-    return res.status(500).json({ ok: false, error: 'Missing GEMINI_API_KEY' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
 
   try {
-    const { prompt = '', systemPrompt = '' } = await readJson(req);
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/${encodeURIComponent(
-      GEMINI_MODEL
-    )}:generateContent`;
-
-    const body = {
-      systemInstruction: systemPrompt ? { parts: [{ text: systemPrompt }] } : undefined,
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.6 }
-    };
-
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': GEMINI_KEY
-      },
-      body: JSON.stringify(body)
+    const body = await readJson(req);
+    const { prompt = '', systemPrompt = '' } = body || {};
+    return res.status(200).json({
+      ok: true,
+      text: `✅ API alive. You sent: "${prompt.slice(0, 80)}" (systemPrompt length: ${systemPrompt.length})`,
     });
-
-    if (!r.ok) {
-      return res.status(r.status).json({ ok: false, provider: 'Gemini', error: await r.text() });
-    }
-
-    const data = await r.json();
-    const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
-    return res.status(200).json({ ok: true, text });
   } catch (e) {
+    console.error('ai.js error:', e);
     return res.status(500).json({ ok: false, error: String(e) });
   }
 }
