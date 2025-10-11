@@ -7,225 +7,77 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root {
-      --brand: #ff8a00;
-      --brand-light: #ffd088;
-    }
-    .prose { color: inherit; }
-    .prose strong { color: inherit; }
-    .prose a { color: #3b82f6; text-decoration: underline; }
-    .dark .prose a { color: #93c5fd; }
-    .prose ul > li::before { background-color: #6b7280; }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
-    @media (prefers-reduced-motion: reduce){ .animate-spin, .animate-bounce, .transition-all { transition: none !important } }
-    .sparkle {
-      background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-light) 25%, transparent 40%, transparent 60%, var(--brand-light) 75%, var(--brand) 100%);
-      filter: blur(14px) saturate(1.2);
-    }
-    .action-btn-group { opacity: 0; transition: opacity 0.2s ease-in-out; }
-    .group:hover .action-btn-group { opacity: 1; }
-    aside {
-        overflow-x: hidden;
-        transition: width 0.3s ease-in-out;
-    }
-    @media (min-width: 1024px) { /* lg breakpoint */
-        #app.sidebar-collapsed {
-            grid-template-columns: 0 1fr;
-        }
-    }
-    .history-item-actions {
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
-    }
-    .history-item:hover .history-item-actions {
-        opacity: 1;
-    }
+    :root { --brand: #ff8a00; --brand-light: #ffd088; }
+    .prose { color: inherit; } .prose strong { color: inherit; } .prose a { color: #3b82f6; text-decoration: underline; } .dark .prose a { color: #93c5fd; } .prose ul > li::before { background-color: #6b7280; } .custom-scrollbar::-webkit-scrollbar { width: 6px; } .custom-scrollbar::-webkit-scrollbar-track { background: transparent; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; } .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; } @media (prefers-reduced-motion: reduce){ .animate-spin, .animate-bounce, .transition-all { transition: none !important } } .sparkle { background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-light) 25%, transparent 40%, transparent 60%, var(--brand-light) 75%, var(--brand) 100%); filter: blur(14px) saturate(1.2); } .action-btn-group { opacity: 0; transition: opacity 0.2s ease-in-out; } .group:hover .action-btn-group { opacity: 1; } aside { overflow-x: hidden; transition: width 0.3s ease-in-out; } @media (min-width: 1024px) { #app.sidebar-collapsed { grid-template-columns: 0 1fr; } } .history-item-actions { opacity: 0; transition: opacity 0.2s ease-in-out; } .history-item:hover .history-item-actions { opacity: 1; }
   </style>
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: 'var(--brand)',
-          }
-        }
-      }
-    }
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: 'var(--brand)' } } } }
   </script>
 </head>
 <body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 font-sans antialiased">
 
-  <!-- Splash Screen -->
   <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
     <div class="w-full max-w-md p-8 text-center bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1f2937] relative">
-      <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]">
-        <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-      </button>
-      <div class="relative w-24 h-24 mx-auto mb-6">
-        <div class="absolute inset-[-16px] rounded-full sparkle animate-spin [animation-duration:4s]"></div>
-        <div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
+      <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]"><svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
+      <div class="absolute top-4 left-4">
+        <select id="languageSelector" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-[#1f2937] rounded-md p-1 text-sm">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
       </div>
-      <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">TASK Assistant</h1>
-      <p class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Your guide to career and community resources.</p>
-      <div class="mt-8">
-        <button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button>
-      </div>
+      <div class="relative w-24 h-24 mx-auto mb-6"><div class="absolute inset-[-16px] rounded-full sparkle animate-spin [animation-duration:4s]"></div><div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div>
+      <h1 id="splashTitle" class="text-3xl font-extrabold text-gray-900 dark:text-white">TASK Assistant</h1>
+      <p id="splashSubtitle" class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Your guide to career and community resources.</p>
+      <div class="mt-8"><button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button></div>
     </div>
   </div>
 
-  <!-- Main App -->
   <div id="app" class="hidden h-screen w-screen lg:grid lg:grid-cols-[280px_1fr] transition-all duration-300">
-    <!-- Sidebar -->
     <aside class="flex-col hidden h-full p-3 bg-white lg:flex dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] w-[280px]">
-        <div class="flex items-center gap-3 p-2">
-            <div class="relative w-10 h-10">
-                <div class="absolute inset-[-8px] rounded-full sparkle"></div>
-                <div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">T</div>
-            </div>
-            <span class="text-xl font-semibold">TASK Assistant</span>
-        </div>
-        <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
-            <span>New Chat</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-        </button>
-        <div class="px-2 mt-6">
-            <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
-            <div id="quickActionsContainer" class="mt-2 space-y-1"></div>
-        </div>
-        <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-            <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
-            <div id="historyContainer" class="mt-2 space-y-1"></div>
-        </div>
-        <div class="p-2 border-t border-gray-200 dark:border-gray-700">
-            <button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-                <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                <span id="themeTextApp" class="text-sm font-medium">Dark Mode</span>
-            </button>
-        </div>
+      <div class="flex items-center gap-3 p-2"><div class="relative w-10 h-10"><div class="absolute inset-[-8px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">T</div></div><span class="text-xl font-semibold">TASK Assistant</span></div>
+      <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"><span>New Chat</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+      <div class="px-2 mt-6"><h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3><div id="quickActionsContainer" class="mt-2 space-y-1"></div></div>
+      <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar"><h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3><div id="historyContainer" class="mt-2 space-y-1"></div></div>
+      <div class="p-2 border-t border-gray-200 dark:border-gray-700"><button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"><svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg><span id="themeTextApp" class="text-sm font-medium">Dark Mode</span></button></div>
     </aside>
-
-    <!-- Main Content -->
     <main class="relative flex flex-col h-full bg-gray-100 dark:bg-[#0b1220]">
-        <button id="toggleSidebarBtn" class="absolute top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand">
-            <svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
-
-        <div class="flex flex-col flex-1 w-full max-w-4xl mx-auto">
-            <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
-                <div class="flex items-center gap-3">
-                    <div class="relative w-8 h-8">
-                        <div class="absolute inset-[-6px] rounded-full sparkle"></div>
-                        <div class="relative z-10 flex items-center justify-center w-8 h-8 text-lg font-bold text-black bg-brand rounded-md">T</div>
-                    </div>
-                    <span class="text-lg font-semibold">TASK Assistant</span>
-                </div>
-                <button id="menuBtn" class="p-2 rounded-md lg:hidden">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                </button>
-            </header>
-            
-            <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
-                <div id="chatBody" class="w-full">
-                     <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
-                        <div class="relative w-20 h-20 mx-auto mb-4">
-                           <div class="absolute inset-[-12px] rounded-full sparkle"></div>
-                           <div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
-                        </div>
-                        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>
-                    </div>
-                </div>
+      <button id="toggleSidebarBtn" class="absolute top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand"><svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+      <div class="flex flex-col flex-1 w-full max-w-4xl mx-auto">
+        <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
+          <div class="flex items-center gap-3"><div class="relative w-8 h-8"><div class="absolute inset-[-6px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-8 h-8 text-lg font-bold text-black bg-brand rounded-md">T</div></div><span class="text-lg font-semibold">TASK Assistant</span></div>
+          <button id="menuBtn" class="p-2 rounded-md lg:hidden"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg></button>
+        </header>
+        <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex"><div id="chatBody" class="w-full"><div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center"><div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1></div></div></div>
+        <div class="px-4 pb-4 md:px-6 md:pb-6">
+          <div id="suggestions" class="flex flex-wrap gap-2 mb-3"></div>
+          <form id="composer" class="relative" autocomplete="off">
+            <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
+            <div class="absolute bottom-2.5 right-3 flex items-center gap-2">
+              <button id="mic" type="button" class="p-2 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Dictate"><svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg></button>
+              <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled><svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg></button>
             </div>
-
-            <div class="px-4 pb-4 md:px-6 md:pb-6">
-                <div id="suggestions" class="flex flex-wrap gap-2 mb-3"></div>
-                <form id="composer" class="relative" autocomplete="off">
-                    <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
-                    <div class="absolute bottom-2.5 right-3 flex items-center gap-2">
-                         <button id="mic" type="button" class="p-2 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Dictate">
-                            <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                         </button>
-                         <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                            <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-                         </button>
-                    </div>
-                </form>
-                <div id="status" class="mt-2 text-sm text-center text-gray-500"></div>
-                <div class="mt-3 text-xs text-center text-gray-500 dark:text-gray-400 space-y-1.5">
-                    <p>
-                        <span class="font-semibold">Disclaimer:</span> This AI assistant can make mistakes. Please verify important information. For guidance only.
-                    </p>
-                    <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
-                        <p><span class="font-semibold">Crisis?</span> Call/Text <a href="tel:988" class="underline hover:text-brand">988</a></p>
-                         <p><span class="font-semibold">Emergencies:</span> <a href="tel:911" class="underline hover:text-brand">911</a></p>
-                         <p><span class="font-semibold">Appointments:</span> <a href="tel:+16093371624" class="underline hover:text-brand">609-337-1624</a></p>
-                    </div>
-                </div>
+          </form>
+          <div id="status" class="mt-2 text-sm text-center text-gray-500"></div>
+          <div class="mt-3 text-xs text-center text-gray-500 dark:text-gray-400 space-y-1.5">
+            <p><span class="font-semibold">Disclaimer:</span> This AI assistant can make mistakes. Please verify important information.</p>
+            <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
+              <p><span class="font-semibold">Crisis?</span> Call/Text <a href="tel:988" class="underline hover:text-brand">988</a></p>
+              <p><span class="font-semibold">Emergencies:</span> <a href="tel:911" class="underline hover:text-brand">911</a></p>
+              <p><span class="font-semibold">Appointments:</span> <a href="tel:+16093371624" class="underline hover:text-brand">609-337-1624</a></p>
             </div>
-        </div>
-    </main>
-    
-    <!-- Mobile Sidebar -->
-    <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
-        <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
-            <div class="flex items-center justify-between">
-              <span class="text-xl font-semibold">Menu</span>
-              <button id="closeMenuBtn" class="p-2 rounded-md">&times;</button>
-            </div>
-             <button id="newChatMobile" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <span>New Chat</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            </button>
-            <div class="px-2 mt-6">
-                <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
-                <div id="quickActionsContainerMobile" class="mt-2 space-y-1"></div>
-            </div>
-            <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
-                <div id="historyContainerMobile" class="mt-2 space-y-1"></div>
-            </div>
-            <div class="p-2 border-t border-gray-200 dark:border-gray-700">
-                <button id="themeToggleMobile" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    <span id="themeTextMobile" class="text-sm font-medium">Dark Mode</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50">
-      <div class="w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <h2 class="text-lg font-bold">Delete Chat?</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">This will permanently delete the chat history.</p>
-        <div class="mt-6 flex justify-end gap-3">
-          <button id="cancelDelete" class="px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
-          <button id="confirmDelete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Delete</button>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
+    <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">...</div>
+    <div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50">...</div>
   </div>
 
-  <script type="module">
+<script type="module">
     /* -------- Links & Config -------- */
     const ENGAGE = {
-        landing: "https://bycell.co/ddmnx",
-        jobAssistance: "https://bycell.co/ddnke",
-        trainingOpps: "https://bycell.co/ddnki",
-        resources: "https://bycell.co/ddnkj",
-        careerTips: "https://bycell.co/ddmui",
-        communityResources: "https://bycell.co/ddmua",
-        employmentVerification: "https://bycell.co/ddmwm",
-        events: "https://bycell.co/ddmul",
-        jobOpenings: "https://bycell.co/ddmtq",
-        appointment: "https://bycell.co/ddncs",
-        otherServices: "https://bycell.co/ddmud",
-        trainings: "https://bycell.co/ddmtn"
+        landing: "https://bycell.co/ddmnx", jobAssistance: "https://bycell.co/ddnke", trainingOpps: "https://bycell.co/ddnki", resources: "https://bycell.co/ddnkj", careerTips: "https://bycell.co/ddmui", communityResources: "https://bycell.co/ddmua", employmentVerification: "https://bycell.co/ddmwm", events: "https://bycell.co/ddmul", jobOpenings: "https://bycell.co/ddmtq", appointment: "https://bycell.co/ddncs", otherServices: "https://bycell.co/ddmud", trainings: "https://bycell.co/ddmtn"
     };
-
     const SYSTEM_PROMPT = `You are the TASK Assistant, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on all employment-related topics, including resume writing, interview preparation, job searching, and career development. Be encouraging and break down complex topics into simple steps. You are an expert in techniques like the STAR method. For specific actions like applying for jobs, scheduling appointments, or accessing official resources, guide the user to the 'Engage by Cell' portal.
 
 Special Instructions:
@@ -234,6 +86,12 @@ Special Instructions:
 - Use markdown (like **bolding** and bullet points) to make your answers easy to read.
 - When you mention 'Engage by Cell', make it a clickable markdown link like this: [Engage by Cell portal](https://bycell.co/ddmnx).
 - Do not invent URLs or contact information.`;
+    
+    /* -------- API Base Helper -------- */
+    const DEPLOY_BASE = 'https://task-assistant-xi.vercel.app';
+    const ON_SAME_SITE = typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
+    const API_BASE = ON_SAME_SITE ? '' : DEPLOY_BASE;
+    const api = (path) => `${API_BASE}${path}`;
 
     /* -------- Theme Management -------- */
     const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
@@ -243,820 +101,494 @@ Special Instructions:
         document.documentElement.classList.toggle('dark', theme === 'dark');
         localStorage.setItem('theme', theme);
         const isDark = theme === 'dark';
-        
         const themeIconSplash = document.getElementById('themeIconSplash');
         if (themeIconSplash) themeIconSplash.innerHTML = isDark ? sunIcon : moonIcon;
-        
-        document.getElementById('themeIconApp').innerHTML = isDark ? sunIcon : moonIcon;
-        document.getElementById('themeTextApp').textContent = isDark ? 'Light Mode' : 'Dark Mode';
-        document.getElementById('themeIconMobile').innerHTML = isDark ? sunIcon : moonIcon;
-        document.getElementById('themeTextMobile').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        const themeIconApp = document.getElementById('themeIconApp');
+        const themeTextApp = document.getElementById('themeTextApp');
+        if (themeIconApp && themeTextApp) {
+            themeIconApp.innerHTML = isDark ? sunIcon : moonIcon;
+            themeTextApp.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        }
+        const themeIconMobile = document.getElementById('themeIconMobile');
+        const themeTextMobile = document.getElementById('themeTextMobile');
+        if (themeIconMobile && themeTextMobile) {
+            themeIconMobile.innerHTML = isDark ? sunIcon : moonIcon;
+            themeTextMobile.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        }
     }
-
     function toggleTheme() {
         const currentTheme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
         applyTheme(currentTheme);
     }
     
-    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    applyTheme(savedTheme);
-    
-    const themeToggleSplash = document.getElementById('themeToggleSplash');
-    if(themeToggleSplash) themeToggleSplash.addEventListener('click', toggleTheme);
-    document.getElementById('themeToggleApp').addEventListener('click', toggleTheme);
-    document.getElementById('themeToggleMobile').addEventListener('click', toggleTheme);
-
-
-    /* -------- DOM Elements -------- */
-    const splash = document.getElementById('splash'), app = document.getElementById('app'), startBtn = document.getElementById('start');
-    const chat = document.getElementById('chat'), chatBody = document.getElementById('chatBody');
-    const form = document.getElementById('composer'), input = document.getElementById('input'), sendBtn = document.getElementById('send');
-    const statusEl = document.getElementById('status'), micBtn = document.getElementById('mic'), micIcon = document.getElementById('micIcon');
-    const suggestionsEl = document.getElementById('suggestions');
-    const newChatBtn = document.getElementById('newChat'), newChatMobileBtn = document.getElementById('newChatMobile');
-    const historyContainer = document.getElementById('historyContainer'), historyContainerMobile = document.getElementById('historyContainerMobile');
-    const quickActionsContainer = document.getElementById('quickActionsContainer'), quickActionsContainerMobile = document.getElementById('quickActionsContainerMobile');
-    const menuBtn = document.getElementById('menuBtn'), mobileMenu = document.getElementById('mobileMenu'), closeMenuBtn = document.getElementById('closeMenuBtn');
-    const asideEl = document.querySelector('aside');
-    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
-    const toggleSidebarIcon = document.getElementById('toggleSidebarIcon');
-    const deleteModal = document.getElementById('deleteModal'), confirmDeleteBtn = document.getElementById('confirmDelete'), cancelDeleteBtn = document.getElementById('cancelDelete');
-    let chatToDelete = null;
-
-    /* -------- State Management -------- */
+    /* -------- State Management & Global Variables -------- */
     let currentChatId = null;
     let allChats = {};
-    let conversationState = {
-        mode: null, 
-        step: 0,
-        data: {},
-    };
+    let conversationState = { mode: null, step: 0, data: {} };
+    let recognition = null, listening = false;
+    let chatToDelete = null;
     
-    /* -------- Initial Setup -------- */
-    startBtn.addEventListener('click', () => {
-      splash.classList.add('hidden');
-      app.classList.remove('hidden');
-      renderQuickActions();
-      loadChats();
-      const savedSidebarState = localStorage.getItem('sidebarCollapsed') === 'true';
-      setSidebarState(savedSidebarState);
-      if (Object.keys(allChats).length === 0) {
-        startNewChat();
-      } else {
-        const latestChatId = Object.keys(allChats).sort((a,b) => b.split('_')[1] - a.split('_')[1])[0];
-        loadChat(latestChatId);
-      }
-      input.focus();
+    // ========================================================================
+    // MAIN SCRIPT LOGIC - RUNS AFTER THE PAGE IS LOADED
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+    
+        /* -------- DOM Element Definitions -------- */
+        const splash = document.getElementById('splash'), app = document.getElementById('app');
+        const startBtn = document.getElementById('start');
+        const chatBody = document.getElementById('chatBody');
+        const form = document.getElementById('composer'), input = document.getElementById('input'), sendBtn = document.getElementById('send');
+        const micBtn = document.getElementById('mic');
+        const newChatBtn = document.getElementById('newChat'), newChatMobileBtn = document.getElementById('newChatMobile');
+        const menuBtn = document.getElementById('menuBtn'), mobileMenu = document.getElementById('mobileMenu'), closeMenuBtn = document.getElementById('closeMenuBtn');
+        const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+        const deleteModal = document.getElementById('deleteModal'), confirmDeleteBtn = document.getElementById('confirmDelete'), cancelDeleteBtn = document.getElementById('cancelDelete');
+        const themeToggleSplash = document.getElementById('themeToggleSplash');
+        const themeToggleApp = document.getElementById('themeToggleApp');
+        const themeToggleMobile = document.getElementById('themeToggleMobile');
+        const languageSelector = document.getElementById('languageSelector');
+        
+        /* -------- Initial Setup -------- */
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
+
+        if(startBtn) {
+            startBtn.addEventListener('click', () => {
+              if (splash) splash.classList.add('hidden');
+              if (app) app.classList.remove('hidden');
+              renderQuickActions();
+              loadChats();
+              const savedSidebarState = localStorage.getItem('sidebarCollapsed') === 'true';
+              setSidebarState(savedSidebarState);
+              if (Object.keys(allChats).length === 0) {
+                startNewChat();
+              } else {
+                const latestChatId = Object.keys(allChats).sort((a,b) => b.split('_')[1] - a.split('_')[1])[0];
+                loadChat(latestChatId);
+              }
+              if (input) input.focus();
+            });
+        }
+    
+        /* -------- Event Listeners -------- */
+        if(themeToggleSplash) themeToggleSplash.addEventListener('click', toggleTheme);
+        if(themeToggleApp) themeToggleApp.addEventListener('click', toggleTheme);
+        if(themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
+        if (languageSelector) languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
+
+        if (input) {
+            ['input','change','keyup','paste'].forEach(ev => {
+              input.addEventListener(ev, () => { updateSendState(); autosize(); });
+            });
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (form) form.requestSubmit();
+              }
+            });
+        }
+        if (sendBtn) sendBtn.addEventListener('click', (e) => { e.preventDefault(); if (form) form.requestSubmit(); });
+        if (newChatBtn) newChatBtn.addEventListener('click', startNewChat);
+        if (newChatMobileBtn) newChatMobileBtn.addEventListener('click', () => { startNewChat(); if (mobileMenu) mobileMenu.classList.add('hidden'); });
+        if (menuBtn) menuBtn.addEventListener('click', () => { if (mobileMenu) mobileMenu.classList.remove('hidden'); });
+        if (closeMenuBtn) closeMenuBtn.addEventListener('click', () => { if (mobileMenu) mobileMenu.classList.add('hidden'); });
+        if (mobileMenu) mobileMenu.addEventListener('click', (e) => { if (e.target === mobileMenu) mobileMenu.classList.add('hidden'); });
+        if (toggleSidebarBtn) toggleSidebarBtn.addEventListener('click', () => {
+          const isCurrentlyCollapsed = app?.classList.contains('sidebar-collapsed');
+          setSidebarState(!isCurrentlyCollapsed);
+        });
+        if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => {
+          if (deleteModal) {
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+          }
+          chatToDelete = null;
+        });
+        if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', () => {
+          if(chatToDelete) deleteChat(chatToDelete);
+          if (deleteModal) {
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+          }
+        });
+        if (form) form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prompt = (input?.value || '').trim();
+            if (!prompt) { updateSendState(); return; }
+            if (!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length === 0)) {
+                if (!currentChatId) startNewChat();
+                addMessageToHistory('assistant', "Hello! I'm the TASK Assistant. How can I help you?");
+                renderChat();
+            }
+            addMessageToHistory('user', prompt);
+            bubbleMe(prompt);
+            if (input) input.value = '';
+            autosize();
+            updateSendState();
+            showChips([]);
+            setStatus('Thinking…');
+            const typingIndicator = createTypingIndicator();
+            if (chatBody) chatBody.appendChild(typingIndicator);
+            scrollToBottom();
+
+            try {
+                const response = await getSmartResponse(prompt);
+                typingIndicator?.remove();
+                addMessageToHistory('assistant', response.text);
+                bubbleBot(response.text);
+                updateChatTitle(prompt);
+                setStatus('');
+            } catch (err) {
+                console.error(err);
+                typingIndicator?.remove();
+                setStatus(`Error: ${err.message}. Please try again.`, true);
+                bubbleBot('Sorry — I could not reach the service. Please try again.');
+                resetConversationState();
+            }
+        });
+        if (micBtn) micBtn.addEventListener('click', () => {
+            if (!recognition) recognition = initSTT();
+            if (!recognition) { setStatus('Voice input not supported in this browser.', true); return; }
+            if (!listening) recognition.start(); else recognition.stop();
+        });
+
+        updateSendState();
+        autosize();
     });
-    
-  /* -------- Event Listeners (robust) -------- */
-function autosize() {
-  input.style.height = 'auto';
-  input.style.height = input.scrollHeight + 'px';
-}
 
-function updateSendState() {
-  const hasText = input.value.trim().length > 0;
-  sendBtn.disabled = !hasText;
-  sendBtn.setAttribute('aria-disabled', String(!hasText));
-}
-
-// keep button state and height in sync
-['input','change','keyup','paste'].forEach(ev => {
-  input.addEventListener(ev, () => { updateSendState(); autosize(); });
-});
-
-// Enter = send; Shift+Enter = newline (works in Safari too)
-input.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    form.requestSubmit(); // more reliable than manual dispatch
-  }
-});
-
-// Button always submits (covers iOS)
-sendBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  form.requestSubmit();
-});
-
-// Other UI listeners (unchanged)
-newChatBtn.addEventListener('click', startNewChat);
-newChatMobileBtn.addEventListener('click', () => { startNewChat(); mobileMenu.classList.add('hidden'); });
-menuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
-closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-mobileMenu.addEventListener('click', (e) => { if (e.target === mobileMenu) mobileMenu.classList.add('hidden'); });
-toggleSidebarBtn.addEventListener('click', () => {
-  const isCurrentlyCollapsed = app.classList.contains('sidebar-collapsed');
-  setSidebarState(!isCurrentlyCollapsed);
-});
-cancelDeleteBtn.addEventListener('click', () => {
-  deleteModal.classList.add('hidden');
-  deleteModal.classList.remove('flex');
-  chatToDelete = null;
-});
-confirmDeleteBtn.addEventListener('click', () => {
-  if(chatToDelete) deleteChat(chatToDelete);
-  deleteModal.classList.add('hidden');
-  deleteModal.classList.remove('flex');
-});
-
-// Initial state for composer
-updateSendState();
-autosize();
-
-/* -------- Guarded submit handler (replaces handleSend) -------- */
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const prompt = input.value.trim();
-  if (!prompt) { updateSendState(); return; }
-
-  const isFirstMessage = allChats[currentChatId]?.history.length === 0;
-  if (isFirstMessage) {
-    addMessageToHistory('assistant', "Hello! I'm the TASK Assistant. How can I help you prepare for your next career move?");
-    renderChat();
-  }
-
-  addMessageToHistory('user', prompt);
-  bubbleMe(prompt);
-
-  input.value = '';
-  autosize();
-  updateSendState();
-  showChips([]);
-  setStatus('Thinking…');
-
-  const typingIndicator = createTypingIndicator();
-  chatBody.appendChild(typingIndicator);
-  scrollToBottom();
-
-// --- SNIPPET START ---
-
-// ... inside the form.addEventListener('submit', ...) function
-
-  try {
-      const response = conversationState.mode
-        ? await handleGuidedConversation(prompt)
-        : await getSmartResponse(prompt);
-
-      chatBody.removeChild(typingIndicator);
-
-      if (response.action === 'askLocation_Jobs') {
-        conversationState.mode = 'LOCATION_JOB_SEARCH';
-        bubbleBot(response.text);
-      } else if (response.action === 'askLocation_Resources') {
-        conversationState.mode = 'LOCATION_RESOURCE_SEARCH';
-        conversationState.data.resourceType = response.resourceType;
-        bubbleBot(response.text);
-      } else if (response.action === 'start_guided_conversation') {
-        conversationState.mode = response.mode;
-        conversationState.step = 1;
-        bubbleBot(response.text);
-      } else {
-        addMessageToHistory('assistant', response.text);
-        bubbleBot(response.text);
-        const suggestionChips = generateSuggestionChips(prompt, response.text);
-        showChips(suggestionChips);
-        updateChatTitle(prompt);
-      }
-      setStatus('');
-
-    } catch (err) {
-      console.error(err);
-      // safe remove if it’s still there
-      try { chatBody.removeChild(typingIndicator); } catch {}
-      setStatus(`Error: ${err.message}. Please try again.`, true);
-      bubbleBot('Sorry — I could not reach the service. Please try again.');
-      resetConversationState();
-    }
-});
-
-// --- SNIPPET END ---
-
-    /* -------- Core Functions -------- */
+    /* -------- Core & Helper Functions -------- */
+    function autosize() { const i=document.getElementById('input'); if(i){i.style.height='auto'; i.style.height=i.scrollHeight+'px';} }
+    function updateSendState() { const i=document.getElementById('input'), s=document.getElementById('send'); if(i&&s){const h=i.value.trim().length>0; s.disabled=!h; s.setAttribute('aria-disabled', String(!h));} }
     function setSidebarState(isCollapsed) {
-        app.classList.toggle('sidebar-collapsed', isCollapsed);
-        asideEl.classList.toggle('w-[280px]', !isCollapsed);
-        asideEl.classList.toggle('w-0', isCollapsed);
-        asideEl.classList.toggle('p-3', !isCollapsed);
-        asideEl.classList.toggle('p-0', isCollapsed);
-
-        if (isCollapsed) {
-            toggleSidebarIcon.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-        } else {
-            toggleSidebarIcon.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
+        const asideEl = document.querySelector('aside');
+        const toggleSidebarIcon = document.getElementById('toggleSidebarIcon');
+        const app = document.getElementById('app');
+        if (app) app.classList.toggle('sidebar-collapsed', isCollapsed);
+        if (asideEl) {
+            asideEl.classList.toggle('w-[280px]', !isCollapsed);
+            asideEl.classList.toggle('w-0', isCollapsed);
+            asideEl.classList.toggle('p-3', !isCollapsed);
+            asideEl.classList.toggle('p-0', isCollapsed);
+        }
+        if (toggleSidebarIcon) {
+            toggleSidebarIcon.innerHTML = isCollapsed ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>` : `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
         }
         localStorage.setItem('sidebarCollapsed', String(isCollapsed));
     }
-
     function saveChats() { localStorage.setItem('allChats', JSON.stringify(allChats)); }
-    function loadChats() {
-        const saved = localStorage.getItem('allChats');
-        if(saved) allChats = JSON.parse(saved);
-        renderHistory();
-    }
-    
-    function loadChat(chatId) {
-        currentChatId = chatId;
-        resetConversationState();
-        renderChat();
-        renderHistory();
-        scrollToBottom(true);
-    }
-
+    function loadChats() { const saved = localStorage.getItem('allChats'); if(saved) allChats = JSON.parse(saved); renderHistory(); }
+    function loadChat(chatId) { currentChatId = chatId; resetConversationState(); renderChat(); renderHistory(); scrollToBottom(true); }
     function startNewChat() {
         const existingEmptyChat = Object.values(allChats).find(chat => chat.title === "New Chat" && chat.history.length === 0);
         if (existingEmptyChat) {
             loadChat(existingEmptyChat.id);
-            if(window.innerWidth < 1024) mobileMenu.classList.add('hidden');
+            if(window.innerWidth < 1024) document.getElementById('mobileMenu')?.classList.add('hidden');
             return;
         }
-
         currentChatId = `chat_${Date.now()}`;
         allChats[currentChatId] = { id: currentChatId, title: "New Chat", history: [] };
         resetConversationState();
         renderChat(); 
         renderHistory();
         saveChats();
-        input.value = '';
-        sendBtn.disabled = true;
-        showChips([
-            {type: 'prompt', text: 'Help me with my resume'},
-            {type: 'prompt', text: 'How do I prepare for an interview?'},
-            {type: 'prompt', text: 'What jobs are available?'},
-        ]);
+        const input = document.getElementById('input');
+        if (input) input.value = '';
+        updateSendState();
+        showChips([ {type: 'prompt', text: 'Help me with my resume'}, {type: 'prompt', text: 'How do I prepare for an interview?'}, {type: 'prompt', text: 'What jobs are available?'} ]);
     }
-
-    function resetConversationState() {
-        conversationState.mode = null;
-        conversationState.step = 0;
-        conversationState.data = {};
+    function resetConversationState() { conversationState = { mode: null, step: 0, data: {} }; }
+    function addMessageToHistory(role, text) { if(!currentChatId || !allChats[currentChatId]) return; allChats[currentChatId].history.push({ role, text }); saveChats(); }
+    function updateChatTitle(prompt) { if (allChats[currentChatId] && allChats[currentChatId].title === "New Chat") { const newTitle = prompt.split(' ').slice(0, 4).join(' '); allChats[currentChatId].title = newTitle; saveChats(); renderHistory(); } }
+    function renameChat(chatId, newTitle) { if(allChats[chatId]) { allChats[chatId].title = newTitle; saveChats(); renderHistory(); } }
+    function deleteChat(chatId) { delete allChats[chatId]; saveChats(); if (currentChatId === chatId) { currentChatId = null; const sortedChats = Object.values(allChats).sort((a, b) => b.id.split('_')[1] - a.id.split('_')[1]); if (sortedChats.length > 0) { loadChat(sortedChats[0].id); } else { startNewChat(); } } else { renderHistory(); } }
+    function setStatus(msg, isError=false) { const el = document.getElementById('status'); if(el) { el.textContent = msg; el.className = `mt-2 text-sm text-center ${isError ? 'text-red-500' : 'text-gray-500'}`; } }
+    function scrollToBottom(instant = false) { const chat = document.getElementById('chat'); if(chat) chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' }); }
+    function escapeHtml(str) { return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    async function safeGetJSON(url) {
+        try {
+            const r = await fetch(url);
+            if (!r.ok) return { ok: false, error: `HTTP ${r.status}` };
+            return await r.json();
+        } catch (e) {
+            return { ok: false, error: e?.message || 'network' };
+        }
+    }
+    function setLanguage(lang) {
+        const splashTitle = document.getElementById('splashTitle');
+        const splashSubtitle = document.getElementById('splashSubtitle');
+        const startButton = document.getElementById('start');
+        if (lang === 'es') {
+            if (splashTitle) splashTitle.textContent = 'Asistente de TASK';
+            if (splashSubtitle) splashSubtitle.textContent = 'Su guía de recursos profesionales y comunitarios.';
+            if (startButton) startButton.textContent = 'Empezar';
+        } else {
+            if (splashTitle) splashTitle.textContent = 'TASK Assistant';
+            if (splashSubtitle) splashSubtitle.textContent = 'Your guide to career and community resources.';
+            if (startButton) startButton.textContent = 'Start';
+        }
     }
 
     /* -------- Guided Conversation Logic -------- */
     async function handleGuidedConversation(prompt) {
-        if (conversationState.mode === 'STAR_PRACTICE') {
-            return handleStarPractice(prompt);
-        }
-        if (conversationState.mode === 'LOCATION_JOB_SEARCH') {
-            const response = await getLiveJobs(prompt);
-            resetConversationState();
-            return response;
-        }
-        if (conversationState.mode === 'LOCATION_RESOURCE_SEARCH') {
-            const resources = await fetchResources(prompt, conversationState.data.resourceType);
-            renderResourceList(resources, prompt, conversationState.data.resourceType);
-            resetConversationState();
-            return { text: "I hope these resources are helpful. Is there anything else I can assist you with?" };
+        if (conversationState.mode === 'TRIP_PLANNER') {
+            return handleTripPlanner(prompt);
         }
         resetConversationState();
         return getGenerativeResponse(prompt); 
     }
-
-    async function handleStarPractice(prompt) {
+    async function handleTripPlanner(prompt) {
         const step = conversationState.step;
-        conversationState.data[step] = prompt;
-
         if (step === 1) {
+            conversationState.data.origin = prompt;
             conversationState.step++;
-            return { text: "Great. Now, what was your specific **Task** or responsibility in that situation?" };
-        } else if (step === 2) {
-            conversationState.step++;
-            return { text: "Excellent. Next, describe the **Action** you took to handle the task." };
-        } else if (step === 3) {
-            conversationState.step++;
-            return { text: "Perfect. Finally, what was the **Result** of your action? Try to use numbers if you can." };
-        } else if (step === 4) {
-            const { '1': s, '2': t, '3': a, '4': r } = conversationState.data;
-            const fullAnswer = `Here's your full STAR answer combined:\n\n**Situation:** ${s}\n**Task:** ${t}\n**Action:** ${a}\n**Result:** ${r}\n\nThis is a strong, structured answer! It clearly demonstrates your experience. Well done.`;
+            return { text: "Got it. And where are you trying to go (destination address or landmark)?" };
+        } 
+        if (step === 2) {
+            conversationState.data.destination = prompt;
+            const origin = encodeURIComponent(conversationState.data.origin);
+            const destination = encodeURIComponent(conversationState.data.destination);
+            const tripUrl = `https://www.njtransit.com/trip-planner-to?origin=DEFAULT_ORIGIN&destination=DEFAULT_DESTINATION&origin_text=${origin}&destination_text=${destination}`;
+            const responseText = `Great! Here is the link to see the best routes on the official NJ Transit website with your trip details pre-filled:\n\n[View my trip directions](${tripUrl})`;
             resetConversationState();
-            return { text: fullAnswer, chips: [{ type: 'prompt', text: 'Let\'s practice another one' }, { type: 'prompt', text: 'Give me interview tips' }] };
+            return { text: responseText };
         }
     }
-    
-    /* -------- Smart Response Router -------- */
+
+    /* -------- Smart Response Router (Receptionist) -------- */
     async function getSmartResponse(prompt) {
         const p = prompt.toLowerCase();
         const hasWord = (words) => words.some(word => new RegExp(`\\b${word}\\b`, 'i').test(p));
-        
-        // Priority 1: Distress/Frustration
+
+        if (conversationState.mode) { return handleGuidedConversation(prompt); }
+
         const selfHarmKeywords = ['kill myself', 'hurt myself', 'suicide', 'end my life'];
-        if (hasWord(selfHarmKeywords)) {
-            return { 
-                text: "It sounds like you are in immediate distress, and I want you to know that help is available right now. Your safety is the most important thing.\n\n**If you are in danger, please call 911 immediately.**\n\nYou can also connect with someone to talk to by calling or texting **988** to reach the Suicide & Crisis Lifeline. They are available 24/7 and are there to support you." 
-            };
-        }
-        
-        const frustrationKeywords = ['hate this', 'awful', 'not helpful', 'useless', 'stupid', 'doesn\'t work', 'frustrated', 'angry', 'i need real help', 'wtf', 'this is bullshit', 'fuck'];
-        if (hasWord(frustrationKeywords)) {
-            return { 
-                text: "I am truly sorry that I'm not providing the help you need, and I understand your frustration. My goal is to support you. Let me try a different approach.\n\nIf you would like to speak with someone directly for support, you can call or text these numbers:\n- General Support: **609-697-6215** or **609-697-6166**\n- Appointments: **(609) 337-1624**\n\nFor immediate emotional support, please remember you can always call or text **988**. How can I better assist you right now?", 
-                chips: [{ type: 'prompt', text: 'Find mental health resources near me'}, { type: 'link', label: 'Call 988', href: 'tel:988' }] 
-            };
-        }
-        if (hasWord(['homeless', 'depressed', 'nowhere to go', 'can\'t do this anymore'])) {
-            return { 
-                action: 'askLocation_Resources', 
-                resourceType: 'mental health', 
-                text: "It sounds like you are going through a very difficult time, and I'm so sorry to hear that. Please know that help is available.\n\nI can look for housing and mental health resources for you. What city or ZIP code are you in?\n\n**If you are in crisis, please call or text 988 immediately to connect with someone who can support you.**" 
-            };
-        }
-        
-        // Priority 2: Guided flows
-        if (hasWord(['practice']) && hasWord(['star'])) {
-            return { action: 'start_guided_conversation', mode: 'STAR_PRACTICE', text: "Great idea! Let's practice a STAR answer together. First, tell me about the **Situation**. What was the context or background of a challenge you faced at work?"};
-        }
+        if (hasWord(selfHarmKeywords)) { return { text: "It sounds like you are in immediate distress... Please call 911 or text 988." }; }
+        const frustrationKeywords = ['hate this', 'awful', 'not helpful', 'useless', 'stupid', 'doesn\'t work', 'frustrated', 'angry'];
+        if (hasWord(frustrationKeywords)) { return { text: "I am truly sorry I'm not providing the help you need... Please call (609) 337-1624 for direct support." }; }
 
-        // Priority 3: Location-based actions
-        const resourceKeywords = { 'food': ['food', 'pantry', 'hungry', 'eat'], 'housing': ['housing', 'shelter'], 'mental health': ['counseling', 'support group', 'therapist'] };
-        for(const type in resourceKeywords) {
-            if (hasWord(resourceKeywords[type])) {
-                return { action: 'askLocation_Resources', resourceType: type, text: `I can help with that. What city or ZIP code should I search for ${type} resources in?` };
+        if (hasWord(['trip', 'directions', 'bus route', 'transit', 'get to'])) {
+            conversationState.mode = 'TRIP_PLANNER';
+            conversationState.step = 1;
+            return { text: "I can help with that. Where are you starting from (origin address or landmark)?" };
+        }
+      
+        if (hasWord(['training', 'trainings', 'class', 'classes', 'culinary', 'sora', 'forklift', 'certification'])) {
+            setStatus('Checking our program schedule...');
+            const result = await safeGetJSON(api('/api/trainings'));
+            let context = "There are currently no training programs scheduled.";
+            if (result.ok && result.data && result.data.length > 0) {
+              context = "Here is a list of our current training programs:\n\n" + result.data.map(t => (
+                `---
+                 Program: ${t.name}\nDescription: ${t.description}\nSchedule: ${t.schedule || 'Not specified.'}\nNext Start Date: ${new Date(t.next_start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}. ${t.start_date_note || ''}\nApplication Window: From ${new Date(t.app_window_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} to ${new Date(t.app_window_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}\nRequirements: ${t.requirements}\n---`
+              )).join('\n\n');
+            } else if (!result.ok) {
+              context = `Couldn’t load the live schedule (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.trainings}`;
             }
-        }
-       
-    // This function now calls YOUR serverless function at /api/jobs
-    try {
-        const response = await fetch('/api/jobs', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: prompt }) // Pass the prompt as 'query'
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+            const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question: "${prompt}"`;
+            return getGenerativeResponse(finalPrompt);
         }
 
-        const result = await response.json();
-        
-        if (result.ok && result.text) {
-             // The server-side code already adds the fallback link if needed.
-            return { text: result.text };
-        } else {
-            throw new Error(result.error || "Failed to get job listings.");
-        }
-    } catch (error) {
-        console.error("Job search failed:", error);
-        // Provide a user-friendly message
-        return { text: `Sorry, the job search is currently unavailable. Please try again later or visit the [TASK Job Board](${ENGAGE.jobOpenings}).` };
-    }
-}
-
-
-   async function getGenerativeResponse(prompt) {
-    // This function now calls YOUR serverless function at /api/ai
-    try {
-        const response = await fetch('/api/ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                prompt: prompt,
-                systemPrompt: SYSTEM_PROMPT 
-            })
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
-        }
-
-        const result = await response.json();
-
-        if (result.ok && result.text) {
-            return { text: result.text };
-        } else {
-             return { text: "I'm sorry, I couldn't generate a response. Please try rephrasing your question." };
-        }
-    } catch (error) {
-        console.error("Generative API call failed:", error);
-        throw error; // Re-throw to be caught by the submit handler
-    }
-}
-
-    function addMessageToHistory(role, text) {
-        if(!allChats[currentChatId]) return;
-        allChats[currentChatId].history.push({ role, text });
-        saveChats();
-    }
-
-    function updateChatTitle(prompt) {
-        if (allChats[currentChatId] && allChats[currentChatId].title === "New Chat") {
-            const newTitle = prompt.split(' ').slice(0, 4).join(' ');
-            allChats[currentChatId].title = newTitle;
-            saveChats();
-            renderHistory();
-        }
-    }
-
-    function renameChat(chatId, newTitle) {
-        if(allChats[chatId]) {
-            allChats[chatId].title = newTitle;
-            saveChats();
-            renderHistory();
-        }
-    }
-    
-    function deleteChat(chatId) {
-        delete allChats[chatId];
-        saveChats();
-
-        if (currentChatId === chatId) {
-            currentChatId = null;
-            const sortedChats = Object.values(allChats).sort((a, b) => b.id.split('_')[1] - a.id.split('_')[1]);
-            if (sortedChats.length > 0) {
-                loadChat(sortedChats[0].id);
-            } else {
-                renderChat(); // Show welcome screen
-                renderHistory();
+        if (hasWord(['job', 'jobs', 'opening', 'hiring', 'apply'])) {
+            setStatus('Checking our featured jobs list...');
+            const result = await safeGetJSON(api('/api/jobs'));
+            let context = "There are currently no featured jobs from our partners.";
+            if (result.ok && result.data && result.data.length > 0) {
+              context = "Here are our current featured jobs:\n\n" + result.data.map(job => (
+                `* **${job.title}** at ${job.company}. [Apply Here](${job.apply_link})`
+              )).join('\n');
+            } else if (!result.ok) {
+              context = `Couldn’t load the featured jobs (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.jobOpenings}`;
             }
-        } else {
-            renderHistory();
+            const finalPrompt = `A user is asking about jobs. Present the featured jobs from the context. Then, ask if they want you to perform a broader, live search for more jobs online.\n\nCONTEXT:\n${context}\n\nUSER'S QUESTION: "${prompt}"`;
+            return getGenerativeResponse(finalPrompt);
         }
+
+        if (hasWord(['resource', 'resources', 'food', 'pantry', 'housing', 'shelter', 'legal', 'support'])) {
+            setStatus('Looking up community resources...');
+            const result = await safeGetJSON(api('/api/resources'));
+            let context = "No community resources are listed at this time.";
+            if (result.ok && result.data && result.data.length > 0) {
+              context = "Here is a list of community resources:\n\n" + result.data.map(r => (
+                `* **${r.name}** (${r.provider}): ${r.description} Website: ${r.website || 'N/A'}`
+              )).join('\n');
+            } else if (!result.ok) {
+              context = `Couldn’t load community resources (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.communityResources}`;
+            }
+            const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about resources: "${prompt}"`;
+            return getGenerativeResponse(finalPrompt);
+        }
+      
+        if (hasWord(['event', 'events', 'job fair', 'workshop'])) {
+            setStatus('Checking for upcoming events...');
+            const result = await safeGetJSON(api('/api/events'));
+            let context = "There are currently no events scheduled.";
+            if (result.ok && result.data && result.data.length > 0) {
+                context = "Here are the upcoming events:\n\n" + result.data.map(e => (
+                    `* **${e.name}** on ${new Date(e.event_date).toLocaleDateString('en-US', { dateStyle: 'full', timeStyle: 'short' })}.`
+                )).join('\n');
+            } else if (!result.ok) {
+                context = `Couldn’t load the event schedule (reason: ${result.error}). Share general guidance and link them to: ${ENGAGE.events}`;
+            }
+            const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about events: "${prompt}"`;
+            return getGenerativeResponse(finalPrompt);
+        }
+
+        return getGenerativeResponse(prompt);
     }
-    
-    /* -------- Rendering Functions -------- */
-     function renderQuickActions() {
-        const actions = [
-            { label: 'Find Local Jobs', action: 'find_jobs', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>` },
-            { label: 'Find Local Resources', action: 'find_resources', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>`},
-            { label: 'Schedule Appointment', key: 'appointment', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>` },
-            { label: 'Get Career Tips', action: 'career_tips', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6"></path></svg>` }
-        ];
-        const renderContainer = (container) => {
-            container.innerHTML = '';
-            actions.forEach(action => {
-                let el;
-                if(action.key) { // It's an external link
-                    el = document.createElement('a');
-                    el.href = ENGAGE[action.key];
-                    el.target = '_blank';
-                    el.rel = 'noopener noreferrer';
-                } else { // It's an internal prompt
-                    el = document.createElement('button');
-                    const prompts = {
-                        'find_jobs': 'Find jobs near me',
-                        'find_resources': 'Find food pantries near me',
-                        'career_tips': 'Give me career tips'
-                    };
-                    el.onclick = () => { input.value = prompts[action.action]; form.dispatchEvent(new Event('submit')); };
-                }
-                
-                el.className = 'flex items-center w-full gap-3 px-2 py-1.5 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800';
-                el.innerHTML = `${action.icon} <span class="text-sm font-medium">${action.label}</span>`;
-                container.appendChild(el);
+
+    /* -------- Gemini API Call -------- */
+    async function getGenerativeResponse(prompt) {
+        try {
+            console.log('Calling:', api('/api/ai'));
+            const response = await fetch(api('/api/ai'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
             });
-        };
-        renderContainer(quickActionsContainer);
-        renderContainer(quickActionsContainerMobile);
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API Error: ${response.status} - ${errorBody}`);
+            }
+            const result = await response.json();
+            return result.ok && result.text ? { text: result.text } : { text: "I'm sorry, I couldn't generate a response." };
+        } catch (error) {
+            console.error("Generative API call failed:", error);
+            throw error;
+        }
     }
-
-    function renderChat() {
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        chatBody.innerHTML = ''; // Clear everything first
-        if (currentChatId && allChats[currentChatId] && allChats[currentChatId].history.length > 0) {
-            chatBody.classList.add('space-y-6');
-            allChats[currentChatId].history.forEach(msg => {
-                if (msg.role === 'user') bubbleMe(msg.text, false);
-                else bubbleBot(msg.text, false);
+    
+    /* -------- Rendering & Utility Functions -------- */
+    function renderQuickActions() {
+      const actions = [ { label: 'Schedule Appointment', key: 'appointment', icon: '📅' }, { label: 'Find Jobs', key: 'jobOpenings', icon: '🔎' }, { label: 'Training Programs', key: 'trainings', icon: '🎓' }, { label: 'Community Resources', key: 'communityResources', icon: '🏥' }, { label: 'Plan a Trip', key: 'trip', icon: '🚌' } ];
+      const renderInto = (containerId) => {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = '';
+        actions.forEach(({label, key, icon}) => {
+          if (key === 'trip') {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+            btn.innerHTML = `<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+            btn.addEventListener('click', () => {
+              conversationState.mode = 'TRIP_PLANNER';
+              conversationState.step = 1;
+              bubbleBot("I can help with that. Where are you starting from (origin address or landmark)?");
             });
-        } else {
-             chatBody.classList.remove('space-y-6');
-             chatBody.innerHTML = `
-                <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
-                    <div class="relative w-20 h-20 mx-auto mb-4">
-                       <div class="absolute inset-[-12px] rounded-full sparkle"></div>
-                       <div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
-                    </div>
-                    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>
-                </div>`;
-        }
-    }
-
-    function renderHistory() {
-        const sortedChats = Object.values(allChats).sort((a, b) => b.id.split('_')[1] - a.id.split('_')[1]);
-        const renderContainer = (container) => {
-            container.innerHTML = '';
-            sortedChats.forEach(chat => {
-                const isActive = chat.id === currentChatId;
-                const item = document.createElement('div');
-                item.className = `history-item relative flex items-center justify-between px-2 py-1.5 rounded-md ${isActive ? 'bg-brand text-black font-semibold' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`;
-
-                const titleSpan = document.createElement('span');
-                titleSpan.className = 'flex-1 truncate cursor-pointer';
-                titleSpan.textContent = chat.title;
-                titleSpan.onclick = () => { loadChat(chat.id); if(window.innerWidth < 1024) mobileMenu.classList.add('hidden'); };
-
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'history-item-actions flex items-center gap-1';
-
-                const renameBtn = document.createElement('button');
-                renameBtn.className = 'p-1 rounded hover:bg-black/10';
-                renameBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>`;
-                renameBtn.onclick = () => {
-                    const newTitle = prompt('Rename chat:', chat.title);
-                    if (newTitle && newTitle.trim() !== '') {
-                        renameChat(chat.id, newTitle.trim());
-                    }
-                };
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'p-1 rounded hover:bg-black/10';
-                deleteBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
-                deleteBtn.onclick = () => {
-                    chatToDelete = chat.id;
-                    deleteModal.classList.remove('hidden');
-                    deleteModal.classList.add('flex');
-                };
-
-                actionsDiv.append(renameBtn, deleteBtn);
-                item.append(titleSpan, actionsDiv);
-                container.appendChild(item);
-            });
-        };
-        renderContainer(historyContainer);
-        renderContainer(historyContainerMobile);
-    }
-    
-    function generateSuggestionChips(prompt, responseText) {
-        const combinedText = (prompt + ' ' + responseText).toLowerCase();
-        const chips = [];
-        const addedLinks = new Set();
-        const hasWord = (words) => words.some(word => new RegExp(`\\b${word}\\b`, 'i').test(combinedText));
-
-        const addChip = (chip) => {
-            const key = chip.href || chip.text;
-            if (!addedLinks.has(key)) {
-                chips.push(chip);
-                addedLinks.add(key);
-            }
-        };
-
-        if (hasWord(['sora', 'culinary', 'forklift', 'training', 'class', 'course', 'certificate'])) {
-            addChip({ type: 'link', label: 'Find Training Opps', href: ENGAGE.trainingOpps });
-            addChip({ type: 'link', label: 'All Trainings', href: ENGAGE.trainings });
-        }
-        if (hasWord(['resource', 'support', 'benefit', 'food', 'housing', 'additional resources'])) {
-            addChip({ type: 'link', label: 'Community Resources', href: ENGAGE.communityResources });
-            addChip({ type: 'link', label: 'General Resources', href: ENGAGE.resources });
-        }
-        if (hasWord(['job', 'opening', 'hiring', 'apply', 'career'])) {
-            addChip({ type: 'link', label: 'View Job Openings', href: ENGAGE.jobOpenings });
-            addChip({ type: 'link', label: 'Get Job Assistance', href: ENGAGE.jobAssistance });
-        }
-        if (hasWord(['resume', 'cv', 'cover letter', 'interview', 'tip'])) {
-            addChip({ type: 'link', label: 'Get Career Tips', href: ENGAGE.careerTips });
-        }
-        if (hasWord(['appoint', 'schedule', 'meet'])) {
-            addChip({ type: 'link', label: 'Make an Appointment', href: ENGAGE.appointment });
-        }
-        
-        if (hasWord(['star method']) && !hasWord(['practice'])) {
-            addChip({type: 'prompt', text: 'Help me practice a STAR answer'});
-        }
-
-        return chips.slice(0, 2); 
-    }
-
-    function showChips(chips = []) {
-        suggestionsEl.innerHTML = '';
-        chips.forEach(chip => {
-            let el;
-            if (chip.type === 'link') {
-                el = document.createElement('a');
-                el.href = chip.href;
-                el.target = '_blank';
-                el.rel = 'noopener noreferrer';
-                el.className = 'px-4 py-2 text-sm font-semibold text-brand bg-blue-100 dark:bg-blue-900/50 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/80 flex items-center gap-2';
-                el.innerHTML = `<span>${chip.label}</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>`;
-            } else {
-                el = document.createElement('button');
-                el.className = 'px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-300 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600';
-                el.textContent = chip.text;
-                el.onclick = () => { input.value = chip.text; form.dispatchEvent(new Event('submit')); };
-            }
-            suggestionsEl.appendChild(el);
+            el.appendChild(btn);
+            return;
+          }
+          const href = ENGAGE[key];
+          if (!href) return;
+          const a = document.createElement('a');
+          a.href = href;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.className = 'flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+          a.innerHTML = `<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+          el.appendChild(a);
         });
-    }
-    
-    function bubbleMe(text, doScroll = true) {
-        document.getElementById('welcomeScreen')?.remove();
-        chatBody.classList.add('space-y-6');
-
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble-container flex items-start justify-end gap-3';
-        bubble.innerHTML = `<div class="max-w-xl p-3 bg-brand text-black rounded-lg whitespace-pre-wrap">${escapeHtml(text)}</div><div class="flex items-center justify-center flex-shrink-0 w-8 h-8 font-semibold bg-gray-300 rounded-full dark:bg-gray-600">You</div>`;
-        chatBody.appendChild(bubble);
-        if (doScroll) scrollToBottom();
-    }
-    
-    function bubbleBot(text, doScroll = true) {
-        document.getElementById('welcomeScreen')?.remove();
-        chatBody.classList.add('space-y-6');
-
-        const bubbleContainer = document.createElement('div');
-        bubbleContainer.className = 'group bubble-container';
-
-        const bubble = document.createElement('div');
-        bubble.className = 'flex items-start gap-3';
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'prose prose-sm max-w-xl p-3 bg-white dark:bg-[#0f172a] rounded-lg border border-gray-200 dark:border-[#1f2937]';
-        contentDiv.innerHTML = renderSmart(text);
-        
-        bubble.innerHTML = `<div class="relative flex items-center justify-center flex-shrink-0 w-8 h-8 text-lg font-bold text-black bg-brand rounded-full">T</div>`;
-        bubble.appendChild(contentDiv);
-        
-        const actions = document.createElement('div');
-        actions.className = 'action-btn-group flex items-center gap-2 ml-11 mt-1';
-
-        const copyBtn = document.createElement('button');
-        copyBtn.title = 'Copy';
-        copyBtn.className = 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200';
-        copyBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(contentDiv.innerText);
-            copyBtn.innerHTML = `<svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`;
-            setTimeout(() => {
-                copyBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
-            }, 2000);
-        };
-
-        const feedbackContainer = document.createElement('div');
-        const thumbUpBtn = document.createElement('button');
-        thumbUpBtn.title = 'Good response';
-        thumbUpBtn.className = 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200';
-        thumbUpBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 18.331v-5.447c0-.828.672-1.5 1.5-1.5h2.5a2 2 0 012 2v4.5m0-6.5v-2a2 2 0 00-2-2h-2.5a2 2 0 00-2 2v6.5"></path></svg>`;
-        
-        const thumbDownBtn = document.createElement('button');
-        thumbDownBtn.title = 'Bad response';
-        thumbDownBtn.className = 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200';
-        thumbDownBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3h4.017c.163 0 .326.02.485-.06L17 5.669v5.447c0 .828-.672 1.5-1.5 1.5h-2.5a2 2 0 01-2-2v-4.5m0 6.5v2a2 2 0 002 2h2.5a2 2 0 002-2v-6.5"></path></svg>`;
-
-        const handleFeedback = (isGood) => {
-            thumbUpBtn.disabled = true;
-            thumbDownBtn.disabled = true;
-            thumbUpBtn.classList.toggle('text-blue-500', isGood);
-            thumbDownBtn.classList.toggle('text-blue-500', !isGood);
-            console.log(`Feedback received: ${isGood ? 'Positive' : 'Negative'}`);
-        };
-        thumbUpBtn.onclick = () => handleFeedback(true);
-        thumbDownBtn.onclick = () => handleFeedback(false);
-
-        feedbackContainer.append(thumbUpBtn, thumbDownBtn);
-        actions.append(copyBtn, feedbackContainer);
-        bubbleContainer.append(bubble, actions);
-        chatBody.appendChild(bubbleContainer);
-        if (doScroll) scrollToBottom();
-    }
-
-    function renderJobBoard(jobs, location) {
-        const container = document.createElement('div');
-        container.className = 'p-4 bg-white dark:bg-[#0f172a] rounded-lg border border-gray-200 dark:border-[#1f2937]';
-        
-        let content;
-        if (jobs.length > 0) {
-            content = jobs.map(job => `
-                <div class="p-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-bold text-base">${escapeHtml(job.title)}</p>
-                            <p class="text-sm text-gray-700 dark:text-gray-300">${escapeHtml(job.company)} - ${escapeHtml(job.location)}</p>
-                        </div>
-                        <a href="${job.url}" target="_blank" rel="noopener noreferrer" class="ml-4 px-3 py-1 text-sm font-semibold text-white bg-brand rounded-full hover:opacity-90 whitespace-nowrap">Apply</a>
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            content = `<p class="text-center text-gray-500 py-4">No jobs found for "${escapeHtml(location)}". Try another location.</p>
-            <div class="flex justify-center mt-2 pb-2">
-                <a href="${ENGAGE.jobOpenings}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm font-semibold text-white bg-brand rounded-full hover:opacity-90">View All Job Openings</a>
-            </div>`;
-        }
-        
-        container.innerHTML = `
-            <h3 class="text-lg font-bold mb-2 px-3">Job Listings in ${escapeHtml(location)}</h3>
-            ${content}
-        `;
-        chatBody.appendChild(container);
-        scrollToBottom();
-    }
-
-    function renderResourceList(resources, location, type) {
-        const container = document.createElement('div');
-        container.className = 'p-4 bg-white dark:bg-[#0f172a] rounded-lg border border-gray-200 dark:border-[#1f2937]';
-        
-        let content;
-        if (resources.length > 0) {
-            content = resources.map(res => `
-                <div class="p-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                     <p class="font-bold text-base">${escapeHtml(res.name)}</p>
-                     <p class="text-sm text-gray-700 dark:text-gray-300">${escapeHtml(res.details)}</p>
-                     ${res.url ? `<a href="${res.url}" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-500 hover:underline">Visit Website</a>` : ''}
-                </div>
-            `).join('');
-        } else {
-            content = `<p class="text-center text-gray-500 py-4">No ${escapeHtml(type)} resources found for "${escapeHtml(location)}".</p>`;
-        }
-        
-        container.innerHTML = `
-            <h3 class="text-lg font-bold mb-2 px-3">${escapeHtml(type.charAt(0).toUpperCase() + type.slice(1))} Resources in ${escapeHtml(location)}</h3>
-            ${content}
-        `;
-        chatBody.appendChild(container);
-        scrollToBottom();
-    }
-
-    function createTypingIndicator() {
-        const indicator = document.createElement('div');
-        indicator.className = 'flex items-center gap-2 ml-11';
-        indicator.innerHTML = `<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`;
-        return indicator;
-    }
-
-    function setStatus(msg, isError=false) {
-        statusEl.textContent = msg;
-        statusEl.className = `mt-2 text-sm text-center ${isError ? 'text-red-500' : 'text-gray-500'}`;
-    }
-    
-    function renderSmart(text) {
-        // Basic sanitization
-        let processedText = text.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-        
-        // Markdown Bold and Links
-        processedText = processedText
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-        // Phone numbers
-        processedText = processedText.replace(/(\+?1\s?)?\(?(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})/g, (match) => {
-            const digits = match.replace(/\D/g,'');
-            const tel = `tel:${digits.length === 10 ? `+1${digits}` : `+${digits}`}`;
-             return `<a href="${tel}" class="underline">${match}</a>`;
-        });
-        processedText = processedText.replace(/\b988\b/g, '<a href="tel:988" class="underline">988</a>');
-        processedText = processedText.replace(/\b911\b/g, '<a href="tel:911" class="underline">911</a>');
-
-        // Markdown Lists
-        const lines = processedText.split('\n');
-        let html = '';
-        let inList = false;
-        for (const line of lines) {
-            if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-                if (!inList) {
-                    html += '<ul>';
-                    inList = true;
-                }
-                html += `<li>${line.trim().substring(2)}</li>`;
-            } else {
-                if (inList) {
-                    html += '</ul>';
-                    inList = false;
-                }
-                html += line + '<br>';
-            }
-        }
-        if (inList) {
-            html += '</ul>';
-        }
-        
-        return html.replace(/<br><ul>/g, '<ul>').replace(/<\/ul><br>/g, '</ul>');
-    }
-
-    /* -------- Utility Functions -------- */
-    function scrollToBottom(instant = false) { chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' }); }
-    function escapeHtml(str) { return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-    /* -------- Speech Recognition (STT) -------- */
-    let recognition = null, listening = false;
-    const stopIcon = `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3A.5.5 0 018 7z" clip-rule="evenodd"></path></svg>`;
-    const micSvg = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`;
-
-    function initSTT(){
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) return null;
-      const r = new SR();
-      r.lang = 'en-US'; r.interimResults = true; r.continuous = false;
-      r.onstart = () => { listening = true; micIcon.innerHTML = stopIcon; };
-      r.onend   = () => { listening = false; micIcon.innerHTML = micSvg; };
-      r.onresult = (e) => {
-        let txt = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
-        input.value = txt;
-        sendBtn.disabled = input.value.trim().length === 0;
-        input.style.height = 'auto';
-        input.style.height = (input.scrollHeight) + 'px';
       };
-      return r;
+      renderInto('quickActionsContainer');
+      renderInto('quickActionsContainerMobile');
     }
-    
-    micBtn.addEventListener('click', () => {
-      if (!recognition) recognition = initSTT();
-      if (!recognition) { setStatus('Voice input not supported in this browser.', true); return; }
-      if (!listening) recognition.start(); else recognition.stop();
-    });
-
-  </script>
+    function renderChat() {
+      const chatBody = document.getElementById('chatBody');
+      if (!chatBody) return;
+      chatBody.innerHTML = '';
+      const history = (currentChatId && allChats[currentChatId]) ? allChats[currentChatId].history : [];
+      if (!history || history.length === 0) {
+        const welcome = document.createElement('div');
+        welcome.id = 'welcomeScreen';
+        welcome.className = 'flex flex-col items-center justify-center h-full text-center';
+        welcome.innerHTML = `<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>`;
+        chatBody.appendChild(welcome);
+        return;
+      }
+      history.forEach(msg => {
+        if (msg.role === 'user') bubbleMe(msg.text, false);
+        else bubbleBot(msg.text, false);
+      });
+      scrollToBottom(true);
+    }
+    function renderHistory() {
+      const container = document.getElementById('historyContainer');
+      const mobile    = document.getElementById('historyContainerMobile');
+      const items = Object.values(allChats).sort((a,b) => (b.id||'').localeCompare(a.id||''));
+      const draw = (el) => {
+        if (!el) return;
+        el.innerHTML = '';
+        items.forEach(chat => {
+          const row = document.createElement('div');
+          row.className = `history-item group flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${chat.id === currentChatId ? 'bg-brand/20' : ''}`;
+          row.innerHTML = `<button class="text-left flex-1 truncate" title="${chat.title}">${chat.title}</button><div class="history-item-actions flex gap-2 opacity-0 group-hover:opacity-100"><button class="rename-btn text-xs underline">Rename</button><button class="delete-btn text-xs text-red-600 underline">Delete</button></div>`;
+          row.querySelector('button.truncate')?.addEventListener('click', () => loadChat(chat.id));
+          row.querySelector('.rename-btn')?.addEventListener('click', () => { const newTitle = prompt('Rename chat:', chat.title); if (newTitle) renameChat(chat.id, newTitle); });
+          row.querySelector('.delete-btn')?.addEventListener('click', () => { if (confirm('Are you sure you want to delete this chat?')) deleteChat(chat.id); });
+          el.appendChild(row);
+        });
+      };
+      draw(container);
+      draw(mobile);
+    }
+    function bubbleMe(text, doScroll = true) {
+      const chatBody = document.getElementById('chatBody');
+      if (!chatBody) return;
+      document.getElementById('welcomeScreen')?.remove();
+      const wrap = document.createElement('div');
+      wrap.className = 'mb-3 flex justify-end';
+      wrap.innerHTML = `<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${renderSmart(text)}</div>`;
+      chatBody.appendChild(wrap);
+      if (doScroll) scrollToBottom();
+    }
+    function bubbleBot(text, doScroll = true) {
+      const chatBody = document.getElementById('chatBody');
+      if (!chatBody) return;
+      document.getElementById('welcomeScreen')?.remove();
+      const wrap = document.createElement('div');
+      wrap.className = 'group mb-3 flex justify-start';
+      wrap.innerHTML = `<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow prose dark:prose-invert prose-p:my-2 first:prose-p:mt-0 last:prose-p:mb-0">${renderSmart(text)}</div>`;
+      chatBody.appendChild(wrap);
+      if (doScroll) scrollToBottom();
+    }
+    function showChips(chips = []) {
+      const s = document.getElementById('suggestions');
+      if (!s) return;
+      s.innerHTML = '';
+      chips.forEach(c => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50';
+        btn.textContent = c.text;
+        btn.addEventListener('click', () => { const input = document.getElementById('input'); if (input) input.value = c.text; updateSendState(); input?.focus(); });
+        s.appendChild(btn);
+      });
+    }
+    function createTypingIndicator() { const i=document.createElement('div'); i.className='flex items-center gap-2 ml-11'; i.innerHTML=`<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`; return i; }
+    function renderSmart(text) {
+      const esc = (s) => s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+      let html = esc(text);
+      html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, `<a class="underline" href="$2" target="_blank" rel="noopener noreferrer">$1</a>`);
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
+      return html;
+    }
+    function initSTT() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) return null;
+        const r = new SR();
+        r.lang = 'en-US'; r.interimResults = true; r.continuous = false;
+        r.onstart = () => { listening = true; document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3A.5.5 0 018 7z" clip-rule="evenodd"></path></svg>`; };
+        r.onend = () => { listening = false; document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
+        r.onresult = (e) => {
+            let txt = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+            document.getElementById('input').value = txt;
+            updateSendState();
+            autosize();
+        };
+        return r;
+    }
+</script>
 </body>
 </html>
-
