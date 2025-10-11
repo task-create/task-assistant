@@ -18,7 +18,6 @@
     .sparkle { background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-light) 25%, transparent 40%, transparent 60%, var(--brand-light) 75%, var(--brand) 100%); filter: blur(14px) saturate(1.2); }
     .history-item-actions { opacity: 0; transition: opacity 0.2s ease-in-out; }
     .history-item:hover .history-item-actions { opacity: 1; }
-    /* Sticky composer bar background */
     .composer-shell { position: sticky; bottom: 0; background: linear-gradient(to top, rgba(255,255,255,0.9), rgba(255,255,255,0)); }
     .dark .composer-shell { background: linear-gradient(to top, rgba(15,23,42,0.95), rgba(15,23,42,0)); }
   </style>
@@ -97,12 +96,12 @@
 
     <!-- Main -->
     <main class="relative flex flex-col h-full bg-gray-100 dark:bg-[#0b1220]">
-      <!-- Make the toggle sticky so it follows as chat grows -->
+      <!-- Sticky toggle so it follows as chat grows -->
       <button id="toggleSidebarBtn" class="sticky top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand translate-x-[-12px]">
         <svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </button>
 
-      <div class="flex flex-col flex-1 w-full max-w-4xl mx-auto">
+      <div class="flex flex-col flex-1 w-full max-width mx-auto" style="max-width: 64rem;">
         <!-- Mobile header -->
         <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
           <div class="flex items-center gap-3">
@@ -203,6 +202,19 @@
   </div>
 
 <script type="module">
+/* ---------------- Supabase connectivity (silent) ---------------- */
+import { getSupabase } from './supabase.js';
+(async () => {
+  try {
+    const sb = await getSupabase();
+    // Silent smoke test; remove if undesired
+    const { error } = await sb.from('knowledge_base').select('id').limit(1);
+    if (error) console.warn('Supabase client check:', error.message);
+  } catch (e) {
+    console.warn('Supabase init failed:', e?.message || e);
+  }
+})();
+
 /* ---------------- Constants & Config ---------------- */
 const ENGAGE = {
   landing: "https://bycell.co/ddmnx",
@@ -219,10 +231,11 @@ const ENGAGE = {
   trainings: "https://bycell.co/ddmtn"
 };
 
-const SYSTEM_PROMPT = `You are Solace, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on employment topics (resume, interviews, job search, career development). Be encouraging and break complex topics into simple steps. Use markdown (bold, bullets) for readability. If the user asks for official actions (apply, appointments, forms), guide them to the [Engage by Cell portal](https://bycell.co/ddmnx). When users mention crisis or self-harm, share 988 immediately. When users are frustrated, apologize empathetically and offer options. Do NOT invent URLs or contacts.
+const SYSTEM_PROMPT = `You are Solace, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on employment topics (resume, interviews, job search, career development). Be encouraging and break complex topics into simple steps. Use markdown (bold, bullets) for readability. If the user asks for official actions (apply, appointments, forms), guide them to the Engage by Cell portal. When users mention crisis or self-harm, share 988 immediately. When users are frustrated, apologize empathetically and offer options. Do NOT invent URLs or contacts.
 
-When asked about **trainings**, **jobs**, **resources**, or **events**, first try to read them from the server context (API endpoints). If there’s an error, clearly say so and provide the Engage by Cell link as fallback.`;
+When asked about trainings, jobs, resources, or events, first try to read them from the server context (API endpoints). If there’s an error, clearly say so and provide the Engage by Cell link as fallback.`;
 
+/* If you deploy this on a different host than your API, update DEPLOY_BASE. */
 const DEPLOY_BASE = 'https://task-assistant-xi.vercel.app';
 const ON_SAME_SITE = typeof location !== 'undefined' &&
   (location.hostname === 'localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
@@ -230,7 +243,7 @@ const API_BASE = ON_SAME_SITE ? '' : DEPLOY_BASE;
 const api = (path) => `${API_BASE}${path}`;
 
 /* ---------------- Theme ---------------- */
-const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
+const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 0 0 1 8 0z"></path></svg>`;
 const moonIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
 
 function applyTheme(theme) {
@@ -286,7 +299,6 @@ let currentChatId = null;
 let allChats = {};
 let conversationState = { mode: null, step: 0, data: {} };
 let recognition = null, listening = false;
-let chatToDelete = null;
 
 /* ---------------- Helpers ---------------- */
 function autosize() { const i=document.getElementById('input'); if(i){i.style.height='auto'; i.style.height=i.scrollHeight+'px';} }
@@ -333,14 +345,15 @@ function resetConversationState() { conversationState = { mode: null, step: 0, d
 function addMessageToHistory(role, text) { if(!currentChatId || !allChats[currentChatId]) return; allChats[currentChatId].history.push({ role, text }); saveChats(); }
 function updateChatTitle(prompt) { if (allChats[currentChatId] && allChats[currentChatId].title === "New Chat") { const newTitle = prompt.split(' ').slice(0, 4).join(' '); allChats[currentChatId].title = newTitle; saveChats(); renderHistory(); } }
 function renameChat(chatId, newTitle) { if(allChats[chatId]) { allChats[chatId].title = newTitle; saveChats(); renderHistory(); } }
-function deleteChat(chatId) { delete allChats[chatId]; saveChats(); if (currentChatId === chatId) { currentChatId = null; const sortedChats = Object.values(allChats).sort((a, b) => b.id.split('_')[1] - a.id.split('_')[1]); if (sortedChats.length > 0) { loadChat(sortedChats[0].id); } else { startNewChat(); } } else { renderHistory(); } }
+function deleteChat(chatId) { delete allChats[chatId]; saveChats(); if (currentChatId === chatId) { currentChatId = null; const sortedChats = Object.values(allChats).sort((a, b) => (b.id||'').localeCompare(a.id||'')); if (sortedChats.length > 0) { loadChat(sortedChats[0].id); } else { startNewChat(); } } else { renderHistory(); } }
 function setStatus(msg, isError=false) { const el = document.getElementById('status'); if(el) { el.textContent = msg; el.className = `mt-2 text-sm text-center ${isError ? 'text-red-500' : 'text-gray-500'}`; } }
 function scrollToBottom(instant = false) { const chat = document.getElementById('chat'); if(chat) chat.scrollTo({ top: chat.scrollHeight, behavior: instant ? 'instant' : 'smooth' }); }
 async function safeGetJSON(url) {
   try {
     const r = await fetch(url);
     if (!r.ok) return { ok: false, error: `HTTP ${r.status}` };
-    return await r.json();
+    const j = await r.json();
+    return { ok: true, ...j };
   } catch (e) { return { ok: false, error: e?.message || 'network' }; }
 }
 function renderSmart(text) {
@@ -392,8 +405,8 @@ function initSTT() {
   const r = new SR();
   r.lang = (localStorage.getItem('lang') || 'en') === 'es' ? 'es-ES' : 'en-US';
   r.interimResults = true; r.continuous = false;
-  r.onstart = () => { listening = true; document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle></svg>`; };
-  r.onend = () => { listening = false; document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
+  r.onstart = () => { document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle></svg>`; };
+  r.onend = () => { document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
   r.onresult = (e) => {
     let txt = ''; for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
     const inputEl = document.getElementById('input'); if (inputEl) inputEl.value = txt;
@@ -411,7 +424,6 @@ async function handleGuidedConversation(prompt) {
 function buildNJTransitURL(originText, destText) {
   const origin = encodeURIComponent(originText || '');
   const dest = encodeURIComponent(destText || '');
-  // Pre-fill their quick planner fields via query params
   return `https://www.njtransit.com/trip-planner-to?origin=DEFAULT_ORIGIN&destination=DEFAULT_DESTINATION&origin_text=${origin}&destination_text=${dest}`;
 }
 async function handleTripPlanner(prompt) {
@@ -460,7 +472,7 @@ async function getSmartResponse(prompt) {
     let context = "There are currently no training programs scheduled.";
     if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
       context = "Here are current training programs:\n\n" + result.data.map(t => (
-        `• **${t.name}** — ${t.description || 'Details coming soon.'}\n   Schedule: ${t.schedule || 'TBA'}\n   Next Start: ${t.next_start_date ? new Date(t.next_start_date).toLocaleDateString() : 'TBA'} ${t.start_date_note || ''}\n   Apply Window: ${t.app_window_start ? new Date(t.app_window_start).toLocaleDateString() : 'TBA'} → ${t.app_window_end ? new Date(t.app_window_end).toLocaleDateString() : 'TBA'}\n   Requirements: ${t.requirements || 'None listed'}`
+        `• **${t.name || t.title || 'Training'}** — ${t.description || 'Details coming soon.'}\n   Schedule: ${t.schedule || 'TBA'}\n   Next Start: ${t.next_start_date ? new Date(t.next_start_date).toLocaleDateString() : (t.start_date ? new Date(t.start_date).toLocaleDateString() : 'TBA')}\n   Apply Window: ${t.app_window_start ? new Date(t.app_window_start).toLocaleDateString() : 'TBA'} → ${t.app_window_end ? new Date(t.app_window_end).toLocaleDateString() : 'TBA'}\n   Requirements: ${t.requirements || 'None listed'}`
       )).join('\n\n');
     } else if (!result.ok) {
       context = `Couldn’t load the live schedule (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.trainings}).`;
@@ -476,7 +488,7 @@ async function getSmartResponse(prompt) {
     let context = "There are currently no featured jobs from our partners.";
     if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
       context = "Here are featured jobs:\n\n" + result.data.map(job => (
-        `• **${job.title}** at ${job.company}\n   [Apply Here](${job.apply_link})`
+        `• **${job.title || 'Job'}**${job.company ? ` at ${job.company}` : ''}\n   ${job.apply_link ? `[Apply Here](${job.apply_link})` : ''}`
       )).join('\n');
     } else if (!result.ok) {
       context = `Couldn’t load featured jobs (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.jobOpenings}).`;
@@ -492,7 +504,7 @@ async function getSmartResponse(prompt) {
     let context = "No community resources are listed right now.";
     if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
       context = "Community resources:\n\n" + result.data.map(r => (
-        `• **${r.name}** (${r.provider}) — ${r.description || 'Details coming soon.'}\n   Website: ${r.website ? r.website : 'N/A'}`
+        `• **${r.name || r.title || 'Resource'}**${r.provider ? ` (${r.provider})` : ''} — ${r.description || 'Details coming soon.'}\n   Website: ${r.website ? r.website : 'N/A'}`
       )).join('\n\n');
     } else if (!result.ok) {
       context = `Couldn’t load resources (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.communityResources}).`;
@@ -508,7 +520,7 @@ async function getSmartResponse(prompt) {
     let context = "There are currently no events scheduled.";
     if (result.ok && Array.isArray(result.data) && result.data.length > 0) {
       context = "Upcoming events:\n\n" + result.data.map(e => (
-        `• **${e.name}** — ${e.event_date ? new Date(e.event_date).toLocaleString() : 'TBA'}`
+        `• **${e.name || e.title || 'Event'}** — ${e.event_date ? new Date(e.event_date).toLocaleString() : (e.start_at ? new Date(e.start_at).toLocaleString() : 'TBA')}`
       )).join('\n');
     } else if (!result.ok) {
       context = `Couldn’t load events (reason: ${result.error}). Please check the [Engage by Cell portal](${ENGAGE.events}).`;
@@ -527,6 +539,7 @@ async function getGenerativeResponse(prompt) {
     const response = await fetch(api('/api/ai'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // systemPrompt is optional — your /api/ai can ignore it safely
       body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
     });
     if (!response.ok) {
@@ -534,7 +547,9 @@ async function getGenerativeResponse(prompt) {
       throw new Error(`API Error: ${response.status} - ${errorBody}`);
     }
     const result = await response.json();
-    return result.ok && result.text ? { text: result.text } : { text: "I'm sorry, I couldn't generate a response." };
+    // Your /api/ai returns { reply, source } per the server file we wrote
+    const text = result?.reply || "I'm sorry, I couldn't generate a response.";
+    return { text };
   } catch (error) {
     console.error("Generative API call failed:", error);
     throw error;
@@ -710,9 +725,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => {
     if (deleteModal) { deleteModal.classList.add('hidden'); deleteModal.classList.remove('flex'); }
-    chatToDelete = null;
   });
   if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', () => {
+    const chatToDelete = currentChatId;
     if(chatToDelete) deleteChat(chatToDelete);
     if (deleteModal) { deleteModal.classList.add('hidden'); deleteModal.classList.remove('flex'); }
   });
@@ -755,20 +770,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  const micBtn = document.getElementById('mic');
   if (micBtn) micBtn.addEventListener('click', () => {
-    if (!recognition) recognition = initSTT();
-    if (!recognition) { setStatus('Voice input not supported in this browser.', true); return; }
-    if (!listening) recognition.start(); else recognition.stop();
+    if (!window._recognition) window._recognition = initSTT();
+    if (!window._recognition) { setStatus('Voice input not supported in this browser.', true); return; }
+    if (!listening) window._recognition.start(); else window._recognition.stop();
   });
 
   updateSendState();
   autosize();
-
-  // Optional: small health check to surface backend/Supabase issues
-  try {
-    const health = await safeGetJSON(api('/api/health'));
-    if (!health.ok) console.warn('Health check failed:', health.error);
-  } catch (_) {}
 });
 </script>
 </body>
