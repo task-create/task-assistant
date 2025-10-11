@@ -6,25 +6,24 @@
   <title>TASK Assistant</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase browser client -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     :root { --brand: #ff8a00; --brand-light: #ffd088; }
-    .prose { color: inherit; } .prose strong { color: inherit; } .prose a { color: #3b82f6; text-decoration: underline; } .dark .prose a { color: #93c5fd; }
-    .prose ul > li::before { background-color: #6b7280; }
+    .prose { color: inherit; } .prose strong { color: inherit; }
+    .prose a { color: #3b82f6; text-decoration: underline; }
+    .dark .prose a { color: #93c5fd; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
     @media (prefers-reduced-motion: reduce){ .animate-spin, .animate-bounce, .transition-all { transition: none !important } }
     .sparkle { background: conic-gradient(from 0deg, var(--brand) 0%, var(--brand-light) 25%, transparent 40%, transparent 60%, var(--brand-light) 75%, var(--brand) 100%); filter: blur(14px) saturate(1.2); }
-    .action-btn-group { opacity: 0; transition: opacity 0.2s ease-in-out; } .group:hover .action-btn-group { opacity: 1; }
+    .history-item-actions{opacity:0;transition:opacity .2s} .history-item:hover .history-item-actions{opacity:1}
     aside { overflow-x: hidden; transition: width 0.3s ease-in-out; }
-    @media (min-width: 1024px) { #app.sidebar-collapsed { grid-template-columns: 0 1fr; } }
-    .history-item-actions { opacity: 0; transition: opacity 0.2s ease-in-out; } .history-item:hover .history-item-actions { opacity: 1; }
-    /* Keep chat input pinned; ensure inner scrollers own the scroll */
-    main, .main-col { min-height: 0; }
-    #chat { overscroll-behavior: contain; }
+    @media (min-width:1024px){ #app.sidebar-collapsed{grid-template-columns:0 1fr} }
+    /* Sticky composer: stays docked while chat scrolls */
+    #composerWrap { position: sticky; bottom: 0; z-index: 10; }
+    #composerBack { background: linear-gradient(to bottom, transparent, rgba(255,255,255,.65)); }
+    .dark #composerBack { background: linear-gradient(to bottom, transparent, rgba(11,18,32,.75)); }
   </style>
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: 'var(--brand)' } } } }
@@ -32,62 +31,108 @@
 </head>
 <body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 font-sans antialiased">
 
-  <!-- Splash -->
+  <!-- Splash / onboarding -->
   <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
     <div class="w-full max-w-md p-8 text-center bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1f2937] relative">
-      <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]"><svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
+      <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]">
+        <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+      </button>
       <div class="absolute top-4 left-4">
         <select id="languageSelector" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-[#1f2937] rounded-md p-1 text-sm">
-          <option value="auto">Auto</option>
           <option value="en">English</option>
           <option value="es">Español</option>
         </select>
       </div>
-      <div class="relative w-24 h-24 mx-auto mb-6"><div class="absolute inset-[-16px] rounded-full sparkle animate-spin [animation-duration:4s]"></div><div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div>
+      <div class="relative w-24 h-24 mx-auto mb-6">
+        <div class="absolute inset-[-16px] rounded-full sparkle animate-spin [animation-duration:4s]"></div>
+        <div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
+      </div>
       <h1 id="splashTitle" class="text-3xl font-extrabold text-gray-900 dark:text-white">TASK Assistant</h1>
       <p id="splashSubtitle" class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Your guide to career and community resources.</p>
-      <div class="mt-8"><button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button></div>
+      <div class="mt-8">
+        <button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button>
+      </div>
     </div>
   </div>
 
+  <!-- App -->
   <div id="app" class="hidden h-screen w-screen lg:grid lg:grid-cols-[280px_1fr] transition-all duration-300">
-    <!-- Left sidebar -->
+    <!-- Sidebar -->
     <aside class="flex-col hidden h-full p-3 bg-white lg:flex dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937] w-[280px]">
-      <div class="flex items-center gap-3 p-2"><div class="relative w-10 h-10"><div class="absolute inset-[-8px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">T</div></div><span class="text-xl font-semibold">TASK Assistant</span></div>
-      <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"><span>New Chat</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
-      <div class="px-2 mt-6"><h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3><div id="quickActionsContainer" class="mt-2 space-y-1"></div></div>
-      <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar"><h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3><div id="historyContainer" class="mt-2 space-y-1"></div></div>
-      <div class="p-2 border-t border-gray-200 dark:border-gray-700"><button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"><svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg><span id="themeTextApp" class="text-sm font-medium">Dark Mode</span></button></div>
+      <div class="flex items-center gap-3 p-2">
+        <div class="relative w-10 h-10">
+          <div class="absolute inset-[-8px] rounded-full sparkle"></div>
+          <div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">T</div>
+        </div>
+        <span class="text-xl font-semibold">TASK Assistant</span>
+      </div>
+      <button id="newChat" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+        <span>New Chat</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+      </button>
+      <div class="px-2 mt-6">
+        <h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
+        <div id="quickActionsContainer" class="mt-2 space-y-1"></div>
+      </div>
+      <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar">
+        <h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3>
+        <div id="historyContainer" class="mt-2 space-y-1"></div>
+      </div>
+      <div class="p-2 border-t border-gray-200 dark:border-gray-700">
+        <button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+          <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          <span id="themeTextApp" class="text-sm font-medium">Dark Mode</span>
+        </button>
+      </div>
     </aside>
 
-    <!-- Main column -->
-    <main class="relative flex flex-col h-screen overflow-hidden bg-gray-100 dark:bg-[#0b1220]">
-      <button id="toggleSidebarBtn" class="absolute top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand"><svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+    <!-- Main -->
+    <main class="relative flex flex-col h-full bg-gray-100 dark:bg-[#0b1220]">
+      <button id="toggleSidebarBtn" class="absolute top-4 -left-3 z-20 hidden lg:flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand">
+        <svg id="toggleSidebarIcon" class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
 
-      <div class="main-col flex flex-col flex-1 min-h-0 w-full max-w-4xl mx-auto">
+      <div class="flex flex-col flex-1 w-full max-w-4xl mx-auto">
+        <!-- Mobile header -->
         <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
-          <div class="flex items-center gap-3"><div class="relative w-8 h-8"><div class="absolute inset-[-6px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-8 h-8 text-lg font-bold text-black bg-brand rounded-md">T</div></div><span class="text-lg font-semibold">TASK Assistant</span></div>
-          <button id="menuBtn" class="p-2 rounded-md lg:hidden"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg></button>
+          <div class="flex items-center gap-3">
+            <div class="relative w-8 h-8">
+              <div class="absolute inset-[-6px] rounded-full sparkle"></div>
+              <div class="relative z-10 flex items-center justify-center w-8 h-8 text-lg font-bold text-black bg-brand rounded-md">T</div>
+            </div>
+            <span class="text-lg font-semibold">TASK Assistant</span>
+          </div>
+          <button id="menuBtn" class="p-2 rounded-md lg:hidden">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+          </button>
         </header>
 
-        <!-- Scrollable chat area -->
-        <div id="chat" class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
+        <!-- Chat area -->
+        <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
           <div id="chatBody" class="w-full">
             <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
-              <div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div>
+              <div class="relative w-20 h-20 mx-auto mb-4">
+                <div class="absolute inset-[-12px] rounded-full sparkle"></div>
+                <div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div>
+              </div>
               <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>
             </div>
           </div>
         </div>
 
-        <!-- Sticky composer -->
-        <div class="sticky bottom-0 z-10 px-4 pb-4 pt-2 md:px-6 md:pb-6 bg-gray-100/95 dark:bg-[#0b1220]/95 backdrop-blur">
+        <!-- Composer (sticky) -->
+        <div id="composerWrap" class="px-4 pb-4 md:px-6 md:pb-6">
+          <div id="composerBack" class="h-4 -mb-2"></div>
           <div id="suggestions" class="flex flex-wrap gap-2 mb-3"></div>
           <form id="composer" class="relative" autocomplete="off">
             <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
             <div class="absolute bottom-2.5 right-3 flex items-center gap-2">
-              <button id="mic" type="button" class="p-2 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Dictate"><svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg></button>
-              <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled><svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg></button>
+              <button id="mic" type="button" class="p-2 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Dictate">
+                <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+              </button>
+              <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+              </button>
             </div>
           </form>
           <div id="status" class="mt-2 text-sm text-center text-gray-500"></div>
@@ -103,424 +148,516 @@
       </div>
     </main>
 
-    <!-- Mobile menu + delete modal (unchanged for brevity) -->
-    <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden"></div>
-    <div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50"></div>
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden">
+      <div class="fixed top-0 left-0 flex flex-col w-64 h-full max-w-xs p-3 bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
+        <div class="flex items-center justify-between">
+          <span class="text-xl font-semibold">Menu</span>
+          <button id="closeMenuBtn" class="p-2 rounded-md">&times;</button>
+        </div>
+        <button id="newChatMobile" class="flex items-center justify-between w-full p-3 mt-6 text-left bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+          <span>New Chat</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        </button>
+        <div class="px-2 mt-6"><h3 class="px-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3><div id="quickActionsContainerMobile" class="mt-2 space-y-1"></div></div>
+        <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar"><h3 class="px-2 text-sm font-semibold text-gray-500">Recent</h3><div id="historyContainerMobile" class="mt-2 space-y-1"></div></div>
+        <div class="p-2 border-t border-gray-200 dark:border-gray-700">
+          <button id="themeToggleMobile" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+            <svg id="themeIconMobile" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            <span id="themeTextMobile" class="text-sm font-medium">Dark Mode</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete modal -->
+    <div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-50">
+      <div class="w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+        <h2 class="text-lg font-bold">Delete Chat?</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">This will permanently delete the chat history.</p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button id="cancelDelete" class="px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+          <button id="confirmDelete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Delete</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script type="module">
-  /* ---------------- Config ---------------- */
-  // Engage links
+  /* ------------------- Links & Config ------------------- */
   const ENGAGE = {
-    landing: "https://bycell.co/ddmnx", jobAssistance: "https://bycell.co/ddnke", trainingOpps: "https://bycell.co/ddnki", resources: "https://bycell.co/ddnkj",
-    careerTips: "https://bycell.co/ddmui", communityResources: "https://bycell.co/ddmua", employmentVerification: "https://bycell.co/ddmwm", events: "https://bycell.co/ddmul",
-    jobOpenings: "https://bycell.co/ddmtq", appointment: "https://bycell.co/ddncs", otherServices: "https://bycell.co/ddmud", trainings: "https://bycell.co/ddmtn"
+    landing: "https://bycell.co/ddmnx",
+    jobAssistance: "https://bycell.co/ddnke",
+    trainingOpps: "https://bycell.co/ddnki",
+    resources: "https://bycell.co/ddnkj",
+    careerTips: "https://bycell.co/ddmui",
+    communityResources: "https://bycell.co/ddmua",
+    employmentVerification: "https://bycell.co/ddmwm",
+    events: "https://bycell.co/ddmul",
+    jobOpenings: "https://bycell.co/ddmtq",
+    appointment: "https://bycell.co/ddncs",
+    otherServices: "https://bycell.co/ddmud",
+    trainings: "https://bycell.co/ddmtn"
   };
 
-  // AI API base
+  const SYSTEM_PROMPT = `You are the TASK Assistant, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on all employment-related topics, including resume writing, interview preparation, job searching, and career development. Be encouraging and break down complex topics into simple steps. You are an expert in techniques like the STAR method. For specific actions like applying for jobs, scheduling appointments, or accessing official resources, guide the user to the 'Engage by Cell' portal.
+
+Special Instructions:
+- If a user expresses frustration, anger, uses curse words, or insults you, respond with empathy and understanding. Apologize for their negative experience and gently try to get the conversation back on track.
+- If the user's language suggests a mental health crisis (mentions of self-harm, severe depression), immediately provide the 988 Suicide & Crisis Lifeline number and express care.
+- Use markdown (like **bolding** and bullet points) to make your answers easy to read.
+- When you mention 'Engage by Cell', make it a clickable markdown link like this: [Engage by Cell portal](https://bycell.co/ddmnx).
+- Do not invent URLs or contact information.`;
+
+  /* ------------------- API Base Helper ------------------- */
   const DEPLOY_BASE = 'https://task-assistant-xi.vercel.app';
   const ON_SAME_SITE = typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
   const API_BASE = ON_SAME_SITE ? '' : DEPLOY_BASE;
   const api = (path) => `${API_BASE}${path}`;
 
-  // Supabase (browser)
-  const SUPABASE_URL = "https://yamqxbmckcaaltswxmny.supabase.co";
-  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // System prompt
-  const SYSTEM_PROMPT = `You are the TASK Assistant, a friendly, empathetic, and professional career guide for Task Employment Services. Your primary goal is to provide clear, actionable advice on all employment-related topics, including resume writing, interview preparation, job searching, and career development. Be encouraging and use markdown for clarity. If users need to take action, guide them to the [Engage by Cell portal](https://bycell.co/ddmnx). If you detect crisis language, share 988.`
-
-  /* ---------------- Theme ---------------- */
-  const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
+  /* ------------------- Theme Management ------------------- */
+  const sunIcon  = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
   const moonIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
+
   function applyTheme(theme) {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('theme', theme);
     const isDark = theme === 'dark';
-    const themeIconSplash = document.getElementById('themeIconSplash');
-    if (themeIconSplash) themeIconSplash.innerHTML = isDark ? sunIcon : moonIcon;
-    const themeIconApp = document.getElementById('themeIconApp');
-    const themeTextApp = document.getElementById('themeTextApp');
-    if (themeIconApp && themeTextApp) {
-      themeIconApp.innerHTML = isDark ? sunIcon : moonIcon;
-      themeTextApp.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-    }
+    const iconSplash = document.getElementById('themeIconSplash');
+    iconSplash && (iconSplash.innerHTML = isDark ? sunIcon : moonIcon);
+    const iconApp = document.getElementById('themeIconApp');
+    const textApp = document.getElementById('themeTextApp');
+    iconApp && (iconApp.innerHTML = isDark ? sunIcon : moonIcon);
+    textApp && (textApp.textContent = isDark ? 'Light Mode' : 'Dark Mode');
+    const iconMob = document.getElementById('themeIconMobile');
+    const textMob = document.getElementById('themeTextMobile');
+    iconMob && (iconMob.innerHTML = isDark ? sunIcon : moonIcon);
+    textMob && (textMob.textContent = isDark ? 'Light Mode' : 'Dark Mode');
   }
-  function toggleTheme() {
-    const currentTheme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
-    applyTheme(currentTheme);
-  }
+  function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark' ? 'light':'dark'); }
 
-  /* ---------------- State ---------------- */
+  /* ------------------- State ------------------- */
   let currentChatId = null;
   let allChats = {};
   let conversationState = { mode: null, step: 0, data: {} };
   let recognition = null, listening = false;
-  let userLang = 'en'; // 'en' | 'es'
   let chatToDelete = null;
+  let uiLanguage = 'en'; // 'en' or 'es'
 
-  /* ---------------- DOM Ready ---------------- */
+  /* ------------------- Boot ------------------- */
   document.addEventListener('DOMContentLoaded', () => {
-    const splash = document.getElementById('splash'), app = document.getElementById('app');
-    const startBtn = document.getElementById('start');
-    const chatBody = document.getElementById('chatBody');
-    const form = document.getElementById('composer'), input = document.getElementById('input'), sendBtn = document.getElementById('send');
-    const micBtn = document.getElementById('mic');
-    const newChatBtn = document.getElementById('newChat');
-    const menuBtn = document.getElementById('menuBtn'), mobileMenu = document.getElementById('mobileMenu');
-    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
-    const themeToggleSplash = document.getElementById('themeToggleSplash');
-    const themeToggleApp = document.getElementById('themeToggleApp');
-    const languageSelector = document.getElementById('languageSelector');
-
-    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    // Auto theme
+    const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     applyTheme(savedTheme);
 
-    if (startBtn) {
-      startBtn.addEventListener('click', () => {
-        splash?.classList.add('hidden');
-        app?.classList.remove('hidden');
-        renderQuickActions();
-        loadChats();
-        setSidebarState(localStorage.getItem('sidebarCollapsed') === 'true');
-        if (Object.keys(allChats).length === 0) startNewChat();
-        else loadChat(Object.keys(allChats).sort((a,b) => b.split('_')[1] - a.split('_')[1])[0]);
-        input?.focus();
-      });
-    }
+    // Auto language detection (browser)
+    const browserLang = (navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
+    if (browserLang.startsWith('es')) setLanguage('es'); else setLanguage('en');
+    const selector = document.getElementById('languageSelector');
+    selector && (selector.value = uiLanguage);
 
+    /* DOM refs */
+    const splash = document.getElementById('splash'), app = document.getElementById('app');
+    const startBtn = document.getElementById('start');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const micBtn = document.getElementById('mic');
+
+    const newChatBtn = document.getElementById('newChat');
+    const newChatMobileBtn = document.getElementById('newChatMobile');
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+
+    const themeToggleSplash = document.getElementById('themeToggleSplash');
+    const themeToggleApp = document.getElementById('themeToggleApp');
+    const themeToggleMobile = document.getElementById('themeToggleMobile');
+    const languageSelector = document.getElementById('languageSelector');
+
+    // Start
+    startBtn?.addEventListener('click', () => {
+      splash?.classList.add('hidden');
+      app?.classList.remove('hidden');
+      renderQuickActions();
+      loadChats();
+      const savedSidebarState = localStorage.getItem('sidebarCollapsed') === 'true';
+      setSidebarState(savedSidebarState);
+      if (Object.keys(allChats).length === 0) { startNewChat(); } else {
+        const latestChatId = Object.keys(allChats).sort((a,b) => +b.split('_')[1]- +a.split('_')[1])[0];
+        loadChat(latestChatId);
+      }
+      input?.focus();
+    });
+
+    /* Events */
     themeToggleSplash?.addEventListener('click', toggleTheme);
     themeToggleApp?.addEventListener('click', toggleTheme);
-
-    languageSelector?.addEventListener('change', (e) => setLanguage(e.target.value));
+    themeToggleMobile?.addEventListener('click', toggleTheme);
+    languageSelector?.addEventListener('change', e => setLanguage(e.target.value));
 
     if (input) {
-      ['input','change','keyup','paste'].forEach(ev => {
-        input.addEventListener(ev, () => { updateSendState(); autosize(); });
-      });
+      ['input','change','keyup','paste'].forEach(ev => input.addEventListener(ev, () => { updateSendState(); autosize(); }));
       input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          form?.requestSubmit();
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('composer')?.requestSubmit(); }
       });
     }
-    sendBtn?.addEventListener('click', (e) => { e.preventDefault(); form?.requestSubmit(); });
+    sendBtn?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('composer')?.requestSubmit(); });
     newChatBtn?.addEventListener('click', startNewChat);
+    newChatMobileBtn?.addEventListener('click', () => { startNewChat(); mobileMenu?.classList.add('hidden'); });
     menuBtn?.addEventListener('click', () => mobileMenu?.classList.remove('hidden'));
+    closeMenuBtn?.addEventListener('click', () => mobileMenu?.classList.add('hidden'));
     mobileMenu?.addEventListener('click', (e) => { if (e.target === mobileMenu) mobileMenu.classList.add('hidden'); });
-    toggleSidebarBtn?.addEventListener('click', () => setSidebarState(!document.getElementById('app')?.classList.contains('sidebar-collapsed')));
-
-    if (form) form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const prompt = (input?.value || '').trim();
-      if (!prompt) { updateSendState(); return; }
-
-      // Auto-detect language on first user message if selector is "auto"
-      if (document.getElementById('languageSelector')?.value === 'auto' && allChats[currentChatId]?.history?.filter(m=>m.role==='user').length === 0) {
-        userLang = detectLang(prompt);
-      }
-
-      if (!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length === 0)) {
-        if (!currentChatId) startNewChat();
-        addMessageToHistory('assistant', greetText());
-        renderChat();
-      }
-
-      addMessageToHistory('user', prompt);
-      bubbleMe(prompt);
-      if (input) input.value = '';
-      autosize();
-      updateSendState();
-      showChips([]);
-      setStatus('Thinking…');
-      const typingIndicator = createTypingIndicator();
-      chatBody?.appendChild(typingIndicator);
-
-      try {
-        const response = await getSmartResponse(prompt);
-        typingIndicator?.remove();
-        addMessageToHistory('assistant', response.text);
-        bubbleBot(response.text);
-        updateChatTitle(prompt);
-        setStatus('');
-      } catch (err) {
-        console.error(err);
-        typingIndicator?.remove();
-        setStatus(`Error: ${err.message}.`, true);
-        bubbleBot(userLang === 'es' ? 'Lo siento—no pude conectar con el servicio. Inténtalo de nuevo.' : 'Sorry — I could not reach the service. Please try again.');
-        resetConversationState();
-      }
+    toggleSidebarBtn?.addEventListener('click', () => {
+      const isCollapsed = app?.classList.contains('sidebar-collapsed');
+      setSidebarState(!isCollapsed);
     });
+
+    cancelDeleteBtn?.addEventListener('click', () => {
+      const modal = document.getElementById('deleteModal');
+      modal?.classList.add('hidden'); modal?.classList.remove('flex');
+      chatToDelete = null;
+    });
+    confirmDeleteBtn?.addEventListener('click', () => {
+      const modal = document.getElementById('deleteModal');
+      if (chatToDelete) deleteChat(chatToDelete);
+      modal?.classList.add('hidden'); modal?.classList.remove('flex');
+    });
+
+    document.getElementById('composer')?.addEventListener('submit', onSubmit);
 
     micBtn?.addEventListener('click', () => {
       if (!recognition) recognition = initSTT();
       if (!recognition) { setStatus('Voice input not supported in this browser.', true); return; }
-      recognition.lang = userLang === 'es' ? 'es-US' : 'en-US';
       if (!listening) recognition.start(); else recognition.stop();
     });
 
     updateSendState(); autosize();
   });
 
-  /* ---------------- Language helpers ---------------- */
-  function setLanguage(val) {
-    if (val === 'auto') return; // will detect on first message
-    userLang = (val === 'es') ? 'es' : 'en';
-    const t = (en, es) => (userLang === 'es' ? es : en);
-    document.getElementById('splashTitle').textContent = t('TASK Assistant', 'Asistente de TASK');
-    document.getElementById('splashSubtitle').textContent = t('Your guide to career and community resources.', 'Su guía de recursos profesionales y comunitarios.');
-    document.getElementById('start').textContent = t('Start', 'Empezar');
-  }
-  function detectLang(text) {
-    const s = text.toLowerCase();
-    const spanishHits = ['hola','buenos','gracias','por favor','necesito','trabajo','ayuda','entrevista','currículum','cómo','dónde','qué'].filter(w => s.includes(w)).length;
-    return spanishHits >= 2 || /^[\s¡¿a-záéíóúñü,.;:!?0-9-]+$/i.test(s) && /[áéíóúñ]/.test(s) ? 'es' : 'en';
-  }
-  function greetText() {
-    return (userLang === 'es')
-      ? '¡Hola! Soy el Asistente de TASK. ¿En qué puedo ayudarte hoy?'
-      : "Hello! I'm the TASK Assistant. How can I help you?";
-  }
-
-  /* ---------------- Supabase helpers ---------------- */
-  async function sbSelect(table, select = '*', orderField = 'created_at', limit = 50) {
-    const { data, error } = await supabase.from(table).select(select).order(orderField, { ascending: false }).limit(limit);
-    if (error) return { ok:false, error:error.message };
-    return { ok:true, data };
-  }
-
-  /* ---------------- Conversation logic ---------------- */
-  async function handleGuidedConversation(prompt) {
-    if (conversationState.mode === 'TRIP_PLANNER') return handleTripPlanner(prompt);
-    resetConversationState();
-    return getGenerativeResponse(prompt);
-  }
-  async function handleTripPlanner(prompt) {
-    const step = conversationState.step;
-    if (step === 1) {
-      conversationState.data.origin = prompt;
-      conversationState.step = 2;
-      return { text: userLang === 'es' ? "Entendido. ¿Cuál es tu destino (dirección o lugar)?" : "Got it. And what's the destination (address or landmark)?" };
-    }
-    if (step === 2) {
-      conversationState.data.destination = prompt;
-      const origin = encodeURIComponent(conversationState.data.origin);
-      const destination = encodeURIComponent(conversationState.data.destination);
-      // Prefill NJ Transit correctly – use only *_text params
-      const tripUrl = `https://www.njtransit.com/trip-planner-to?origin_text=${origin}&destination_text=${destination}`;
-      const responseText = (userLang === 'es')
-        ? `¡Listo! Abre este enlace para ver las mejores rutas en el sitio oficial de NJ Transit con tus datos ya completados:\n\n[Ver indicaciones de mi viaje](${tripUrl})`
-        : `Great! Here’s the link to see the best routes on the official NJ Transit site with your trip pre-filled:\n\n[View my trip directions](${tripUrl})`;
-      resetConversationState();
-      return { text: responseText };
-    }
-  }
-
-  async function getSmartResponse(prompt) {
-    const p = prompt.toLowerCase();
-    const hasWord = (words) => words.some(word => new RegExp(`\\b${word}\\b`, 'i').test(p));
-
-    if (conversationState.mode) return handleGuidedConversation(prompt);
-
-    const crisis = ['kill myself','hurt myself','suicide','end my life'];
-    if (hasWord(crisis)) {
-      return { text: (userLang==='es')
-        ? "Parece que estás pasando por un momento muy difícil. Por favor, llama o envía un mensaje al 988 ahora mismo. Si estás en peligro inmediato, llama al 911."
-        : "It sounds like you’re in immediate distress. Please call or text 988 right now. If you’re in immediate danger, call 911." };
-    }
-
-    if (hasWord(['trip','directions','bus route','transit','get to','plan a trip'])) {
-      conversationState = { mode:'TRIP_PLANNER', step:1, data:{} };
-      return { text: userLang === 'es'
-        ? "Puedo ayudarte. ¿Desde dónde sales (dirección u lugar de origen)?"
-        : "I can help with that. Where are you starting from (origin address or landmark)?" };
-    }
-
-    if (hasWord(['training','trainings','class','classes','culinary','sora','forklift','certification'])) {
-      setStatus(userLang==='es' ? 'Consultando el calendario…' : 'Checking our program schedule…');
-      const result = await sbSelect('trainings', 'name, description, schedule, next_start_date, start_date_note, app_window_start, app_window_end, requirements');
-      let context = userLang==='es' ? "Actualmente no hay programas de capacitación programados." : "There are currently no training programs scheduled.";
-      if (result.ok && result.data?.length) {
-        context = (userLang==='es' ? "Lista de capacitaciones:\n\n" : "Here is a list of our current training programs:\n\n")
-          + result.data.map(t => (
-            `---
-Program: ${t.name}
-Description: ${t.description}
-Schedule: ${t.schedule || (userLang==='es'?'No especificado.':'Not specified.')}
-Next Start Date: ${t.next_start_date ? new Date(t.next_start_date).toLocaleDateString() : (userLang==='es'?'Sin fecha':'N/A')}. ${t.start_date_note||''}
-Application Window: ${t.app_window_start?new Date(t.app_window_start).toLocaleDateString():''} - ${t.app_window_end?new Date(t.app_window_end).toLocaleDateString():''}
-Requirements: ${t.requirements||'-'}
----`
-          )).join('\n\n');
-      }
-      const finalPrompt = `CONTEXT:\n${context}\n\nReply in ${userLang==='es'?'Spanish':'English'} to the user: "${prompt}"`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    if (hasWord(['job','jobs','opening','hiring','apply'])) {
-      setStatus(userLang==='es' ? 'Buscando empleos destacados…' : 'Checking our featured jobs list…');
-      const result = await sbSelect('jobs', 'title, company, apply_link');
-      let context = userLang==='es' ? "No hay empleos destacados por el momento." : "There are currently no featured jobs from our partners.";
-      if (result.ok && result.data?.length) {
-        context = result.data.map(job => `* **${job.title}** at ${job.company}. [Apply Here](${job.apply_link})`).join('\n');
-      }
-      const finalPrompt = `The user asked about jobs. First present the jobs from CONTEXT; then ask if they'd like a broader search.\n\nCONTEXT:\n${context}\n\nUSER: "${prompt}"\nReply in ${userLang==='es'?'Spanish':'English'}.`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    if (hasWord(['resource','resources','food','pantry','housing','shelter','legal','support'])) {
-      setStatus(userLang==='es' ? 'Buscando recursos…' : 'Looking up community resources…');
-      const result = await sbSelect('resources', 'name, provider, description, website');
-      let context = userLang==='es' ? "No hay recursos comunitarios listados." : "No community resources are listed at this time.";
-      if (result.ok && result.data?.length) {
-        context = result.data.map(r => `* **${r.name}** (${r.provider}): ${r.description} Website: ${r.website || 'N/A'}`).join('\n');
-      }
-      const finalPrompt = `CONTEXT:\n${context}\n\nBased ONLY on the context above, answer the user's question about resources: "${prompt}". Reply in ${userLang==='es'?'Spanish':'English'}.`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    if (hasWord(['event','events','job fair','workshop'])) {
-      setStatus(userLang==='es' ? 'Buscando eventos…' : 'Checking for upcoming events…');
-      const result = await sbSelect('events', 'name, event_date');
-      let context = userLang==='es' ? "No hay eventos programados." : "There are currently no events scheduled.";
-      if (result.ok && result.data?.length) {
-        context = result.data.map(e => `* **${e.name}** on ${e.event_date ? new Date(e.event_date).toLocaleString() : ''}.`).join('\n');
-      }
-      const finalPrompt = `CONTEXT:\n${context}\n\nAnswer about events: "${prompt}". Reply in ${userLang==='es'?'Spanish':'English'}.`;
-      return getGenerativeResponse(finalPrompt);
-    }
-
-    return getGenerativeResponse(prompt);
-  }
-
-  /* ---------------- AI call ---------------- */
-  async function getGenerativeResponse(prompt) {
-    const sys = SYSTEM_PROMPT + (userLang==='es' ? ' Responde en español claro y amable.' : '');
-    const response = await fetch(api('/api/ai'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, systemPrompt: sys })
-    });
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`API Error: ${response.status} - ${errorBody}`);
-    }
-    const result = await response.json();
-    return result.ok && result.text ? { text: result.text } : { text: userLang==='es' ? "No pude generar una respuesta." : "I couldn't generate a response." };
-  }
-
-  /* ---------------- UI helpers (unchanged with small tweaks) ---------------- */
-  function autosize() { const i=document.getElementById('input'); if(i){i.style.height='auto'; i.style.height=i.scrollHeight+'px';} }
-  function updateSendState() { const i=document.getElementById('input'), s=document.getElementById('send'); if(i&&s){const h=i.value.trim().length>0; s.disabled=!h; s.setAttribute('aria-disabled', String(!h));} }
-  function setSidebarState(isCollapsed) {
+  /* ------------------- Helpers ------------------- */
+  function autosize(){ const i=document.getElementById('input'); if(i){ i.style.height='auto'; i.style.height = Math.min(180, i.scrollHeight) + 'px'; } }
+  function updateSendState(){ const i=document.getElementById('input'), s=document.getElementById('send'); if(i&&s){ const has=i.value.trim().length>0; s.disabled=!has; s.setAttribute('aria-disabled', String(!has)); } }
+  function setSidebarState(isCollapsed){
     const asideEl = document.querySelector('aside');
-    const toggleSidebarIcon = document.getElementById('toggleSidebarIcon');
+    const toggleIcon = document.getElementById('toggleSidebarIcon');
     const app = document.getElementById('app');
-    if (app) app.classList.toggle('sidebar-collapsed', isCollapsed);
-    if (asideEl) {
+    app && app.classList.toggle('sidebar-collapsed', isCollapsed);
+    if (asideEl){
       asideEl.classList.toggle('w-[280px]', !isCollapsed);
       asideEl.classList.toggle('w-0', isCollapsed);
       asideEl.classList.toggle('p-3', !isCollapsed);
       asideEl.classList.toggle('p-0', isCollapsed);
     }
-    if (toggleSidebarIcon) {
-      toggleSidebarIcon.innerHTML = isCollapsed
+    if (toggleIcon){
+      toggleIcon.innerHTML = isCollapsed
         ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`
         : `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
     }
     localStorage.setItem('sidebarCollapsed', String(isCollapsed));
   }
-  function saveChats() { localStorage.setItem('allChats', JSON.stringify(allChats)); }
-  function loadChats() { const saved = localStorage.getItem('allChats'); if(saved) allChats = JSON.parse(saved); renderHistory(); }
-  function loadChat(chatId) { currentChatId = chatId; resetConversationState(); renderChat(); renderHistory(); scrollToBottom(true); }
-  function startNewChat() {
-    const existingEmpty = Object.values(allChats).find(c => c.title === "New Chat" && c.history.length === 0);
-    if (existingEmpty) return loadChat(existingEmpty.id);
+  function saveChats(){ localStorage.setItem('allChats', JSON.stringify(allChats)); }
+  function loadChats(){ const saved = localStorage.getItem('allChats'); if(saved) allChats = JSON.parse(saved); renderHistory(); }
+  function loadChat(id){ currentChatId = id; resetConversationState(); renderChat(); renderHistory(); scrollToBottom(true); }
+  function startNewChat(){
+    const empty = Object.values(allChats).find(c => c.title==='New Chat' && c.history.length===0);
+    if (empty){ loadChat(empty.id); if (innerWidth<1024) document.getElementById('mobileMenu')?.classList.add('hidden'); return; }
     currentChatId = `chat_${Date.now()}`;
     allChats[currentChatId] = { id: currentChatId, title: "New Chat", history: [] };
     resetConversationState(); renderChat(); renderHistory(); saveChats();
-    const input = document.getElementById('input'); if (input) input.value = ''; updateSendState();
-    showChips([{text:userLang==='es'?'Ayúdame con mi currículum':'Help me with my resume'},{text:userLang==='es'?'¿Cómo preparo una entrevista?':'How do I prepare for an interview?'},{text:userLang==='es'?'¿Qué trabajos hay?':'What jobs are available?'}]);
+    const input = document.getElementById('input'); if (input){ input.value=''; updateSendState(); }
+    showChips([
+      { text: uiLanguage==='es' ? 'Ayúdame con mi currículum' : 'Help me with my resume' },
+      { text: uiLanguage==='es' ? '¿Cómo me preparo para una entrevista?' : 'How do I prepare for an interview?' },
+      { text: uiLanguage==='es' ? '¿Qué trabajos hay disponibles?' : 'What jobs are available?' }
+    ]);
   }
-  function resetConversationState() { conversationState = { mode: null, step: 0, data: {} }; }
-  function addMessageToHistory(role, text) { if(!currentChatId || !allChats[currentChatId]) return; allChats[currentChatId].history.push({ role, text }); saveChats(); }
-  function updateChatTitle(prompt) { if (allChats[currentChatId] && allChats[currentChatId].title === "New Chat") { const t = prompt.split(' ').slice(0, 4).join(' '); allChats[currentChatId].title = t || 'New Chat'; saveChats(); renderHistory(); } }
-  function deleteChat(chatId) { delete allChats[chatId]; saveChats(); if (currentChatId === chatId) { currentChatId = null; const sorted = Object.values(allChats).sort((a,b)=>b.id.split('_')[1]-a.id.split('_')[1]); if (sorted.length>0) loadChat(sorted[0].id); else startNewChat(); } else renderHistory(); }
-  function setStatus(msg, isError=false) { const el=document.getElementById('status'); if(el){ el.textContent=msg; el.className = `mt-2 text-sm text-center ${isError ? 'text-red-500' : 'text-gray-500'}`; } }
-  function scrollToBottom(instant=false){ const c=document.getElementById('chat'); if(c) c.scrollTo({ top:c.scrollHeight, behavior: instant?'instant':'smooth' }); }
-  function renderQuickActions() {
-    const actions = [
-      { label: 'Schedule Appointment', key: 'appointment', icon: '📅' },
-      { label: 'Find Jobs', key: 'jobOpenings', icon: '🔎' },
-      { label: 'Training Programs', key: 'trainings', icon: '🎓' },
-      { label: 'Community Resources', key: 'communityResources', icon: '🏥' },
-      { label: 'Plan a Trip', key: 'trip', icon: '🚌' }
-    ];
-    const renderInto = (id) => {
-      const el = document.getElementById(id); if (!el) return; el.innerHTML = '';
-      actions.forEach(({label,key,icon}) => {
-        if (key==='trip') {
-          const btn = document.createElement('button');
-          btn.type='button';
-          btn.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-          btn.innerHTML=`<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-          btn.addEventListener('click', () => {
-            conversationState = { mode:'TRIP_PLANNER', step:1, data:{} };
-            bubbleBot(userLang==='es' ? '¿Desde dónde sales (dirección o lugar)?' : 'Where are you starting from (origin address or landmark)?');
-          });
-          el.appendChild(btn);
-          return;
-        }
-        const href = ENGAGE[key]; if (!href) return;
-        const a = document.createElement('a');
-        a.href = href; a.target = '_blank'; a.rel='noopener noreferrer';
-        a.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-        a.innerHTML = `<span class="flex items-center gap-2"><span>${icon}</span><span>${label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
-        el.appendChild(a);
+  function resetConversationState(){ conversationState = { mode:null, step:0, data:{} }; }
+  function addMessageToHistory(role, text){ if(!currentChatId || !allChats[currentChatId]) return; allChats[currentChatId].history.push({role,text}); saveChats(); }
+  function updateChatTitle(prompt){ if(allChats[currentChatId] && allChats[currentChatId].title==="New Chat"){ allChats[currentChatId].title = prompt.split(' ').slice(0,4).join(' '); saveChats(); renderHistory(); } }
+  function deleteChat(id){ delete allChats[id]; saveChats(); if(currentChatId===id){ const list=Object.values(allChats).sort((a,b)=>+b.id.split('_')[1]- +a.id.split('_')[1]); list.length?loadChat(list[0].id):startNewChat(); } else renderHistory(); }
+  function setStatus(msg, err=false){ const el=document.getElementById('status'); if(el){ el.textContent=msg; el.className=`mt-2 text-sm text-center ${err?'text-red-500':'text-gray-500'}`; } }
+  function scrollToBottom(instant=false){ const chat=document.getElementById('chat'); chat && chat.scrollTo({ top: chat.scrollHeight, behavior: instant?'instant':'smooth' }); }
+  function renderHistory(){
+    const container = document.getElementById('historyContainer');
+    const mobile    = document.getElementById('historyContainerMobile');
+    const items = Object.values(allChats).sort((a,b)=> (b.id||'').localeCompare(a.id||''));
+    const draw = (el) => {
+      if (!el) return; el.innerHTML='';
+      items.forEach(chat => {
+        const row = document.createElement('div');
+        row.className = `history-item group flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${chat.id===currentChatId?'bg-brand/20':''}`;
+        row.innerHTML = `<button class="text-left flex-1 truncate" title="${chat.title}">${chat.title}</button>
+                         <div class="history-item-actions flex gap-2 opacity-0 group-hover:opacity-100">
+                           <button class="rename-btn text-xs underline">Rename</button>
+                           <button class="delete-btn text-xs text-red-600 underline">Delete</button>
+                         </div>`;
+        row.querySelector('button.truncate')?.addEventListener('click',()=>loadChat(chat.id));
+        row.querySelector('.rename-btn')?.addEventListener('click',()=>{ const t=prompt('Rename chat:',chat.title); if(t) { allChats[chat.id].title=t; saveChats(); renderHistory(); }});
+        row.querySelector('.delete-btn')?.addEventListener('click',()=>{ if(confirm('Delete this chat?')) deleteChat(chat.id); });
+        el.appendChild(row);
       });
     };
-    renderInto('quickActionsContainer');
-    renderInto('quickActionsContainerMobile');
+    draw(container); draw(mobile);
   }
-  function renderChat() {
-    const chatBody=document.getElementById('chatBody'); if (!chatBody) return;
-    chatBody.innerHTML='';
-    const history=(currentChatId&&allChats[currentChatId])?allChats[currentChatId].history:[];
-    if (!history || history.length===0) {
+  function renderChat(){
+    const body = document.getElementById('chatBody'); if(!body) return;
+    body.innerHTML='';
+    const hist = (currentChatId && allChats[currentChatId]) ? allChats[currentChatId].history : [];
+    if (!hist || hist.length===0){
       const welcome=document.createElement('div');
       welcome.id='welcomeScreen'; welcome.className='flex flex-col items-center justify-center h-full text-center';
-      welcome.innerHTML=`<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">${userLang==='es'?'¿Cómo puedo ayudarte hoy?':'How can I help you today?'}</h1>`;
-      chatBody.appendChild(welcome); return;
+      welcome.innerHTML = `<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">T</div></div><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">${uiLanguage==='es'?'¿En qué puedo ayudarte hoy?':'How can I help you today?'}</h1>`;
+      body.appendChild(welcome); return;
     }
-    history.forEach(msg => { if (msg.role==='user') bubbleMe(msg.text,false); else bubbleBot(msg.text,false); });
+    hist.forEach(m => { m.role==='user' ? bubbleMe(m.text,false) : bubbleBot(m.text,false) });
     scrollToBottom(true);
   }
-  function renderHistory() {
-    const container=document.getElementById('historyContainer');
-    const items=Object.values(allChats).sort((a,b)=>(b.id||'').localeCompare(a.id||''));
-    if (!container) return; container.innerHTML='';
-    items.forEach(chat => {
-      const row=document.createElement('div');
-      row.className=`history-item group flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${chat.id===currentChatId?'bg-brand/20':''}`;
-      row.innerHTML=`<button class="text-left flex-1 truncate" title="${chat.title}">${chat.title}</button>
-      <div class="history-item-actions flex gap-2 opacity-0 group-hover:opacity-100">
-        <button class="rename-btn text-xs underline">Rename</button>
-        <button class="delete-btn text-xs text-red-600 underline">Delete</button>
-      </div>`;
-      row.querySelector('button.text-left')?.addEventListener('click', () => loadChat(chat.id));
-      row.querySelector('.rename-btn')?.addEventListener('click', () => { const t=prompt('Rename chat:', chat.title); if (t) { allChats[chat.id].title=t; saveChats(); renderHistory(); }});
-      row.querySelector('.delete-btn')?.addEventListener('click', () => { if (confirm('Delete this chat?')) deleteChat(chat.id); });
-      container.appendChild(row);
-    });
-  }
-  function bubbleMe(text, doScroll=true){ const body=document.getElementById('chatBody'); if(!body)return; document.getElementById('welcomeScreen')?.remove(); const w=document.createElement('div'); w.className='mb-3 flex justify-end'; w.innerHTML=`<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${renderSmart(text)}</div>`; body.appendChild(w); if(doScroll)scrollToBottom(); }
-  function bubbleBot(text, doScroll=true){ const body=document.getElementById('chatBody'); if(!body)return; document.getElementById('welcomeScreen')?.remove(); const w=document.createElement('div'); w.className='group mb-3 flex justify-start'; w.innerHTML=`<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow prose dark:prose-invert prose-p:my-2 first:prose-p:mt-0 last:prose-p:mb-0">${renderSmart(text)}</div>`; body.appendChild(w); if(doScroll)scrollToBottom(); }
-  function showChips(chips=[]){ const s=document.getElementById('suggestions'); if(!s)return; s.innerHTML=''; chips.forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.className='px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50'; b.textContent=c.text; b.addEventListener('click', ()=>{ const i=document.getElementById('input'); if(i)i.value=c.text; updateSendState(); i?.focus(); }); s.appendChild(b); }); }
+  function bubbleMe(text, doScroll=true){ const body=document.getElementById('chatBody'); if(!body) return; document.getElementById('welcomeScreen')?.remove(); const wrap=document.createElement('div'); wrap.className='mb-3 flex justify-end'; wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow">${renderSmart(text)}</div>`; body.appendChild(wrap); doScroll&&scrollToBottom(); }
+  function bubbleBot(text, doScroll=true){ const body=document.getElementById('chatBody'); if(!body) return; document.getElementById('welcomeScreen')?.remove(); const wrap=document.createElement('div'); wrap.className='group mb-3 flex justify-start'; wrap.innerHTML=`<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow prose dark:prose-invert prose-p:my-2 first:prose-p:mt-0 last:prose-p:mb-0">${renderSmart(text)}</div>`; body.appendChild(wrap); doScroll&&scrollToBottom(); }
+  function showChips(chips=[]){ const s=document.getElementById('suggestions'); if(!s) return; s.innerHTML=''; chips.forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.className='px-3 py-1.5 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] rounded-full text-sm hover:bg-gray-50'; b.textContent=c.text; b.addEventListener('click',()=>{ const i=document.getElementById('input'); if(i) i.value=c.text; updateSendState(); i?.focus(); }); s.appendChild(b); }); }
   function createTypingIndicator(){ const i=document.createElement('div'); i.className='flex items-center gap-2 ml-11'; i.innerHTML=`<div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div><div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>`; return i; }
-  function renderSmart(text){ const esc=(s)=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); let html=esc(text); html=html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, `<a class="underline" href="$2" target="_blank" rel="noopener noreferrer">$1</a>`); html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>'); html=html.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join(''); return html; }
-  function initSTT(){ const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR)return null; const r=new SR(); r.interimResults=true; r.continuous=false; r.onstart=()=>{listening=true; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3A.5.5 0 018 7z" clip-rule="evenodd"></path></svg>`;}; r.onend=()=>{listening=false; document.getElementById('micIcon').innerHTML=`<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`;}; r.onresult=(e)=>{ let txt=''; for(let i=e.resultIndex;i<e.results.length;i++) txt+=e.results[i][0].transcript; document.getElementById('input').value=txt; updateSendState(); autosize(); }; return r; }
+  function renderSmart(t){ const esc=s=>s.replace(/[&<>]/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;'}[m])); let html=esc(t); html=html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, `<a class="underline" href="$2" target="_blank" rel="noopener noreferrer">$1</a>`); html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>'); html=html.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join(''); return html; }
+
+  function setLanguage(lang){
+    uiLanguage = (lang==='es') ? 'es' : 'en';
+    const title = document.getElementById('splashTitle');
+    const sub   = document.getElementById('splashSubtitle');
+    const start = document.getElementById('start');
+    if (uiLanguage==='es'){
+      title && (title.textContent='Asistente de TASK');
+      sub && (sub.textContent='Su guía de recursos profesionales y comunitarios.');
+      start && (start.textContent='Empezar');
+    } else {
+      title && (title.textContent='TASK Assistant');
+      sub && (sub.textContent='Your guide to career and community resources.');
+      start && (start.textContent='Start');
+    }
+  }
+
+  /* ------------------- Submit Handler ------------------- */
+  async function onSubmit(e){
+    e.preventDefault();
+    const input = document.getElementById('input');
+    const chatBody = document.getElementById('chatBody');
+    const prompt = (input?.value || '').trim();
+    if (!prompt) { updateSendState(); return; }
+
+    // Auto-detect Spanish on first user message and switch UI
+    if (allChats[currentChatId]?.history.length === 0) {
+      if (detectSpanish(prompt)) { setLanguage('es'); document.getElementById('languageSelector').value = 'es'; }
+    }
+
+    if (!currentChatId || (allChats[currentChatId] && allChats[currentChatId].history.length===0)){
+      if (!currentChatId) startNewChat();
+      addMessageToHistory('assistant', uiLanguage==='es' ? "¡Hola! Soy el Asistente de TASK. ¿En qué puedo ayudarte?" : "Hello! I'm the TASK Assistant. How can I help you?");
+      renderChat();
+    }
+
+    addMessageToHistory('user', prompt);
+    bubbleMe(prompt);
+    input.value=''; autosize(); updateSendState(); showChips([]); setStatus(uiLanguage==='es'?'Pensando…':'Thinking…');
+    const typing = createTypingIndicator(); chatBody?.appendChild(typing); scrollToBottom();
+
+    try{
+      const response = await getSmartResponse(prompt);
+      typing?.remove();
+      addMessageToHistory('assistant', response.text);
+      bubbleBot(response.text);
+      updateChatTitle(prompt);
+      setStatus('');
+    }catch(err){
+      console.error(err); typing?.remove();
+      setStatus(`Error: ${err.message}. Please try again.`, true);
+      bubbleBot(uiLanguage==='es'?'Perdón — no pude conectar con el servicio. Inténtalo otra vez.':'Sorry — I could not reach the service. Please try again.');
+      resetConversationState();
+    }
+  }
+
+  function detectSpanish(txt){
+    // Simple heuristic: accented chars or common Spanish words
+    const hasAccent = /[áéíóúñ¿¡]/i.test(txt);
+    const common = /\b(que|de|la|el|por|para|gracias|hola|ayuda|trabajo|entrevista|currícul|clase|entrenamiento)\b/i.test(txt);
+    return hasAccent || common;
+  }
+
+  /* ------------------- Smart Router ------------------- */
+  async function getSmartResponse(prompt){
+    const p = prompt.toLowerCase();
+    const hasWord = (words) => words.some(w => new RegExp(`\\b${w}\\b`, 'i').test(p));
+
+    if (conversationState.mode) return handleGuidedConversation(prompt);
+
+    const crisis = ['kill myself','hurt myself','suicide','end my life','self harm','self-harm'];
+    if (hasWord(crisis)) {
+      return { text: uiLanguage==='es'
+        ? "Si estás en peligro inmediato, llama al 911. Para apoyo en crisis, llama o envía un texto al **988** (línea disponible 24/7). Estamos aquí para ti."
+        : "If you’re in immediate danger, call 911. For crisis support, call or text **988** (24/7). You matter and we care." };
+    }
+
+    const frustration = ['hate this','awful','not helpful','useless','stupid',"doesn't work",'frustrated','angry'];
+    if (hasWord(frustration)) {
+      return { text: uiLanguage==='es'
+        ? "Siento mucho la frustración — gracias por decírmelo. Intentemos resolverlo juntos. Si prefieres hablar con alguien ahora mismo, llama al **(609) 337-1624**."
+        : "I'm really sorry for the frustration — thanks for telling me. Let's fix this together. If you'd rather talk to a person right now, please call **(609) 337-1624**." };
+    }
+
+    // Trip planner
+    if (hasWord(['trip','directions','bus route','transit','get to','plan a trip','route'])) {
+      conversationState.mode = 'TRIP_PLANNER';
+      conversationState.step = 1;
+      return { text: uiLanguage==='es'
+        ? "Puedo ayudarte con eso. ¿Desde dónde sales? (dirección u otro lugar)"
+        : "I can help with that. Where are you starting from (origin address or landmark)?" };
+    }
+
+    // Data-backed intents (Supabase through API routes)
+    if (hasWord(['training','trainings','class','classes','culinary','sora','forklift','certification'])){
+      setStatus(uiLanguage==='es'?'Revisando programas…':'Checking our program schedule…');
+      const result = await safeGetJSON(api('/api/trainings'));
+      let context = uiLanguage==='es' ? "No hay programas de entrenamiento programados actualmente." : "There are currently no training programs scheduled.";
+      if (result.ok && result.data?.length){
+        context = (uiLanguage==='es' ? "Estos son los programas actuales:\n\n" : "Here is a list of our current training programs:\n\n") +
+          result.data.map(t => `* **${t.name}** — ${t.description || (uiLanguage==='es'?'Sin descripción.':'No description.')} ${t.next_start_date ? (uiLanguage==='es'?'Próxima fecha: ':'Next start date: ') + new Date(t.next_start_date).toLocaleDateString() : ''}`).join('\n');
+      }else if(!result.ok){
+        context = (uiLanguage==='es'
+          ? `No pude cargar el calendario (motivo: ${result.error}). Visita nuestro portal: ${ENGAGE.trainings}`
+          : `Couldn’t load the live schedule (reason: ${result.error}). Please see our portal: ${ENGAGE.trainings}`);
+      }
+      const finalPrompt = `CONTEXT:\n${context}\n\nAnswer the user in ${uiLanguage==='es'?'Spanish':'English'}: "${prompt}"`;
+      return getGenerativeResponse(finalPrompt);
+    }
+
+    if (hasWord(['job','jobs','opening','hiring','apply'])){
+      setStatus(uiLanguage==='es'?'Buscando empleos destacados…':'Checking our featured jobs list…');
+      const result = await safeGetJSON(api('/api/jobs'));
+      let context = uiLanguage==='es' ? "No hay empleos destacados en este momento." : "There are currently no featured jobs from our partners.";
+      if (result.ok && result.data?.length){
+        context = result.data.map(j => `* **${j.title}** (${j.company}) — [${uiLanguage==='es'?'Postular':'Apply'}](${j.apply_link})`).join('\n');
+      }else if(!result.ok){
+        context = (uiLanguage==='es'
+          ? `No pude cargar la lista (motivo: ${result.error}). Busca más en: ${ENGAGE.jobOpenings}`
+          : `Could not load featured jobs (reason: ${result.error}). Try: ${ENGAGE.jobOpenings}`);
+      }
+      const finalPrompt = `In ${uiLanguage==='es'?'Spanish':'English'}, present the jobs below as bullets and then offer a broader search.\n\n${context}`;
+      return getGenerativeResponse(finalPrompt);
+    }
+
+    if (hasWord(['resource','resources','food','pantry','housing','shelter','legal','support'])){
+      setStatus(uiLanguage==='es'?'Buscando recursos comunitarios…':'Looking up community resources…');
+      const result = await safeGetJSON(api('/api/resources'));
+      let context = uiLanguage==='es' ? "No hay recursos listados por ahora." : "No community resources are listed at this time.";
+      if (result.ok && result.data?.length){
+        context = result.data.map(r => `* **${r.name}** (${r.category}) — ${r.description || ''} ${r.website ? `[Website](${r.website})` : ''}`).join('\n');
+      }else if(!result.ok){
+        context = (uiLanguage==='es'
+          ? `No se pudieron cargar los recursos (motivo: ${result.error}). Revisa: ${ENGAGE.communityResources}`
+          : `Couldn’t load resources (reason: ${result.error}). See: ${ENGAGE.communityResources}`);
+      }
+      const finalPrompt = `CONTEXT:\n${context}\n\nAnswer the user in ${uiLanguage==='es'?'Spanish':'English'}: "${prompt}"`;
+      return getGenerativeResponse(finalPrompt);
+    }
+
+    if (hasWord(['event','events','job fair','workshop'])){
+      setStatus(uiLanguage==='es'?'Revisando eventos…':'Checking for upcoming events…');
+      const result = await safeGetJSON(api('/api/events'));
+      let context = uiLanguage==='es' ? "No hay eventos programados." : "There are currently no events scheduled.";
+      if (result.ok && result.data?.length){
+        context = result.data.map(e => `* **${e.name}** — ${new Date(e.event_date).toLocaleString()}`).join('\n');
+      }else if(!result.ok){
+        context = (uiLanguage==='es'
+          ? `No se pudo cargar el calendario (motivo: ${result.error}). Consulta: ${ENGAGE.events}`
+          : `Couldn’t load the event schedule (reason: ${result.error}). See: ${ENGAGE.events}`);
+      }
+      const finalPrompt = `CONTEXT:\n${context}\n\nAnswer the user in ${uiLanguage==='es'?'Spanish':'English'}: "${prompt}"`;
+      return getGenerativeResponse(finalPrompt);
+    }
+
+    // Fallback: let the model answer generally
+    return getGenerativeResponse(prompt);
+  }
+
+  /* ------------------- Guided Conversation ------------------- */
+  async function handleGuidedConversation(prompt){
+    if (conversationState.mode==='TRIP_PLANNER') return handleTripPlanner(prompt);
+    resetConversationState();
+    return getGenerativeResponse(prompt);
+  }
+
+  function nowParts(){
+    const d = new Date();
+    const pad = (n)=>String(n).padStart(2,'0');
+    // NJ Transit expects local time components
+    return {
+      date: `${d.getMonth()+1}/${pad(d.getDate())}/${d.getFullYear()}`,
+      time: `${((d.getHours()+11)%12)+1}:${pad(d.getMinutes())} ${d.getHours()>=12?'PM':'AM'}`
+    };
+  }
+
+  async function handleTripPlanner(userText){
+    const s = conversationState.step;
+    if (s===1){
+      conversationState.data.origin = userText;
+      conversationState.step = 2;
+      return { text: uiLanguage==='es'
+        ? "Entendido. ¿A dónde te diriges? (dirección o lugar)"
+        : "Got it. And where are you trying to go (destination address or landmark)?" };
+    }
+    if (s===2){
+      conversationState.data.destination = userText;
+
+      const origin = encodeURIComponent(conversationState.data.origin);
+      const destination = encodeURIComponent(conversationState.data.destination);
+      const {date, time} = nowParts();
+
+      // NJ Transit: fill both *value* and *text* params for robustness
+      const njUrl =
+        `https://www.njtransit.com/trip-planner-to?origin=${origin}` +
+        `&destination=${destination}` +
+        `&origin_text=${origin}&destination_text=${destination}` +
+        `&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`;
+
+      // Backup: Google Maps transit directions
+      const gmaps = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=transit`;
+
+      const msg = uiLanguage==='es'
+        ? `¡Perfecto! Te dejo el enlace del planificador oficial de NJ Transit con tus datos precargados. Si por alguna razón los campos dicen **DEFAULT_ORIGIN** o **DEFAULT_DESTINATION**, haz clic en cada cuadro y verás tu texto en el historial/sugerencias.\n\n[Ver mis direcciones en NJ Transit](${njUrl})\n\nSi prefieres, también puedes verlo en Google Maps (modo transporte público): [Abrir en Google Maps](${gmaps}).`
+        : `Great! Here is the link to the official NJ Transit planner with your trip pre-filled. If the fields show **DEFAULT_ORIGIN** or **DEFAULT_DESTINATION**, click the boxes — your typed places will appear in the suggestions.\n\n[View my trip on NJ Transit](${njUrl})\n\nOr open it in Google Maps (transit mode): [Open in Google Maps](${gmaps}).`;
+
+      resetConversationState();
+      return { text: msg };
+    }
+  }
+
+  /* ------------------- Networking ------------------- */
+  async function safeGetJSON(url){
+    try{ const r = await fetch(url); if(!r.ok) return {ok:false,error:`HTTP ${r.status}`}; return await r.json(); }
+    catch(e){ return {ok:false,error:e?.message||'network'}; }
+  }
+
+  async function getGenerativeResponse(prompt){
+    const body = { prompt, systemPrompt: SYSTEM_PROMPT };
+    const r = await fetch(api('/api/ai'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if(!r.ok){ const txt = await r.text(); throw new Error(`API Error ${r.status}: ${txt}`); }
+    const json = await r.json();
+    return json.ok && json.text ? { text: json.text } : { text: uiLanguage==='es'?"Lo siento, no pude generar una respuesta.":"I'm sorry, I couldn't generate a response." };
+  }
+
+  /* ------------------- Speech to Text ------------------- */
+  function initSTT(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    const r = new SR();
+    r.lang = uiLanguage==='es' ? 'es-US' : 'en-US';
+    r.interimResults = true; r.continuous = false;
+    r.onstart = () => { listening=true; document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6 text-red-500" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="8"/></svg>`; };
+    r.onend   = () => { listening=false; document.getElementById('micIcon').innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>`; };
+    r.onresult = (e) => { let t=''; for(let i=e.resultIndex;i<e.results.length;i++) t+=e.results[i][0].transcript; const input=document.getElementById('input'); input.value=t; updateSendState(); autosize(); };
+    return r;
+  }
 </script>
 </body>
 </html>
