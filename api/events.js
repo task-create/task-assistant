@@ -1,20 +1,20 @@
-import { createClient } from '@supabase/supabase-js';
+// /api/events.js
 export const config = { runtime: 'nodejs' };
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+import { sb, withCors } from './_supabase';
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method Not Allowed' });
+  withCors(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb()
       .from('events')
-      .select('*')
-      .eq('is_active', true)
-      .order('event_date', { ascending: true });
+      .select('name, event_date')
+      .gte('event_date', new Date().toISOString())
+      .order('event_date', { ascending: true })
+      .limit(20);
     if (error) throw error;
-    return res.status(200).json({ ok: true, data });
-  } catch (error) {
-    console.error('Error fetching events:', error.message);
-    return res.status(500).json({ ok: false, error: error.message });
+    return res.status(200).json({ ok:true, data });
+  } catch (e) {
+    return res.status(500).json({ ok:false, error: e.message });
   }
 }
