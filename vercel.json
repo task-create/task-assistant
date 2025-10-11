@@ -1,5 +1,9 @@
 {
+  "buildCommand": "npm run build:css",
   "crons": [
-    { "path": "/api/ingest-jobs", "schedule": "5 5 * * *" }
+    {
+      "path": "/api/ingest-jobs",
+      "schedule": "0 * * * *"
+    }
   ]
 }
