@@ -1,22 +1,13 @@
 {
-  "name": "task-assistant",
-  "version": "1.0.0",
-  "private": true,
-  "description": "TASK Assistant – static front-end + Vercel serverless API (Gemini + Supabase).",
-  "license": "UNLICENSED",
   "type": "module",
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "dev": "vercel dev",
-    "start": "vercel dev",
-    "build": "echo \"Static front-end; serverless functions compiled by Vercel.\""
-  },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.45.0"
   },
   "devDependencies": {
-    "vercel": "^33.0.0"
+    "tailwindcss": "^3.4.13"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i ./styles/input.css -o ./styles.css --minify"
   }
 }
