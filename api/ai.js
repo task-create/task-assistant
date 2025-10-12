@@ -1,4 +1,20 @@
 // /api/ai.js
+// inside /api/ai.js, somewhere near the top of your handler, before calling the model:
+let kbResults = [];
+try {
+  const q = ''; // or whatever user/topic string you search for
+  const { data, error } = await supabase
+    .from('knowledge_base')
+    .select('id,title,content')
+    .ilike('title', `%${q}%`)
+    .limit(10);
+  if (error) throw error;
+  kbResults = data ?? [];
+} catch (e) {
+  // If the table doesn’t exist yet or RLS rejects, don’t crash the chat
+  console.error('KB lookup skipped:', e.code || e.message);
+}
+
 import { GoogleGenAI } from '@google/genai';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
