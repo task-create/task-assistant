@@ -10,40 +10,31 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const nowIso = new Date().toISOString();
+    // Use today's date to filter upcoming items
+    const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
-    // Prefer trainings with start_at >= now; if some rows lack start_at,
-    // you can fall back to next_start_date in a second query if needed.
     const { data, error } = await supabase
       .from('trainings')
-      .select('id,name,description,location,start_at,next_start_date,is_active,signup_link')
+      .select('id,name,description,location,next_start_date,is_active,signup_link')
       .eq('is_active', true)
-      .gte('start_at', nowIso)
-      .order('start_at', { ascending: true, nullsFirst: false })
+      .gte('next_start_date', today)
+      .order('next_start_date', { ascending: true })
       .limit(200);
 
     if (error) throw error;
 
-    // Optional: also include items missing start_at but with a future next_start_date
-    // (Uncomment if you still have legacy rows without start_at)
-    /*
-    let results = data ?? [];
-    if ((results?.length ?? 0) < 10) {
-      const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
-      const { data: fallback, error: fbErr } = await supabase
-        .from('trainings')
-        .select('id,name,description,location,start_at,next_start_date,is_active,signup_link')
-        .eq('is_active', true)
-        .is('start_at', null)
-        .gte('next_start_date', today)
-        .order('next_start_date', { ascending: true })
-        .limit(200);
-      if (fbErr) throw fbErr;
-      results = [...results, ...(fallback ?? [])];
-    }
-    */
+    // Build a friendly timestamp WITHOUT touching the DB schema
+    const results = (data || []).map(row => {
+      // If you want a default 09:00 local time for display, compute it here:
+      let start_at_iso = null;
+      if (row.next_start_date) {
+        // Construct a local datetime string like 'YYYY-MM-DDT09:00:00'
+        start_at_iso = `${row.next_start_date}T09:00:00`;
+      }
+      return { ...row, start_at: start_at_iso };
+    });
 
-    res.status(200).json({ trainings: data ?? [] });
+    res.status(200).json({ trainings: results });
   } catch (e) {
     res.status(502).json({ error: e.message || String(e) });
   }
