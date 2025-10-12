@@ -64,3 +64,4 @@ export default async function handler(req) {
     return fail(502, { reply: 'Upstream model error.', detail: String(err?.message || err), source: 'gemini' });
   }
 }
+
