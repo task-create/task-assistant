@@ -1,67 +1,37 @@
-// /api/ai.js
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getSupabase, ok, fail } from './supabase.js';
+// /api/ai.js  (Node serverless, not Edge)
+import { GoogleGenAI } from '@google/genai';
 
-// Force Node runtime (avoid edge incompatibilities)
-export const config = { runtime: 'nodejs18.x' };
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Use a valid, current model name (examples below)
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash'; // or 'gemini-2.5-flash' / 'gemini-2.5-flash-lite'
 
-// Use a known-good model id for the Google AI Studio SDK
-const MODEL = 'gemini-1.5-flash'; // or 'gemini-1.5-pro'
-
-async function buildContext() {
-  const supabase = getSupabase('anon');
-
-  const [jobs, resources, events, trainings] = await Promise.all([
-    supabase.from('jobs').select('title,company,apply_link').order('created_at', { ascending: false }).limit(10),
-    supabase.from('resources').select('name,provider,website').order('name', { ascending: true }).limit(10),
-    supabase.from('events').select('name,event_date').order('event_date', { ascending: true }).limit(10),
-    supabase.from('trainings').select('name,next_start_date,description').order('next_start_date', { ascending: true }).limit(10)
-  ]);
-
-  const lines = [];
-  if (!jobs.error && jobs.data?.length) {
-    lines.push('FEATURED JOBS:');
-    jobs.data.forEach(j => lines.push(`- ${j.title || '—'} @ ${j.company || ''} ${j.apply_link ? `(apply: ${j.apply_link})` : ''}`));
-  }
-  if (!resources.error && resources.data?.length) {
-    lines.push('\nRESOURCES:');
-    resources.data.forEach(r => lines.push(`- ${r.name || ''} (${r.provider || ''}) ${r.website || ''}`));
-  }
-  if (!events.error && events.data?.length) {
-    lines.push('\nEVENTS:');
-    events.data.forEach(e => lines.push(`- ${e.name || ''} ${e.event_date || ''}`));
-  }
-  if (!trainings.error && trainings.data?.length) {
-    lines.push('\nTRAININGS:');
-    trainings.data.forEach(t => lines.push(`- ${t.name || ''} ${t.next_start_date || ''}`));
-  }
-
-  return lines.join('\n');
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    if (req.body && typeof req.body === 'object') return resolve(req.body);
+    let data = '';
+    req.on('data', c => (data += c));
+    req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch (e) { reject(e); } });
+    req.on('error', reject);
+  });
 }
 
-export default async function handler(req) {
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'content-type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const { messages = [{ role: 'user', content: 'Hello' }] } = await readJsonBody(req);
+
+  const contents = messages.map(m => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: [{ text: m.content }]
+  }));
+
   try {
-    if (req.method !== 'POST') return fail(405, 'Method not allowed');
-
-    const { prompt = '', systemPrompt = '' } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return fail(500, 'Missing GEMINI_API_KEY');
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: MODEL });
-
-    const context = await buildContext();
-    const composed = [
-      systemPrompt ? `SYSTEM:\n${systemPrompt}` : '',
-      context ? `CONTEXT (live data):\n${context}` : '',
-      `USER:\n${prompt}`
-    ].filter(Boolean).join('\n\n---\n\n');
-
-    const result = await model.generateContent(composed);
-    const text = result?.response?.text?.() || 'Sorry, no answer.';
-    return ok({ reply: text, _debug: { model: MODEL } });
+    const result = await ai.models.generateContent({ model: MODEL, contents });
+    res.status(200).json({ text: result.text });
   } catch (err) {
-    return fail(502, { reply: 'Upstream model error.', detail: String(err?.message || err), source: 'gemini' });
+    res.status(502).json({ error: err?.message, detail: err?.response?.data || String(err) });
   }
 }
-
