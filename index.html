@@ -5,446 +5,333 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Solace • TASK Assistant</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
-
-  <!-- Tailwind CDN (warning is informational; OK for now) -->
+  <!-- Tailwind CDN (warning is informational; fine for now) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ brand:'#ff8a00' }}}}
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: '#ff8a00' }}}};
   </script>
   <style>
-    :root { --brand:#ff8a00; --brand-light:#ffd088; }
-    .custom-scrollbar::-webkit-scrollbar{width:6px}
-    .custom-scrollbar::-webkit-scrollbar-track{background:transparent}
-    .custom-scrollbar::-webkit-scrollbar-thumb{background:#4a5568;border-radius:3px}
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#718096}
-    @media (prefers-reduced-motion: reduce){ .animate-spin,.animate-bounce,.transition-all{transition:none!important} }
-    .sparkle{background:conic-gradient(from 0deg,var(--brand) 0%,var(--brand-light) 25%,transparent 40%,transparent 60%,var(--brand-light) 75%,var(--brand) 100%);filter:blur(14px) saturate(1.2)}
-    .composer-shell{position:sticky;bottom:0;background:linear-gradient(to top,rgba(255,255,255,0.9),rgba(255,255,255,0))}
-    .dark .composer-shell{background:linear-gradient(to top,rgba(15,23,42,0.95),rgba(15,23,42,0))}
+    :root { --brand:#ff8a00; --ink:#0f172a; }
+    .custom-scrollbar::-webkit-scrollbar{width:8px;height:8px}
+    .custom-scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:6px}
+    .bubble a{ text-decoration: underline; }
+    .bubble{ word-break: break-word; overflow-wrap: anywhere; }
+    .bubble pre, .bubble code { white-space: pre-wrap; }
+    .composer-shell{position:sticky;bottom:0;background:linear-gradient(to top,rgba(255,255,255,.96),rgba(255,255,255,0))}
+    .dark .composer-shell{background:linear-gradient(to top,rgba(15,23,42,.96),rgba(15,23,42,0))}
   </style>
 </head>
+<body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 antialiased">
 
-<body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 font-sans antialiased">
+<!-- App -->
+<div class="h-screen w-screen grid lg:grid-cols-[280px_1fr]">
 
-  <!-- Splash -->
-  <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
-    <div class="w-full max-w-md p-8 text-center bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1f2937] relative">
-      <button id="themeToggleSplash" class="absolute top-4 right-4 p-2 rounded-full border border-gray-200 dark:border-[#1f2937]" title="Toggle theme">
-        <svg id="themeIconSplash" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-      </button>
-
-      <div class="absolute top-4 left-4">
-        <label for="languageSelector" class="sr-only">Language</label>
-        <select id="languageSelector" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-[#1f2937] rounded-md p-1 text-sm">
-          <option value="en">English</option>
-          <option value="es">Español</option>
-          <option value="ht">Kreyòl Ayisyen</option>
-        </select>
-      </div>
-
-      <div class="relative w-24 h-24 mx-auto mb-6">
-        <div class="absolute inset-[-16px] rounded-full sparkle animate-spin [animation-duration:4s]"></div>
-        <div class="relative z-10 flex items-center justify-center w-24 h-24 text-5xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div>
-      </div>
-      <h1 id="splashTitle" class="text-3xl font-extrabold">Solace</h1>
-      <p id="splashSubtitle" class="mt-2 text-gray-600 dark:text-[#9aa4b2]">Your guide to career and community resources.</p>
-
-      <div class="mt-8">
-        <button id="start" class="w-full px-6 py-3 text-lg font-semibold text-black bg-brand rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand dark:focus:ring-offset-[#0f172a]">Start</button>
-      </div>
+  <!-- Sidebar -->
+  <aside class="hidden lg:flex flex-col h-full border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f172a]">
+    <div class="p-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-800">
+      <div class="w-9 h-9 rounded-lg bg-brand text-black font-bold grid place-items-center">S</div>
+      <div class="font-semibold">Solace</div>
     </div>
-  </div>
 
-  <!-- App Shell -->
-  <div id="app" class="hidden h-screen w-screen">
+    <div class="p-3 flex items-center gap-2">
+      <button id="btnNew" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">New</button>
+      <button id="btnRename" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Rename</button>
+      <button id="btnDelete" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Del</button>
+      <button id="btnTheme" class="ml-auto px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700">Theme</button>
+    </div>
 
-    <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 z-40 hidden h-screen w-[300px] lg:flex flex-col bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1f2937]">
-      <div class="flex items-center gap-3 p-3">
-        <div class="relative w-10 h-10">
-          <div class="absolute inset-[-8px] rounded-full sparkle"></div>
-          <div class="relative z-10 flex items-center justify-center w-10 h-10 text-xl font-bold text-black bg-brand rounded-lg">S</div>
-        </div>
-        <span class="text-xl font-semibold">Solace</span>
+    <div class="px-3">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase">Quick Actions</h3>
+      <div id="quick" class="mt-2 space-y-2"></div>
+    </div>
+
+    <div class="p-3">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase">Recent</h3>
+      <div id="history" class="mt-2 custom-scrollbar overflow-y-auto" style="max-height: 45vh;"></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex flex-col h-screen">
+
+    <!-- Mobile header -->
+    <header class="lg:hidden flex items-center justify-between p-3 bg-white dark:bg-[#0f172a] border-b border-gray-200 dark:border-gray-800">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-md bg-brand text-black font-bold grid place-items-center">S</div>
+        <div class="font-semibold">Solace</div>
       </div>
+      <button id="btnThemeM" class="px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700">Theme</button>
+    </header>
 
-      <!-- Sessions -->
-      <div class="px-3 -mt-2 mb-3 flex items-center gap-2">
-        <select id="chat-sessions" class="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-md px-2 py-1 text-sm"></select>
-        <button id="btn-new"    class="border px-2 py-1 rounded text-sm">New</button>
-        <button id="btn-rename" class="border px-2 py-1 rounded text-sm">Rename</button>
-        <button id="btn-delete" class="border px-2 py-1 rounded text-sm">Del</button>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="px-3">
-        <h3 class="px-1 text-sm font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
-        <div id="quickActionsContainer" class="mt-2 space-y-2"></div>
-      </div>
-
-      <!-- History -->
-      <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar px-3">
-        <h3 class="px-1 text-sm font-semibold text-gray-500">Recent</h3>
-        <div id="historyContainer" class="mt-2 space-y-1"></div>
-      </div>
-
-      <div class="p-3 border-t border-gray-200 dark:border-gray-700">
-        <button id="themeToggleApp" class="flex items-center w-full gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-          <svg id="themeIconApp" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-          <span id="themeTextApp" class="text-sm font-medium">Dark Mode</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <main class="relative flex flex-col h-screen lg:ml-[300px] bg-gray-100 dark:bg-[#0b1220]">
-      <!-- Mobile header -->
-      <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#1f2937] lg:hidden">
-        <div class="flex items-center gap-3">
-          <div class="relative w-8 h-8">
-            <div class="absolute inset-[-6px] rounded-full sparkle"></div>
-            <div class="relative z-10 flex items-center justify-center w-8 h-8 text-lg font-bold text-black bg-brand rounded-md">S</div>
-          </div>
-          <span class="text-lg font-semibold">Solace</span>
-        </div>
-      </header>
-
-      <!-- Chat -->
-      <div id="chat" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 flex">
-        <div id="chatBody" class="w-full max-w-3xl mx-auto">
-          <div id="welcomeScreen" class="flex flex-col items-center justify-center h-full text-center">
-            <div class="relative w-20 h-20 mx-auto mb-4">
-              <div class="absolute inset-[-12px] rounded-full sparkle"></div>
-              <div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div>
-            </div>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">How can I help you today?</h1>
-          </div>
+    <!-- Chat -->
+    <section id="chatWrap" class="flex-1 overflow-y-auto custom-scrollbar p-4">
+      <div id="chatBody" class="max-w-3xl mx-auto space-y-3">
+        <div class="text-center mt-8 text-gray-600 dark:text-gray-400">
+          <div class="w-16 h-16 mx-auto rounded-xl bg-brand text-black font-black grid place-items-center text-3xl">S</div>
+          <p class="mt-3">How can I help you today?</p>
         </div>
       </div>
+    </section>
 
-      <!-- Composer -->
-      <div class="composer-shell px-4 pb-4 md:px-6 md:pb-6">
-        <form id="composer" class="relative" autocomplete="off">
-          <textarea id="input" class="w-full p-4 pr-32 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-[#1f2937] rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none" placeholder="Type your question…" rows="1"></textarea>
-          <div class="absolute bottom-2.5 right-3">
-            <button id="send" type="submit" class="p-2 text-white bg-brand rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed" disabled title="Send">
-              <svg class="w-6 h-6 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a 1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
-            </button>
-          </div>
-        </form>
-        <div id="status" class="mt-2 text-sm text-center text-gray-500"></div>
-      </div>
-    </main>
-  </div>
+    <!-- Composer -->
+    <div class="composer-shell px-4 py-3 md:px-6 md:py-4">
+      <form id="composer" class="max-w-3xl mx-auto relative">
+        <textarea id="input" rows="1" placeholder="Ask about trainings, jobs, resources, appointments…"
+          class="w-full resize-none rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0f172a] p-4 pr-28 focus:ring-2 focus:ring-brand"></textarea>
+        <div class="absolute right-2 bottom-2 flex items-center gap-2">
+          <button id="btnTransit" type="button" class="px-3 py-1.5 text-sm rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" title="NJ TRANSIT Trip Planner">NJT</button>
+          <button id="send" class="px-3 py-1.5 rounded-md text-black bg-brand disabled:bg-gray-400">Send</button>
+        </div>
+      </form>
+    </div>
 
-  <script type="module">
-    /* =================== Config =================== */
-    const DEPLOY_BASE='https://task-assistant-xi.vercel.app';
-    const ON_SAME_SITE = typeof location!=='undefined' && (location.hostname==='localhost' || location.hostname.endsWith('task-assistant-xi.vercel.app'));
-    const API_BASE = ON_SAME_SITE ? '' : DEPLOY_BASE;
-    const api = (p)=>`${API_BASE}${p}`;
+  </main>
+</div>
 
-    /* =================== Theme & Language =================== */
-    const sunIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m4.95-14.95l-1.414 1.414M6.464 17.536L5.05 18.95M21 12h-2M5 12H3m14.95 4.95l-1.414-1.414M6.464 6.464L5.05 5.05M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
-    const moonIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`;
-    function applyTheme(theme){
-      document.documentElement.classList.toggle('dark', theme==='dark');
-      localStorage.setItem('theme', theme);
-      const isDark = theme==='dark';
-      const is=document.getElementById('themeIconSplash'); if (is) is.innerHTML = isDark ? sunIcon : moonIcon;
-      const ia=document.getElementById('themeIconApp'); const ta=document.getElementById('themeTextApp');
-      if (ia&&ta){ ia.innerHTML = isDark ? sunIcon : moonIcon; ta.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
+<script type="module">
+/* --------------------------- Config --------------------------- */
+const ENGAGE = {
+  appointment: "https://bycell.co/ddncs",
+  jobs:        "https://bycell.co/ddmtq",
+  trainings:   "https://bycell.co/ddmtn",
+  resources:   "https://bycell.co/ddmua",
+};
+const API_AI = "/api/ai";      // same origin
+const API_SUGGEST = "/api/suggest"; // optional; not required
+
+/* --------------------------- Theme --------------------------- */
+const applyTheme = (t)=>{ document.documentElement.classList.toggle('dark', t==='dark'); localStorage.setItem('theme', t); };
+const toggleTheme = ()=> applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark');
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light'));
+document.getElementById('btnTheme')?.addEventListener('click',toggleTheme);
+document.getElementById('btnThemeM')?.addEventListener('click',toggleTheme);
+
+/* --------------------------- State --------------------------- */
+let chats = JSON.parse(localStorage.getItem('chats')||'{}');
+let activeId = localStorage.getItem('activeId') || null; // declare BEFORE functions (fixes TDZ)
+
+/* transit flow state */
+const transitFlow = { active:false, origin:null, destination:null };
+
+/* --------------------------- Utils --------------------------- */
+function save(){ localStorage.setItem('chats', JSON.stringify(chats)); localStorage.setItem('activeId', activeId||''); }
+function newId(){ return 'c_'+Date.now(); }
+function ensureChat(){
+  if(!activeId || !chats[activeId]) {
+    activeId = newId();
+    chats[activeId] = { id: activeId, title: 'New chat', messages: [] };
+    save(); renderHistory();
+  }
+}
+function linkifyText(s=''){
+  // urls
+  let out = s.replace(/(https?:\/\/[^\s)]+)\b/gi, m => `<a href="${m}" target="_blank" rel="noopener noreferrer">${m}</a>`);
+  // phone numbers
+  out = out.replace(/(\(\d{3}\)\s?\d{3}-\d{4}|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b)/g, m => `<a href="tel:${m.replace(/[^\d]/g,'')}">${m}</a>`);
+  return out;
+}
+function addMsg(role, html){
+  ensureChat();
+  const rec = { role, html, ts: Date.now() };
+  chats[activeId].messages.push(rec);
+  // title: first user line becomes title
+  if(role==='user' && chats[activeId].title==='New chat'){
+    const t = html.replace(/<[^>]+>/g,'').trim().slice(0,40);
+    chats[activeId].title = t || 'New chat';
+  }
+  save(); renderChat(); renderHistory();
+}
+function bubble(role, html){
+  const wrap = document.createElement('div');
+  wrap.className = `flex ${role==='user'?'justify-end':'justify-start'}`;
+  const inner = document.createElement('div');
+  inner.className = `bubble max-w-[85%] rounded-2xl px-4 py-3 shadow text-sm leading-6 ${
+    role==='user'
+      ? 'bg-brand text-black'
+      : 'bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-700'
+  }`;
+  inner.innerHTML = html;
+  wrap.appendChild(inner);
+  return wrap;
+}
+function scrollToBottom(){
+  const wrap = document.getElementById('chatWrap');
+  wrap?.scrollTo({ top: wrap.scrollHeight, behavior: 'smooth' });
+}
+
+/* --------------------------- Renderers --------------------------- */
+function renderHistory(){
+  const h = document.getElementById('history');
+  if(!h) return;
+  h.innerHTML = '';
+  Object.values(chats).sort((a,b)=>b.id.localeCompare(a.id)).forEach(c=>{
+    const row = document.createElement('button');
+    row.className = `w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${c.id===activeId?'bg-brand/20':''}`;
+    row.textContent = c.title || 'Untitled';
+    row.title = c.title || 'Untitled';
+    row.onclick = ()=>{ activeId=c.id; save(); renderChat(); renderHistory(); };
+    h.appendChild(row);
+  });
+}
+function renderChat(){
+  const body = document.getElementById('chatBody');
+  body.innerHTML = '';
+  const items = (chats[activeId]?.messages)||[];
+  if(!items.length){
+    const empty = document.createElement('div');
+    empty.className="text-center mt-8 text-gray-600 dark:text-gray-400";
+    empty.innerHTML = `<div class="w-16 h-16 mx-auto rounded-xl bg-brand text-black font-black grid place-items-center text-3xl">S</div><p class="mt-3">How can I help you today?</p>`;
+    body.appendChild(empty);
+  }else{
+    items.forEach(m=> body.appendChild(bubble(m.role, m.html)));
+  }
+  scrollToBottom();
+}
+
+/* --------------------------- Quick actions --------------------------- */
+function renderQuick(){
+  const q = document.getElementById('quick'); if(!q) return;
+  const items = [
+    {label:'Schedule Appointment', href: ENGAGE.appointment, emoji:'📅'},
+    {label:'Find Jobs', href: ENGAGE.jobs, emoji:'🔎'},
+    {label:'Training Programs', href: ENGAGE.trainings, emoji:'🎓'},
+    {label:'Community Resources', href: ENGAGE.resources, emoji:'📚'},
+    {label:'NJ TRANSIT Trip Planner', href:'#', emoji:'🚌', onClick: ()=>startTransitFlow()}
+  ];
+  q.innerHTML='';
+  items.forEach(it=>{
+    const a = document.createElement(it.href==='#'?'button':'a');
+    a.className='w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+    a.innerHTML = `<span class="flex items-center gap-2"><span>${it.emoji}</span><span>${it.label}</span></span><span>›</span>`;
+    if(it.href==='#') a.onclick=it.onClick; else { a.href=it.href; a.target='_blank'; a.rel='noopener noreferrer'; }
+    q.appendChild(a);
+  });
+}
+
+/* --------------------------- NJ TRANSIT flow --------------------------- */
+function startTransitFlow(){
+  transitFlow.active = true; transitFlow.origin = null; transitFlow.destination = null;
+  addMsg('assistant', '🚌 Sure — let’s plan your trip. <b>What is your <i>origin</i> address?</b>');
+}
+function maybeHandleTransit(userText){
+  if(!transitFlow.active) return false;
+  if(!transitFlow.origin){
+    transitFlow.origin = userText.trim();
+    addMsg('assistant', 'Got it. <b>What is your destination address?</b>');
+    return true;
+  }
+  if(!transitFlow.destination){
+    transitFlow.destination = userText.trim();
+    const o = encodeURIComponent(transitFlow.origin);
+    const d = encodeURIComponent(transitFlow.destination);
+    const njt = `https://www.njtransit.com/trip-planner?from=${o}&to=${d}&mode=transit`;
+    const gmaps = `https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=transit`;
+    const html = [
+      `<b>Here are your pre-filled links:</b>`,
+      `• <a href="${njt}" target="_blank" rel="noopener">NJ TRANSIT Trip Planner</a>`,
+      `• <a href="${gmaps}" target="_blank" rel="noopener">Google Maps (Transit)</a>`,
+      `<br/>Safe travels! 🚆`
+    ].join('<br/>');
+    addMsg('assistant', html);
+    transitFlow.active = false;
+    return true;
+  }
+  return false;
+}
+
+/* --------------------------- Network --------------------------- */
+async function fetchAI(prompt){
+  const r = await fetch(API_AI, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+  if(!r.ok){
+    const t = await r.text().catch(()=> '');
+    throw new Error(t || `HTTP ${r.status}`);
+  }
+  const j = await r.json();
+  // Accept either {text} or {reply}
+  return j.text || j.reply || '(no response)';
+}
+
+/* --------------------------- Boot --------------------------- */
+function init(){
+  // ensure one chat
+  ensureChat();
+  renderQuick(); renderHistory(); renderChat();
+
+  // actions
+  document.getElementById('btnNew')?.addEventListener('click', ()=>{
+    activeId = newId();
+    chats[activeId] = { id: activeId, title:'New chat', messages: [] };
+    save(); renderHistory(); renderChat();
+  });
+  document.getElementById('btnRename')?.addEventListener('click', ()=>{
+    ensureChat();
+    const current = chats[activeId].title || '';
+    const t = prompt('Rename chat:', current);
+    if(t){ chats[activeId].title = t.trim(); save(); renderHistory(); }
+  });
+  document.getElementById('btnDelete')?.addEventListener('click', ()=>{
+    if(!activeId) return;
+    if(confirm('Delete this chat?')){
+      delete chats[activeId];
+      activeId = Object.keys(chats)[0] || null;
+      save(); renderHistory(); renderChat();
     }
-    function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark'); }
-    function setLanguage(lang){
-      const code=(lang||'en').slice(0,2).toLowerCase();
-      const normalized=['en','es','ht'].includes(code)?code:'en';
-      localStorage.setItem('lang',normalized);
-      document.documentElement.setAttribute('lang',normalized);
-      const strings={
-        en:{title:'Solace',subtitle:'Your guide to career and community resources.',start:'Start'},
-        es:{title:'Solace',subtitle:'Su guía de recursos profesionales y comunitarios.',start:'Empezar'},
-        ht:{title:'Solace',subtitle:'Gid ou pou karyè ak resous kominotè yo.',start:'Kòmanse'}
-      }[normalized];
-      document.getElementById('splashTitle').textContent=strings.title;
-      document.getElementById('splashSubtitle').textContent=strings.subtitle;
-      document.getElementById('start').textContent=strings.start;
-      const sel=document.getElementById('languageSelector'); if (sel && sel.value!==normalized) sel.value=normalized;
+  });
+
+  // composer
+  const input = document.getElementById('input');
+  const send = document.getElementById('send');
+  const form = document.getElementById('composer');
+  const btnTransit = document.getElementById('btnTransit');
+
+  const update = ()=> send.disabled = !input.value.trim();
+  ['input','keyup','change','paste'].forEach(ev=> input.addEventListener(ev, update));
+  update();
+
+  input.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); }
+  });
+
+  btnTransit.addEventListener('click', startTransitFlow);
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const textRaw = input.value.trim();
+    if(!textRaw) return;
+    input.value=''; update();
+
+    // trip planner capture?
+    if(maybeHandleTransit(textRaw)){ addMsg('user', linkifyText(textRaw)); return; }
+
+    // show user bubble immediately
+    addMsg('user', linkifyText(textRaw));
+
+    // placeholder
+    const body = document.getElementById('chatBody');
+    const thinking = bubble('assistant', '…');
+    body.appendChild(thinking); scrollToBottom();
+
+    try{
+      // optional tone detector (non-blocking)
+      // fetch(API_SUGGEST,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:textRaw})}).catch(()=>{});
+
+      const replyHtml = linkifyText(await fetchAI(textRaw));
+      thinking.querySelector('.bubble').innerHTML = replyHtml;
+      // also record into history
+      chats[activeId].messages.push({ role:'assistant', html: replyHtml, ts: Date.now() });
+      save();
+    }catch(err){
+      thinking.querySelector('.bubble').innerHTML = `Sorry — upstream error.<br/><small class="text-gray-500">${(err.message||'').slice(0,300)}</small>`;
+      save();
     }
+  });
+}
 
-    /* =================== Sessions (TDZ-safe init) =================== */
-    const LS_KEY = 'solace.chat.sessions';
-    function loadSessions(){ const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : { activeId:null, list:[] }; }
-    function saveSessions(){ localStorage.setItem(LS_KEY, JSON.stringify({ activeId, list:sessions.list })); }
-
-    let sessions = loadSessions();
-    let activeId = sessions.activeId ?? null;  // TDZ-safe
-
-    // UI elements
-    const selSession = document.getElementById('chat-sessions');
-    const btnNew = document.getElementById('btn-new');
-    const btnRename = document.getElementById('btn-rename');
-    const btnDelete = document.getElementById('btn-delete');
-
-    function createSession(title){
-      const id = crypto.randomUUID();
-      const sess = { id, title, messages: [] };
-      sessions.list.push(sess);
-      sessions.activeId = id;
-      activeId = id;
-      saveSessions();
-      renderSessionPicker(); renderHistory(); renderChat();
-      return sess;
-    }
-    function getActive(){ return sessions.list.find(s=>s.id===activeId); }
-    function renderSessionPicker(){
-      selSession.innerHTML=''; sessions.list.forEach(s=>{
-        const opt=document.createElement('option'); opt.value=s.id; opt.textContent=s.title; if(s.id===activeId) opt.selected=true; selSession.appendChild(opt);
-      });
-    }
-    function renderHistory(){
-      const c=document.getElementById('historyContainer'); if(!c) return; c.innerHTML='';
-      sessions.list.slice().reverse().forEach(s=>{
-        const row=document.createElement('div');
-        row.className=`flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${s.id===activeId?'bg-brand/20':''}`;
-        row.innerHTML=`
-          <button class="text-left flex-1 truncate" title="${s.title}">${s.title}</button>
-          <div class="flex items-center gap-1 ml-2">
-            <button class="text-xs px-2 py-0.5 rounded border">✎</button>
-            <button class="text-xs px-2 py-0.5 rounded border">🗑</button>
-          </div>`;
-        const [btnOpen, btnEdit, btnDel] = row.querySelectorAll('button');
-        btnOpen.addEventListener('click',()=>{ activeId=s.id; sessions.activeId=s.id; saveSessions(); renderSessionPicker(); renderHistory(); renderChat(); });
-        btnEdit.addEventListener('click',()=>{ const name=prompt('Rename chat:', s.title); if(!name) return; s.title=name.trim(); saveSessions(); renderSessionPicker(); renderHistory(); });
-        btnDel.addEventListener('click',()=>{ if(!confirm(`Delete chat “${s.title}”?`)) return; sessions.list=sessions.list.filter(x=>x.id!==s.id); if(activeId===s.id){ activeId=sessions.list[0]?.id || createSession('New Chat').id; sessions.activeId=activeId; } saveSessions(); renderSessionPicker(); renderHistory(); renderChat(); });
-        c.appendChild(row);
-      });
-    }
-
-    // Ensure one active session
-    if(!activeId){ const s = createSession('New Chat'); activeId = s.id; sessions.activeId=activeId; saveSessions(); }
-
-    /* =================== Linkify (URLs + phone numbers) =================== */
-    function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-    function toTelHref(numText){
-      const digits = numText.replace(/[^\d+]/g,'');
-      // Add +1 if it looks like US 10-digit without country code
-      const cleaned = digits.replace(/^1?(\d{10})$/,'+1$1');
-      return `tel:${cleaned}`;
-    }
-    function linkify(text){
-      // 1) escape everything
-      let esc = escapeHTML(text);
-
-      // 2) URLs → anchors
-      const urlRe = /\bhttps?:\/\/[^\s)]+/gi;
-      esc = esc.replace(urlRe, u => `<a href="${u}" target="_blank" rel="noopener noreferrer" class="underline break-words">${u}</a>`);
-
-      // 3) US-style phone numbers → tel: links
-      const phoneRe = /(?<!\w)(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?){2}\d{4}(?!\w)/g;
-      esc = esc.replace(phoneRe, m => `<a href="${toTelHref(m)}" class="underline">${m}</a>`);
-
-      return esc;
-    }
-
-    /* =================== Chat render =================== */
-    const chatBody = document.getElementById('chatBody');
-    function renderChat(){
-      chatBody.innerHTML='';
-      const sess=getActive(); const hist=sess?.messages || [];
-      if(!hist.length){
-        const w=document.createElement('div');
-        w.id='welcomeScreen'; w.className='flex flex-col items-center justify-center h-full text-center';
-        w.innerHTML=`<div class="relative w-20 h-20 mx-auto mb-4"><div class="absolute inset-[-12px] rounded-full sparkle"></div><div class="relative z-10 flex items-center justify-center w-20 h-20 text-4xl font-black text-black bg-brand rounded-2xl shadow-lg">S</div></div><h1 class="text-2xl font-bold">How can I help you today?</h1>`;
-        chatBody.appendChild(w); return;
-      }
-      hist.forEach(m=>{
-        const wrap=document.createElement('div');
-        wrap.className=`mb-3 flex ${m.role==='user'?'justify-end':'justify-start'}`;
-        let inner;
-        if (m.html) {
-          inner = m.content; // trusted small HTML we generate (e.g., NJT anchors)
-        } else {
-          inner = linkify(m.content);
-        }
-        const bubble = m.role==='user'
-          ? `<div class="max-w-[85%] rounded-xl bg-brand text-black px-4 py-2 shadow whitespace-pre-wrap break-words overflow-hidden">${inner}</div>`
-          : `<div class="max-w-[85%] rounded-xl bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1f2937] px-4 py-2 shadow whitespace-pre-wrap break-words overflow-hidden">${inner}</div>`;
-        wrap.innerHTML=bubble; chatBody.appendChild(wrap);
-      });
-      const chat=document.getElementById('chat'); chat?.scrollTo({top:chat.scrollHeight,behavior:'smooth'});
-    }
-    function addMessage(role, content, opts={}){ const sess=getActive(); if(!sess) return; const msg={ role, content: String(content), ts: Date.now(), html: !!opts.html }; sess.messages.push(msg); if(role==='user' && sess.title==='New Chat' && sess.messages.length===1){ sess.title=content.slice(0,40); } saveSessions(); renderSessionPicker(); renderHistory(); renderChat(); }
-
-    /* =================== Quick Actions (incl. NJT chat flow) =================== */
-    const ENGAGE = {
-      appointment:"https://bycell.co/ddncs",
-      jobOpenings:"https://bycell.co/ddmtq",
-      trainings:"https://bycell.co/ddmtn",
-      communityResources:"https://bycell.co/ddmua"
-    };
-
-    // Simple chat flow state
-    let activeFlow = null; // { name:'njt', step:0|1, data:{ origin, dest } }
-
-    function startNJTransitFlow(){
-      activeFlow = { name:'njt', step:0, data:{} };
-      addMessage('assistant', 'NJ TRANSIT Trip Planner 🚆\n\nWhat is your starting address?');
-    }
-
-    function handleNJTransitFlowInput(userText){
-      if(!activeFlow || activeFlow.name!=='njt') return false;
-
-      if(activeFlow.step===0){
-        activeFlow.data.origin = userText.trim();
-        if(!activeFlow.data.origin){ addMessage('assistant','Please enter a starting address.'); return true; }
-        activeFlow.step = 1;
-        addMessage('assistant','Got it. What is your destination address?');
-        return true;
-      }
-
-      if(activeFlow.step===1){
-        activeFlow.data.dest = userText.trim();
-        if(!activeFlow.data.dest){ addMessage('assistant','Please enter a destination address.'); return true; }
-
-        const origin = activeFlow.data.origin;
-        const dest   = activeFlow.data.dest;
-
-        const njt = new URL('https://www.njtransit.com/trip-planner');
-        njt.searchParams.set('from', origin);
-        njt.searchParams.set('to', dest);
-        njt.searchParams.set('mode', 'transit');
-
-        const gmaps = new URL('https://www.google.com/maps/dir/');
-        gmaps.searchParams.set('api', '1');
-        gmaps.searchParams.set('origin', origin);
-        gmaps.searchParams.set('destination', dest);
-        gmaps.searchParams.set('travelmode', 'transit');
-
-        const msgHTML = [
-          'Here are your pre-filled links:',
-          '',
-          `• <a href="${njt}" target="_blank" rel="noopener noreferrer" class="underline">Open NJ TRANSIT</a>`,
-          `• <a href="${gmaps}" target="_blank" rel="noopener noreferrer" class="underline">Open Google Maps (Transit)</a>`,
-          '',
-          'Safe travels! 🚌'
-        ].join('\n');
-
-        addMessage('assistant', msgHTML, { html:true });
-        activeFlow = null;
-        return true;
-      }
-
-      return false;
-    }
-
-    function renderQuickActions(){
-      const actions=[
-        { label:'Schedule Appointment', icon:'📅', href:ENGAGE.appointment, type:'link' },
-        { label:'Find Jobs',           icon:'🔎', href:ENGAGE.jobOpenings, type:'link' },
-        { label:'Training Programs',   icon:'🎓', href:ENGAGE.trainings, type:'link' },
-        { label:'Community Resources', icon:'🏥', href:ENGAGE.communityResources, type:'link' },
-        { label:'NJ TRANSIT Trip Planner', icon:'🚌', onClick:startNJTransitFlow, type:'button' }
-      ];
-      const el=document.getElementById('quickActionsContainer'); el.innerHTML='';
-      actions.forEach(a=>{
-        if(a.type==='link'){
-          const link=document.createElement('a');
-          link.href=a.href; link.target='_blank'; link.rel='noopener noreferrer';
-          link.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-          link.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
-          el.appendChild(link);
-        } else {
-          const btn=document.createElement('button');
-          btn.type='button';
-          btn.className='flex items-center justify-between w-full px-3 py-2 bg-gray-100 rounded-lg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-          btn.innerHTML=`<span class="flex items-center gap-2"><span>${a.icon}</span><span>${a.label}</span></span><svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
-          btn.addEventListener('click', a.onClick);
-          el.appendChild(btn);
-        }
-      });
-    }
-
-    /* =================== AI Call (tolerant) =================== */
-    async function fetchAI(prompt){
-      const r = await fetch(api('/api/ai'),{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ prompt })
-      });
-
-      if(!r.ok){
-        const t = await r.text().catch(()=> '');
-        if(/unexpected model name format/i.test(t)){
-          throw new Error('Upstream 400 from Gemini (model name). Check server env:\nGEMINI_MODEL must be "gemini-2.5-flash" (no "models/").');
-        }
-        throw new Error(`AI ${r.status}: ${t || 'Unknown upstream error'}`);
-      }
-
-      const j = await r.json().catch(()=> ({}));
-      return j.text ?? j.reply ?? '(no response)';
-    }
-
-    /* =================== Boot =================== */
-    const splash = document.getElementById('splash');
-    const app    = document.getElementById('app');
-    const composer = document.getElementById('composer');
-    const input    = document.getElementById('input');
-    const sendBtn  = document.getElementById('send');
-
-    document.addEventListener('DOMContentLoaded',()=>{
-      const savedTheme=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); applyTheme(savedTheme);
-      const savedLang=localStorage.getItem('lang')||(navigator.language||'en'); setLanguage(savedLang);
-      document.getElementById('themeToggleSplash')?.addEventListener('click',toggleTheme);
-      document.getElementById('themeToggleApp')?.addEventListener('click',toggleTheme);
-      document.getElementById('languageSelector')?.addEventListener('change',e=>setLanguage(e.target.value));
-
-      document.getElementById('start')?.addEventListener('click',()=>{
-        splash.classList.add('hidden'); app.classList.remove('hidden');
-        renderQuickActions(); renderSessionPicker(); renderHistory(); renderChat();
-        fetch(api('/api/trainings'), { cache:'no-store' }).catch(()=>{});
-      });
-
-      // session controls
-      document.getElementById('chat-sessions').addEventListener('change',()=>{ activeId = selSession.value; sessions.activeId=activeId; saveSessions(); renderHistory(); renderChat(); });
-      btnNew.addEventListener('click',()=>{ const name=prompt('Name this chat:','New Chat'); createSession((name||'New Chat').trim()); });
-      btnRename.addEventListener('click',()=>{ const sess=getActive(); if(!sess) return; const name=prompt('Rename chat:', sess.title); if(!name) return; sess.title=name.trim(); saveSessions(); renderSessionPicker(); renderHistory(); });
-      btnDelete.addEventListener('click',()=>{ const sess=getActive(); if(!sess) return; if(!confirm(`Delete chat “${sess.title}”?`)) return; sessions.list=sessions.list.filter(s=>s.id!==sess.id); activeId=sessions.list[0]?.id || createSession('New Chat').id; sessions.activeId=activeId; saveSessions(); renderSessionPicker(); renderHistory(); renderChat(); });
-
-      // composer wiring
-      const updateSend=()=>{ sendBtn.disabled = !(input.value.trim().length>0); };
-      ['input','change','keyup','paste'].forEach(ev=> input.addEventListener(ev,updateSend));
-      input.addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); composer.requestSubmit(); }});
-      updateSend();
-
-      composer.addEventListener('submit', async (e)=>{
-        e.preventDefault();
-        const text = input.value.trim(); if(!text) return;
-
-        addMessage('user', text);
-        input.value=''; updateSend();
-
-        // NJT flow handling first (or slash command trigger)
-        if(activeFlow && handleNJTransitFlowInput(text)) return;
-        if(/^\/njt\b/i.test(text) || /nj\s*transit/i.test(text)){ startNJTransitFlow(); return; }
-
-        const thinking = '…';
-        addMessage('assistant', thinking);
-
-        try{
-          const reply = await fetchAI(text);
-          const sess=getActive();
-          if(sess && sess.messages.length && sess.messages[sess.messages.length-1].content===thinking){
-            sess.messages[sess.messages.length-1].content = reply;
-            saveSessions(); renderChat();
-          }
-        }catch(err){
-          const sess=getActive();
-          if(sess){ sess.messages[sess.messages.length-1].content = `Sorry — upstream error.\n\n${err?.message || err}`; saveSessions(); renderChat(); }
-          console.error(err);
-        }
-      });
-    });
-  </script>
+init();
+</script>
 </body>
 </html>
