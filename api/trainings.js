@@ -1,52 +1,79 @@
 // File: /api/trainings.js
-// Vercel Node Serverless Function (NOT Edge)
+// Purpose: Lightweight Supabase endpoint for trainings list
+// Fixes the 504 timeout by limiting query size, fields, and filters.
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL  = process.env.SUPABASE_URL;
-const SUPABASE_KEY  = process.env.SUPABASE_ANON_KEY; // or SERVICE_KEY if you need RLS bypass (not recommended here)
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 
-// Small helper since we only need today's date in YYYY-MM-DD
-function todayISODate() {
-  return new Date().toISOString().slice(0, 10);
-}
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default async function handler(req, res) {
-  // --- CORS ---
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  // --- CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "content-type");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 
-  // If env is missing, don't hang—just return empty
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
-    return res.status(200).json({ trainings: [] });
-  }
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: false },
-    global: { headers: { 'x-client-info': 'solace-trainings-route' } }
-  });
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "GET")
+    return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const today = todayISODate();
+    // --- Select only essential columns for faster response
+    const fields = `
+      id,
+      name,
+      description,
+      is_active,
+      schedule,
+      next_start_date,
+      app_window_start,
+      app_window_END,
+      requiremetns,
+      contact_info,
+      signup_link,
+      duration,
+      start_date_note,
+      start_at
+    `;
 
-    // Query only what we need; filter & limit to avoid long scans
     const { data, error } = await supabase
-      .from('trainings')
-      .select('id,name,description,location,next_start_date,is_active,signup_link', { head: false })
-      .eq('is_active', true)
-      .gte('next_start_date', today)
-      .order('next_start_date', { ascending: true })
-      .limit(200);
+      .from("trainings")
+      .select(fields)
+      // only show trainings that are active
+      .eq("is_active", true)
+      // filter out old sessions
+      .gte("next_start_date", new Date().toISOString().split("T")[0])
+      // sort by soonest date
+      .order("next_start_date", { ascending: true })
+      // safety limit
+      .limit(20);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase error:", error);
+      return res.status(500).json({ error: error.message });
+    }
 
-    // Return as-is; frontend can format dates/times
-    return res.status(200).json({ trainings: data ?? [] });
-  } catch (e) {
-    // Never hang—surface the error and exit fast
-    return res.status(502).json({ error: e?.message || String(e) });
+    // --- Clean response (remove nulls, format date)
+    const cleaned = (data || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      is_active: row.is_active,
+      next_start_date: row.next_start_date,
+      app_window_start: row.app_window_start,
+      app_window_END: row.app_window_END,
+      schedule: row.schedule,
+      signup_link: row.signup_link,
+      contact_info: row.contact_info,
+      duration: row.duration,
+      start_date_note: row.start_date_note,
+    }));
+
+    return res.status(200).json(cleaned);
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return res.status(500).json({ error: err.message || "Server error" });
   }
 }
