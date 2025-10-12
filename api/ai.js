@@ -1,92 +1,79 @@
-// File: /api/ai.js
-// Vercel Node Serverless Function (NOT Edge). No Supabase. No KB queries.
+// /api/ai.js
+// Combines Gemini + Supabase knowledge for TASK programs
+import { createClient } from "@supabase/supabase-js";
 
-// ---- Config (safe defaults) ----
-const RAW_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-// if someone sets "models/gemini-2.5-flash", strip the prefix
-const MODEL = RAW_MODEL.replace(/^models\//, '').trim();
-const API_KEY = process.env.GEMINI_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = (process.env.GEMINI_MODEL || "gemini-2.5-flash").replace(/^models\//, "").trim();
 
-// ---- Helpers ----
-function readJsonBody(req) {
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function readJson(req) {
   return new Promise((resolve, reject) => {
-    if (req.body && typeof req.body === 'object') return resolve(req.body);
-    let data = '';
-    req.on('data', c => (data += c));
-    req.on('end', () => {
-      try { resolve(data ? JSON.parse(data) : {}); }
-      catch (e) { reject(e); }
+    let data = "";
+    req.on("data", c => (data += c));
+    req.on("end", () => {
+      try { resolve(JSON.parse(data || "{}")); } catch (e) { reject(e); }
     });
-    req.on('error', reject);
   });
 }
 
-function toGeminiContents(payload) {
-  // Supports: { messages: [{role:'user'|'assistant', content:string}, ...] }
-  if (Array.isArray(payload?.messages)) {
-    return payload.messages.map(m => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: String(m.content ?? '') }]
-    }));
-  }
-  // Fallback: { prompt: string }
-  const prompt = String(payload?.prompt ?? '').trim() || 'Hello!';
-  return [{ role: 'user', parts: [{ text: prompt }] }];
-}
-
-// ---- Handler ----
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'Missing GEMINI_API_KEY env var' });
-  }
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "content-type");
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const bodyIn = await readJsonBody(req);
-    const contents = toGeminiContents(bodyIn);
+    const { prompt } = await readJson(req);
+    if (!prompt) return res.status(400).json({ error: "Missing prompt" });
 
-    // IMPORTANT: model goes ONLY in the URL path (NOT in the JSON body)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+    // 1️⃣ Check Supabase for TASK program match
+    const { data: trainings } = await supabase
+      .from("trainings")
+      .select("name, description, next_start_date, signup_link, contact_info")
+      .eq("is_active", true);
 
-    const upstream = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      // Add generationConfig/safetySettings here if needed
-      body: JSON.stringify({ contents })
-    });
+    let found = null;
+    if (trainings) {
+      const lower = prompt.toLowerCase();
+      found = trainings.find(t =>
+        lower.includes((t.name || "").toLowerCase().split(" ")[0]) ||
+        lower.includes((t.name || "").toLowerCase())
+      );
+    }
 
-    // Bubble up the real upstream error (helps debugging)
-    if (!upstream.ok) {
-      const detailText = await upstream.text().catch(() => '');
-      return res.status(502).json({
-        error: `Gemini upstream ${upstream.status}`,
-        detail: detailText,
-        debug: { modelUsed: MODEL }
+    if (found) {
+      // format nice reply
+      return res.status(200).json({
+        text: `📋 **${found.name}**\n\n${found.description || "No description available."}\n\nNext Start Date: ${found.next_start_date || "TBA"}\n\nSign-Up: ${found.signup_link || "Contact TASK for details"}\n\n📞 ${found.contact_info || "Call TASK Workforce Development Office"}`
       });
     }
 
-    const data = await upstream.json();
+    // 2️⃣ Otherwise ask Gemini
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
 
-    // Extract plain text from candidates[0].content.parts[].text
-    let text = '';
-    const parts = data?.candidates?.[0]?.content?.parts || [];
-    for (const p of parts) {
-      if (typeof p?.text === 'string') text += p.text;
+    const upstream = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const detailText = await upstream.text();
+    if (!upstream.ok) {
+      return res.status(502).json({
+        error: `Gemini upstream ${upstream.status}`,
+        detail: detailText,
+      });
     }
 
-    return res.status(200).json({ text, model: MODEL });
+    const data = JSON.parse(detailText);
+    const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join(" ") || "(no response)";
+    return res.status(200).json({ text });
   } catch (err) {
-    return res.status(502).json({
-      error: err?.message || 'Unknown server error',
-      detail: String(err),
-      debug: { modelUsed: MODEL }
-    });
+    return res.status(500).json({ error: err.message || String(err) });
   }
 }
