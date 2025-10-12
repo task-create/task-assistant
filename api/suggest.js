@@ -1,7 +1,4 @@
 // /api/suggest.js
-// TASK Assistant - Suggestion Engine
-// Detects tone, frustration, and language; routes user to correct resource
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "content-type");
@@ -9,95 +6,76 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end();
 
   try {
-    const { message } = req.body || {};
-    if (!message) return res.status(400).json({ error: "Missing message" });
+    const body = req.body || {};
+    const text = (body.text || body.message || "").toString().trim();
+    if (!text) return res.status(400).json({ error: "text required" });
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const GEMINI_MODEL = (process.env.GEMINI_MODEL || "gemini-2.5-flash").replace(/^models\//, "");
 
-    // --- 1️⃣ Language & Tone Detection ---
-    const detect = await fetch(
+    // Ask Gemini for tone + intent in JSON
+    const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Analyze this text and return JSON with:
-                  {
-                    "language": "English/Spanish/Haitian Creole/Other",
-                    "frustration_level": "low/medium/high",
-                    "emotion": "neutral/angry/sad/anxious/hopeful",
-                    "intent": "job help/training/support/appointment/other"
-                  }
-                  Text: """${message}"""`,
-                },
-              ],
-            },
-          ],
-        }),
+          contents: [{
+            role: "user",
+            parts: [{
+              text:
+`Return ONLY valid JSON:
+{"language":"English|Spanish|Haitian Creole|Other",
+ "frustration_level":"low|medium|high",
+ "emotion":"neutral|angry|sad|anxious|hopeful",
+ "intent":"job help|training|support|appointment|other"}
+Text: """${text}"""` }]}]})
       }
     );
 
-    const data = await detect.json();
-    const analysisText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-    let analysis;
-    try {
-      analysis = JSON.parse(analysisText);
-    } catch {
-      analysis = { language: "English", frustration_level: "low", intent: "other" };
-    }
+    const data = await r.json();
+    const blob = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    let analysis; try { analysis = JSON.parse(blob); } catch { analysis = {}; }
 
-    // --- 2️⃣ Smart Suggestion Routing ---
-    let suggestion = "";
-    switch (analysis.intent?.toLowerCase()) {
+    // Suggestions
+    const ENGAGE = {
+      appointment: "https://bycell.co/ddncs",
+      jobs:        "https://bycell.co/ddmtq",
+      trainings:   "https://bycell.co/ddmtn",
+      resources:   "https://bycell.co/ddmua",
+    };
+
+    let suggestion = "How can I help?";
+    switch ((analysis.intent || "").toLowerCase()) {
       case "job help":
-        suggestion =
-          "💼 It sounds like you’re looking for job help. You can view openings on the [Mercer County Job Board](https://task-assistant-xi.vercel.app/jobs) or visit TASK’s Employment Services for one-on-one assistance.";
+        suggestion = `💼 Looking for work? Check current openings: ${ENGAGE.jobs}`;
         break;
       case "training":
-        suggestion =
-          "🎓 You can explore TASK’s free training programs like the [Emilio Culinary Program](https://bycell.co/ddmtn), [SORA Security Training](https://bycell.co/ddmtn), or [Forklift Certification](https://bycell.co/ddmtn).";
+        suggestion = `🎓 Explore TASK trainings (Culinary, SORA, Forklift): ${ENGAGE.trainings}`;
         break;
       case "support":
-        suggestion =
-          "🧭 It sounds like you may need support services. Check [Community Resources](https://task-assistant-xi.vercel.app/resources) for housing, transportation, and more.";
+        suggestion = `🧭 Community resources in Mercer County: ${ENGAGE.resources}`;
         break;
       case "appointment":
-        suggestion =
-          "📅 You can schedule an appointment directly through [TASK’s Appointment Page](https://bycell.co/ddmtn).";
+        suggestion = `📅 Schedule an appointment: ${ENGAGE.appointment}`;
         break;
       default:
-        suggestion =
-          "🤝 You can explore job opportunities, training, or support at TASK anytime through the main [Employment Services Hub](https://task-assistant-xi.vercel.app).";
+        suggestion = `🤝 You can browse jobs, trainings, resources, or book an appointment:\n• Jobs: ${ENGAGE.jobs}\n• Trainings: ${ENGAGE.trainings}\n• Resources: ${ENGAGE.resources}\n• Appointments: ${ENGAGE.appointment}`;
     }
 
-    // --- 3️⃣ Frustration Response ---
-    if (analysis.frustration_level === "high") {
-      suggestion =
-        "💬 It sounds like you’re feeling frustrated. TASK is here to help — would you like to speak with a staff member directly? You can reach us at (609) 695-5456 or visit our Employment Services desk.";
+    if ((analysis.frustration_level || "").toLowerCase() === "high") {
+      suggestion = "💬 I hear your frustration. A staff member can help directly — call (609) 695-5456 or visit TASK’s Employment Services desk.";
     }
 
-    // --- 4️⃣ Multilingual Support ---
-    if (analysis.language === "Spanish") {
-      suggestion +=
-        "\n\n🌐 **Idioma:** Parece que hablas español. TASK ofrece apoyo en español para la mayoría de los programas y recursos.";
-    } else if (analysis.language === "Haitian Creole") {
-      suggestion +=
-        "\n\n🌐 **Lang:** Nou gen sipò an Kreyòl pou ede ou ak sèvis travay ak fòmasyon nan TASK.";
+    if ((analysis.language || "").toLowerCase() === "spanish") {
+      suggestion += "\n\n🌐 **Idioma:** También podemos ayudar en español.";
+    } else if ((analysis.language || "").toLowerCase().includes("haitian")) {
+      suggestion += "\n\n🌐 **Lang:** Nou kapab ede w an Kreyòl tou.";
     }
 
-    res.status(200).json({
-      text: suggestion,
-      analysis,
-      source: "suggest.js",
-    });
+    return res.status(200).json({ text: suggestion, analysis, source: "suggest" });
   } catch (err) {
-    console.error("Suggest API error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("suggest error:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
