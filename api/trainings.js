@@ -1,86 +1,52 @@
-// File: /api/ai.js
-// Vercel Node Serverless Function (NOT Edge).
-// Uses raw REST call to Gemini so you don't fight SDK/ESM issues.
+// File: /api/trainings.js
+// Vercel Node Serverless Function (NOT Edge)
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const API_KEY = process.env.GEMINI_API_KEY;
+import { createClient } from '@supabase/supabase-js';
 
-function readJsonBody(req) {
-  return new Promise((resolve, reject) => {
-    // If Vercel already parsed body (sometimes true), use it
-    if (req.body && typeof req.body === 'object') return resolve(req.body);
-    let data = '';
-    req.on('data', chunk => (data += chunk));
-    req.on('end', () => {
-      try { resolve(data ? JSON.parse(data) : {}); }
-      catch (e) { reject(e); }
-    });
-    req.on('error', reject);
-  });
-}
+const SUPABASE_URL  = process.env.SUPABASE_URL;
+const SUPABASE_KEY  = process.env.SUPABASE_ANON_KEY; // or SERVICE_KEY if you need RLS bypass (not recommended here)
 
-function toGeminiContents(payload) {
-  // Accept either { prompt: string } or { messages: [{role, content}, ...] }
-  if (payload?.messages && Array.isArray(payload.messages)) {
-    return payload.messages.map(m => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: String(m.content ?? '') }]
-    }));
-  }
-  const prompt = String(payload?.prompt ?? '').trim() || 'Hello!';
-  return [{ role: 'user', parts: [{ text: prompt }] }];
+// Small helper since we only need today's date in YYYY-MM-DD
+function todayISODate() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 export default async function handler(req, res) {
   // --- CORS ---
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  // --- Env guard ---
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'Missing GEMINI_API_KEY env var' });
+  // If env is missing, don't hang—just return empty
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return res.status(200).json({ trainings: [] });
   }
 
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false },
+    global: { headers: { 'x-client-info': 'solace-trainings-route' } }
+  });
+
   try {
-    const bodyIn = await readJsonBody(req);
-    const contents = toGeminiContents(bodyIn);
+    const today = todayISODate();
 
-    // IMPORTANT: model goes in the URL path (no `model` field in JSON body)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+    // Query only what we need; filter & limit to avoid long scans
+    const { data, error } = await supabase
+      .from('trainings')
+      .select('id,name,description,location,next_start_date,is_active,signup_link', { head: false })
+      .eq('is_active', true)
+      .gte('next_start_date', today)
+      .order('next_start_date', { ascending: true })
+      .limit(200);
 
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      // You can add safetySettings and generationConfig if you want
-      body: JSON.stringify({ contents })
-    });
+    if (error) throw error;
 
-    if (!r.ok) {
-      const detail = await r.text().catch(() => '');
-      // Surface the real upstream error so you stop seeing generic 502s
-      return res.status(502).json({
-        error: `Gemini upstream ${r.status}`,
-        detail
-      });
-    }
-
-    const data = await r.json();
-    // Extract text safely (Gemini returns candidates[0].content.parts[x].text)
-    let text = '';
-    const c0 = data?.candidates?.[0];
-    const parts = c0?.content?.parts || [];
-    for (const p of parts) {
-      if (typeof p?.text === 'string') text += p.text;
-    }
-
-    res.status(200).json({ text });
-  } catch (err) {
-    res.status(502).json({
-      error: err?.message || 'Unknown server error',
-      detail: String(err)
-    });
+    // Return as-is; frontend can format dates/times
+    return res.status(200).json({ trainings: data ?? [] });
+  } catch (e) {
+    // Never hang—surface the error and exit fast
+    return res.status(502).json({ error: e?.message || String(e) });
   }
 }
