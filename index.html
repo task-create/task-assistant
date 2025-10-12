@@ -192,9 +192,17 @@
     }
 
     /* =================== Sessions (localStorage) =================== */
-    const LS_KEY = 'solace.chat.sessions';
-    let sessions = loadSessions();
-    let activeId = sessions.activeId || createSession('New Chat').id;
+const LS_KEY = 'solace.chat.sessions';
+let sessions = loadSessions();
+let activeId = sessions.activeId ?? null;   // initialize first (no TDZ)
+
+if (!activeId) {
+  const s = createSession('New Chat');      // safe to call now
+  activeId = s.id;
+  sessions.activeId = activeId;
+  saveSessions();
+}
+
 
     function loadSessions() {
       const raw = localStorage.getItem(LS_KEY);
