@@ -1,21 +1,26 @@
 // /api/trainings.js
-import { getSupabase, ok, fail } from './supabase.js';
+import { createClient } from '@supabase/supabase-js';
 
-export default async function handler(req) {
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'content-type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
-    if (req.method !== 'GET') return fail(405, 'Method not allowed');
-
-    const supabase = getSupabase('anon');
-
+    const nowIso = new Date().toISOString();
     const { data, error } = await supabase
       .from('trainings')
-      .select('id,name,description,schedule,next_start_date,app_window_start,app_window_end,requirements')
-      .order('next_start_date', { ascending: true });
+      .select('id,title,description,start_at,location')
+      .gte('start_at', nowIso)
+      .order('start_at', { ascending: true })
+      .limit(200);
 
-    if (error) return fail(500, error.message);
-
-    return ok(data || []);
+    if (error) throw error;
+    res.status(200).json({ trainings: data ?? [] });
   } catch (e) {
-    return fail(500, e.message || 'Unexpected server error.');
+    res.status(502).json({ error: e.message || String(e) });
   }
 }
