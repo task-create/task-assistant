@@ -1,41 +1,86 @@
-// /api/trainings.js
-import { createClient } from '@supabase/supabase-js';
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+// File: /api/ai.js
+// Vercel Node Serverless Function (NOT Edge).
+// Uses raw REST call to Gemini so you don't fight SDK/ESM issues.
+
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const API_KEY = process.env.GEMINI_API_KEY;
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    // If Vercel already parsed body (sometimes true), use it
+    if (req.body && typeof req.body === 'object') return resolve(req.body);
+    let data = '';
+    req.on('data', chunk => (data += chunk));
+    req.on('end', () => {
+      try { resolve(data ? JSON.parse(data) : {}); }
+      catch (e) { reject(e); }
+    });
+    req.on('error', reject);
+  });
+}
+
+function toGeminiContents(payload) {
+  // Accept either { prompt: string } or { messages: [{role, content}, ...] }
+  if (payload?.messages && Array.isArray(payload.messages)) {
+    return payload.messages.map(m => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: String(m.content ?? '') }]
+    }));
+  }
+  const prompt = String(payload?.prompt ?? '').trim() || 'Hello!';
+  return [{ role: 'user', parts: [{ text: prompt }] }];
+}
 
 export default async function handler(req, res) {
+  // --- CORS ---
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // --- Env guard ---
+  if (!API_KEY) {
+    return res.status(500).json({ error: 'Missing GEMINI_API_KEY env var' });
+  }
 
   try {
-    // Use today's date to filter upcoming items
-    const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const bodyIn = await readJsonBody(req);
+    const contents = toGeminiContents(bodyIn);
 
-    const { data, error } = await supabase
-      .from('trainings')
-      .select('id,name,description,location,next_start_date,is_active,signup_link')
-      .eq('is_active', true)
-      .gte('next_start_date', today)
-      .order('next_start_date', { ascending: true })
-      .limit(200);
+    // IMPORTANT: model goes in the URL path (no `model` field in JSON body)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
-    if (error) throw error;
-
-    // Build a friendly timestamp WITHOUT touching the DB schema
-    const results = (data || []).map(row => {
-      // If you want a default 09:00 local time for display, compute it here:
-      let start_at_iso = null;
-      if (row.next_start_date) {
-        // Construct a local datetime string like 'YYYY-MM-DDT09:00:00'
-        start_at_iso = `${row.next_start_date}T09:00:00`;
-      }
-      return { ...row, start_at: start_at_iso };
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // You can add safetySettings and generationConfig if you want
+      body: JSON.stringify({ contents })
     });
 
-    res.status(200).json({ trainings: results });
-  } catch (e) {
-    res.status(502).json({ error: e.message || String(e) });
+    if (!r.ok) {
+      const detail = await r.text().catch(() => '');
+      // Surface the real upstream error so you stop seeing generic 502s
+      return res.status(502).json({
+        error: `Gemini upstream ${r.status}`,
+        detail
+      });
+    }
+
+    const data = await r.json();
+    // Extract text safely (Gemini returns candidates[0].content.parts[x].text)
+    let text = '';
+    const c0 = data?.candidates?.[0];
+    const parts = c0?.content?.parts || [];
+    for (const p of parts) {
+      if (typeof p?.text === 'string') text += p.text;
+    }
+
+    res.status(200).json({ text });
+  } catch (err) {
+    res.status(502).json({
+      error: err?.message || 'Unknown server error',
+      detail: String(err)
+    });
   }
 }
