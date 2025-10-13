@@ -6,41 +6,363 @@
   <title>Solace</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
   <style>
-    .sticky-tools{position:sticky;top:0;z-index:20}
+    :root { --ring: 0 0% 9%; }
+    .sticky-tools{position:sticky;top:0;z-index:30}
     .prose p{margin:.5rem 0}
     .msg{animation:fade .2s ease-in}
     @keyframes fade{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
     details>summary::-webkit-details-marker{display:none}
+
+    /* Splash backgrounds */
+    .splash{position:fixed;inset:0;display:grid;place-items:center;z-index:60;transition:opacity .25s ease}
+    .sky{position:absolute;inset:0;overflow:hidden;pointer-events:none; transition: background 2s ease;}
+    .daySky{background:linear-gradient(180deg, #87CEEB 0%, #b6dcff 55%, #ffffff 100%);}  
+    .sunriseSky{background: linear-gradient(180deg, #1e294b 0%, #ffecd2 60%, #fcb69f 100%);}
+    .sunsetSky{background: linear-gradient(180deg, #3c3b6e 0%, #ff7e5f 50%, #feb47b 100%);}
+    .duskSky{background: linear-gradient(180deg, #0f172a 0%, #37336b 50%, #755586 100%);}
+    .nightSky{background:radial-gradient(1200px 700px at 50% -200px,#0A0F22 0%,#050711 40%,#020305 100%);}  
+
+    /* SUN */
+    .sun{position:absolute;top:24px;right:24px;width:120px;height:120px;border-radius:50%; transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+      background:radial-gradient(#fff6aa 0%,#ffd76a 60%,#ffc13d 100%);
+      box-shadow:0 0 80px 30px rgba(255,223,100,.45);
+      animation:sunFloat 18s ease-in-out infinite alternate}
+    .sun:before{content:"";position:absolute;inset:-18px;border-radius:50%;
+      background:conic-gradient(from 0deg,#ffd76a 0 10%,transparent 10% 20%);
+      filter:blur(1px);animation:spin 12s linear infinite}
+    @keyframes sunFloat{0%{transform:translateY(0)}100%{transform:translateY(10px)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* MOON */
+    .moon {
+        position: absolute;
+        top: 40px;
+        left: 100px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        box-shadow: inset -12px 12px 0 0 #f0f4ff;
+        opacity: 0;
+        transition: opacity 1.5s 0.5s ease-in;
+        filter: drop-shadow(0 0 10px #e6efff);
+    }
+
+    /* Clouds (SVG outlined, fade in/out) */
+    .cloud{position:absolute;width:420px;height:160px;animation:cloudMove 42s linear infinite; transition: opacity 1.5s ease-out, transform 0.5s;
+      filter:drop-shadow(0 6px 14px rgba(0,0,0,.08))}
+    .cloud path{fill:#ffffff;stroke:#8fb1e6;stroke-width:3}
+    @keyframes cloudMove{
+      0%{transform:translateX(-50vw);opacity:0}
+      10%{opacity:1}
+      90%{opacity:1}
+      100%{transform:translateX(110vw);opacity:0}
+    }
+
+    /* STARS (dense) + CONSTELLATIONS + SHOOTERS */
+    .stars{position:absolute;inset:0;opacity:0; transition: opacity 1.5s ease-in-out;}
+    #starfield1, #starfield2, #starfield3 {
+        position: absolute;
+        inset: 0;
+        background-repeat: repeat;
+        animation: twinkle 10s ease-in-out infinite;
+    }
+    #starfield1 { background-image: radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 80% 60%, #fff, transparent); background-size: 300px 300px; }
+    #starfield2 { background-image: radial-gradient(1.5px 1.5px at 50% 50%, #a2b5ff, transparent), radial-gradient(1px 1px at 10% 90%, #a2b5ff, transparent); background-size: 400px 400px; animation-duration: 15s; }
+    #starfield3 { background-image: radial-gradient(2px 2px at 30% 70%, #fff, transparent), radial-gradient(1.5px 1.5px at 90% 10%, #fff, transparent); background-size: 500px 500px; animation-duration: 20s; }
+
+    @keyframes twinkle{0%,100%{opacity:.4}50%{opacity:.8}}
+    .constellations{position:absolute;inset:0;pointer-events:none}
+    .constellations svg{position:absolute;opacity:.4;mix-blend-mode:screen; transition: transform 0.5s;}
+    .shooting{position:absolute;inset:0;pointer-events:none}
+    .meteor{position:absolute;width:140px;height:2px;background:linear-gradient(90deg,#fff,rgba(255,255,255,0));
+      filter:drop-shadow(0 0 6px #fff);opacity:0}
+    .meteor.animate{animation:shoot 1.8s ease-in forwards}
+    @keyframes shoot{
+      0%{opacity:0;transform:translate3d(var(--start-x), var(--start-y),0) rotate(var(--angle))}
+      10%{opacity:1}
+      100%{opacity:0;transform:translate3d(var(--end-x), var(--end-y),0) rotate(var(--angle))}
+    }
+
+    /* Theme transitions */
+    .sky.is-night .sun, .sky.is-dusk .sun, .sky.is-sunset .moon, .sky.is-sunrise .moon { opacity: 0; }
+    .sky.is-night .moon, .sky.is-dusk .moon { opacity: 1; }
+    .sky.is-night .stars, .sky.is-dusk .stars, .sky.is-sunset .stars { opacity: 1; }
+    .sky .cloud { animation-play-state: running; opacity: 1; }
+    .sky.is-night .cloud, .sky.is-dusk .cloud { opacity: 0 !important; animation-play-state: paused; }
+    
+    .sky.is-dark ~ #hero h1,
+    .sky.is-dark ~ #hero p {
+        color: white;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+     .sky.is-dark .botBubble {
+        color: white;
+        background: linear-gradient(180deg, #374151, #1f2937);
+        border-color: rgba(255,255,255,0.1);
+     }
+    .sky.is-dark .botBubble.bottom:before { border-top-color: #1f2937; }
+    .sky.is-dark .botBubble.top:before { border-bottom-color: #374151; }
+    .sky.is-dark ~ #hero button {
+        color: white;
+        border-color: rgba(255,255,255,0.4);
+    }
+     .sky.is-dark ~ #hero button#startBtn {
+        background-color: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.4);
+     }
+     .sky.is-dark ~ #hero button#startBtn:hover {
+        background-color: rgba(255,255,255,0.2);
+     }
+
+    /* ROBOT */
+    .botWrap{position:absolute;left:50%;top:50%;width:160px;height:160px;margin-inline:auto;pointer-events:none;z-index:1; will-change: transform; transition: transform 0.8s ease-in-out;}
+    .bot{width:160px;height:160px; position:relative;}
+    .orbit{animation:soarAndPlay 30s ease-in-out infinite;}
+    @keyframes soarAndPlay {
+        0% { transform: translate(-50vw, -40vh) rotate(-90deg) scale(0.8); }
+        15% { transform: translate(40vw, -30vh) rotate(90deg) scale(1.2); }
+        30% { transform: translate(35vw, 40vh) rotate(180deg) scale(0.9); }
+        45% { transform: translate(-45vw, 30vh) rotate(270deg) scale(1.1); }
+        60% { transform: translate(0, 0) scale(1.5); } /* Center screen bigger */
+        75% { transform: translate(-30vw, -35vh) rotate(320deg) scale(1); }
+        90% { transform: translate(20vw, 20vh) rotate(400deg) scale(0.8); }
+        100% { transform: translate(-50vw, -40vh) rotate(450deg); }
+    }
+    .botHalo{position:absolute;left:50%;top:50%;width:64px;height:64px;border-radius:50%;pointer-events:auto;z-index:3; animation:soarAndPlay 30s ease-in-out infinite;}
+    .robot-secret-spin svg { animation: spin-secret 1s ease-out; }
+    @keyframes spin-secret {
+      from { transform: rotate(0deg) scale(1); }
+      to { transform: rotate(360deg) scale(1); }
+    }
+
+
+    .antennaLight{animation:blink 1.2s ease-in-out infinite;filter:drop-shadow(0 0 6px #f59e0b)}
+    @keyframes blink{0%,100%{opacity:.5}50%{opacity:1}}
+
+    /* bubble */
+    .botBubble {
+        position: absolute;
+        left: 50%;
+        background: linear-gradient(180deg, #ffffff, #f6f7fb);
+        border-radius: 16px;
+        padding: 10px 14px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+        border: 1px solid rgba(0, 0, 0, .06);
+        pointer-events: none;
+        z-index: 10;
+        width: max-content;
+        max-width: 220px;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+    .botBubble.hidden {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    .botBubble.top {
+        bottom: 105%;
+        transform: translateX(-50%);
+    }
+    .botBubble.bottom {
+        top: 105%;
+        transform: translateX(-50%);
+    }
+    .botBubble:before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 10px solid transparent;
+    }
+    .botBubble.top:before {
+        top: 100%;
+        border-top-color: #f6f7fb;
+    }
+    .botBubble.bottom:before {
+        bottom: 100%;
+        border-bottom-color: #ffffff;
+    }
+    
+    .bot-eye { animation: eyeGlow 3s ease-in-out infinite; }
+    .bot-eye:last-child { animation-delay: 0.3s; }
+    @keyframes eyeGlow {
+        0%, 100% { fill: #A7F3D0; }
+        50% { fill: #dcfce7; }
+    }
+
+    /* Mobile sidebar */
+    @media (max-width: 767px) {
+      aside.hidden-mobile {
+        transform: translateX(-100%);
+      }
+      aside {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 300px;
+        z-index: 50;
+        transition: transform 0.3s ease-in-out;
+      }
+      #backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 40;
+        transition: opacity 0.3s ease-in-out;
+      }
+       #backdrop.hidden {
+        opacity: 0;
+        pointer-events: none;
+       }
+    }
+    .loader-dot {
+      animation: loader-blink 1.4s infinite both;
+    }
+    .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes loader-blink {
+        0%, 80%, 100% { opacity: .2; }
+        40% { opacity: 1; }
+    }
   </style>
 </head>
-<body class="h-screen bg-neutral-50 text-neutral-900">
+<body class="h-screen bg-neutral-50 text-neutral-900 overflow-hidden">
+  <!-- Splash Screen -->
+  <div id="splash" class="splash">
+    <div id="sky" class="sky daySky">
+      <!-- Cloud shape defs -->
+      <svg width="0" height="0" style="position:absolute">
+        <defs>
+          <symbol id="cloudShape" viewBox="0 0 430 170">
+            <path fill="#ffffff" stroke="#8fb1e6" stroke-width="3"
+              d="M60 120 C40 120, 20 110, 20 90 C20 70, 35 60, 55 62 C60 35, 88 20, 120 28 C140 8, 190 10, 210 30 C245 18, 295 28, 302 58 C330 52, 360 66, 365 90 C395 94, 410 110, 410 125 C410 145, 390 155, 365 155 L90 155 C75 155, 60 145, 60 120 Z"/>
+          </symbol>
+        </defs>
+      </svg>
+      <div class="sun" id="sun"></div>
+      <div id="moon" class="moon"></div>
+      <svg class="cloud" id="cloud1" style="top:10%;left:-60vw; transform:scale(0.8); animation-duration: 45s;"><use href="#cloudShape"></use></svg>
+      <svg class="cloud" id="cloud2" style="top:25%;left:-70vw;animation-duration:55s; transform:scale(1.1);"><use href="#cloudShape"></use></svg>
+      <svg class="cloud" id="cloud3" style="top:40%;left:-55vw;animation-duration:40s; transform:scale(0.7)"><use href="#cloudShape"></use></svg>
+      <svg class="cloud" id="cloud4" style="top:60%;left:-80vw;animation-duration:50s; transform:scale(0.9);"><use href="#cloudShape"></use></svg>
+      <svg class="cloud" id="cloud5" style="top:75%;left:-65vw;animation-duration:60s; transform:scale(1);"><use href="#cloudShape"></use></svg>
+      <div class="stars" id="stars">
+        <div id="starfield1"></div>
+        <div id="starfield2"></div>
+        <div id="starfield3"></div>
+        <div class="constellations">
+            <!-- Big Dipper -->
+            <svg id="constellation1" width="220" height="150" viewBox="0 0 220 120" fill="none" stroke="#b6c8ff" stroke-width="1" style="left:15%;top:18%;">
+                <circle cx="10" cy="100" r="2.5"></circle>
+                <circle cx="50" cy="85" r="2.5"></circle>
+                <circle cx="90" cy="70" r="2.5"></circle>
+                <circle cx="130" cy="55" r="2.5"></circle>
+                <circle cx="175" cy="65" r="2.5"></circle>
+                <circle cx="180" cy="25" r="2.5"></circle>
+                <circle cx="210" cy="80" r="2.5"></circle>
+                <path d="M10 100 L50 85 L90 70 L130 55 L175 65 M130 55 L180 25 M175 65 L210 80"></path>
+            </svg>
+            <!-- Orion -->
+            <svg id="constellation2" width="200" height="220" viewBox="0 0 200 220" fill="none" stroke="#b6c8ff" stroke-width="1" style="left:65%;top:45%;">
+                 <circle cx="10" cy="10" r="2.5"></circle>
+                 <circle cx="70" cy="20" r="2.5"></circle>
+                 <circle cx="10" cy="80" r="2.5"></circle>
+                 <circle cx="70" cy="80" r="2.5"></circle>
+                 <circle cx="40" cy="130" r="2.5"></circle>
+                 <circle cx="50" cy="140" r="2.5"></circle>
+                 <circle cx="60" cy="150" r="2.5"></circle>
+                 <circle cx="10" cy="210" r="2.5"></circle>
+                 <circle cx="80" cy="200" r="2.5"></circle>
+                 <path d="M10 10 L10 80 L40 130 L10 210 M70 20 L70 80 L60 150 L80 200 M40 130 L50 140 L60 150"></path>
+            </svg>
+             <!-- Cassiopeia -->
+            <svg id="constellation3" width="180" height="120" viewBox="0 0 180 120" fill="none" stroke="#d1deff" stroke-width="1" style="left: 40%; top: 70%;">
+                <circle cx="10" cy="50" r="2.5"></circle>
+                <circle cx="50" cy="20" r="2.5"></circle>
+                <circle cx="90" cy="50" r="2.5"></circle>
+                <circle cx="130" cy="20" r="2.5"></circle>
+                <circle cx="170" cy="50" r="2.5"></circle>
+                <path d="M10 50 L50 20 L90 50 L130 20 L170 50"></path>
+            </svg>
+        </div>
+        <div class="shooting" id="shooting"></div>
+      </div>
+    </div>
+
+    <!-- Hero (title + bot orbiting it) -->
+    <div id="hero" class="relative z-10 text-center">
+        <div class="botWrap orbit" id="bot">
+            <div class="bot">
+                <div id="botBubble" class="botBubble bottom"></div>
+                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- legs -->
+                <rect x="70" y="130" width="18" height="34" rx="8" fill="#4B5563"></rect>
+                <rect x="112" y="130" width="18" height="34" rx="8" fill="#4B5563"></rect>
+                <!-- body -->
+                <rect x="40" y="60" width="120" height="80" rx="22" fill="#0F172A"></rect>
+                <!-- arms (one waving) -->
+                <rect x="22" y="85" width="16" height="44" rx="8" fill="#4B5563">
+                    <animateTransform attributeName="transform" type="rotate" values="0 30 90;20 30 90;0 30 90" dur="2.5s" repeatCount="indefinite"/>
+                </rect>
+                <rect x="164" y="85" width="16" height="44" rx="8" fill="#4B5563"></rect>
+                <!-- face -->
+                <circle class="bot-eye" cx="82" cy="95" r="9" fill="#A7F3D0"></circle>
+                <circle class="bot-eye" cx="118" cy="95" r="9" fill="#A7F3D0"></circle>
+                <path d="M80 112 Q100 124 120 112" stroke="#E5E7EB" stroke-width="4" stroke-linecap="round" fill="none"></path>
+                <!-- antenna -->
+                <rect x="98" y="42" width="8" height="18" rx="4" fill="#0F172A"></rect>
+                <circle id="antenna" class="antennaLight" cx="102" cy="38" r="6" fill="#F59E0B"></circle>
+                </svg>
+            </div>
+        </div>
+        <!-- click halo (separate hit area that never overlaps buttons) -->
+        <div id="botHalo" class="botHalo" title="Hi! Click me ✨"></div>
+
+        <div class="relative">
+            <h1 class="text-2xl font-semibold">Welcome to Solace</h1>
+            <p class="text-sm text-neutral-600 mt-1">Ask about trainings, jobs, resources, or appointments.</p>
+            <div class="mt-4 flex items-center justify-center gap-2">
+                <button id="startBtn" class="px-4 py-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800">Start Chat</button>
+                <button id="themeBtn" class="px-4 py-2 rounded-2xl border border-neutral-300">Theme</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- APP LAYOUT -->
   <div class="h-screen grid grid-cols-1 md:grid-cols-[300px,1fr]">
+    <!-- Mobile Backdrop -->
+    <div id="backdrop" class="hidden md:hidden"></div>
     <!-- SIDEBAR -->
-    <aside class="border-r border-neutral-200 bg-white flex flex-col">
+    <aside class="border-r border-neutral-200 bg-white flex flex-col hidden-mobile md:!transform-none">
       <div class="p-3 sticky-tools bg-white border-b border-neutral-200 flex items-center gap-2">
         <div class="text-xl font-semibold">Solace</div>
         <span class="text-xs text-neutral-500 ml-auto">TASK Assistant</span>
       </div>
       <div class="p-3">
-        <button id="newChatBtn" class="w-full flex items-center justify-center gap-2 rounded-2xl px-3 py-2 bg-neutral-900 text-white hover:bg-neutral-800">
-          <i data-lucide="message-circle"></i>
-          <span>New chat</span>
-        </button>
+        <button id="newChatBtn" class="w-full flex items-center justify-center gap-2 rounded-2xl px-3 py-2 bg-neutral-900 text-white hover:bg-neutral-800"><i data-lucide="message-circle"></i><span>New Chat</span></button>
       </div>
-      <div class="px-3 flex items-center justify-between">
+
+      <div class="px-3 text-[11px] font-medium tracking-wide uppercase text-neutral-500">Quick Actions</div>
+      <div class="p-3 space-y-2">
+        <a href="https://bycell.co/ddmtq" target="_blank" class="w-full flex items-center justify-between rounded-2xl px-3 py-2 border border-neutral-200 hover:bg-neutral-50"><span class="flex items-center gap-2"><i data-lucide="search"></i>Job Board</span><i data-lucide="chevron-right"></i></a>
+        <a href="https://bycell.co/ddmtn" target="_blank" class="w-full flex items-center justify-between rounded-2xl px-3 py-2 border border-neutral-200 hover:bg-neutral-50"><span class="flex items-center gap-2"><i data-lucide="graduation-cap"></i>Trainings</span><i data-lucide="chevron-right"></i></a>
+        <a href="https://bycell.co/ddmui" target="_blank" class="w-full flex items-center justify-between rounded-2xl px-3 py-2 border border-neutral-200 hover:bg-neutral-50"><span class="flex items-center gap-2"><i data-lucide="lightbulb"></i>Career Tips</span><i data-lucide="chevron-right"></i></a>
+        <a href="https://www.njtransit.com/trip-planner-to" target="_blank" class="w-full flex items-center justify-between rounded-2xl px-3 py-2 border border-neutral-200 hover:bg-neutral-50"><span class="flex items-center gap-2"><i data-lucide="tram-front"></i>NJ TRANSIT Trip Planner</span><i data-lucide="chevron-right"></i></a>
+      </div>
+
+      <!-- Recent with pencil + trash under header -->
+      <div class="px-3 flex items-center justify-between mt-2">
         <div class="text-sm font-medium tracking-wide uppercase text-neutral-500">Recent</div>
         <div class="flex items-center gap-2 text-neutral-500">
-          <button id="renameChatTool" class="p-1 hover:text-neutral-900" title="Rename selected chat">
-            <i data-lucide="pencil"></i>
-          </button>
-          <button id="deleteChatTool" class="p-1 hover:text-red-600" title="Delete selected chat">
-            <i data-lucide="trash-2"></i>
-          </button>
+          <button id="renameChatTool" class="p-1 hover:text-neutral-900" title="Rename selected chat"><i data-lucide="pencil"></i></button>
+          <button id="deleteChatTool" class="p-1 hover:text-red-600" title="Delete selected chat"><i data-lucide="trash-2"></i></button>
         </div>
       </div>
       <div id="chatList" class="overflow-auto p-2 space-y-1"></div>
-      <div class="mt-auto p-3 text-xs text-neutral-400">v1.4 — hardcoded.js ➜ Supabase ➜ Gemini</div>
+      <div class="mt-auto p-3 text-xs text-neutral-400">v6.0 — The Solace Experience</div>
     </aside>
 
     <!-- MAIN -->
@@ -49,144 +371,717 @@
         <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2">
           <button id="toggleMenu" class="md:hidden p-2 rounded-xl border border-neutral-200"><i data-lucide="sidebar"></i></button>
           <input id="chatTitle" class="flex-1 bg-transparent outline-none text-base font-medium" value="New chat" />
-          <div class="ml-auto text-xs text-neutral-400">Answers: Hardcoded ➜ Supabase ➜ Gemini</div>
         </div>
       </div>
       <div id="messages" class="flex-1 overflow-auto"><div class="max-w-3xl mx-auto px-4 py-6 space-y-6" id="thread"></div></div>
       <div class="border-t border-neutral-200 bg-white">
         <div class="max-w-3xl mx-auto p-4">
           <form id="composer" class="flex gap-2">
-            <textarea id="prompt" rows="1" placeholder="Ask about SORA training, Culinary program, Job help…" class="flex-1 resize-none px-3 py-2 rounded-2xl border border-neutral-300 focus:ring-2 focus:ring-neutral-900/10 outline-none"></textarea>
-            <button class="px-4 py-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800"><i data-lucide="send"></i></button>
+            <textarea id="prompt" rows="1" placeholder="Ask about trainings, jobs, resources, appointments…" class="flex-1 resize-none px-3 py-2 rounded-2xl border border-neutral-300 focus:ring-2 focus:ring-neutral-900/10 outline-none"></textarea>
+            <button type="submit" id="sendBtn" class="px-4 py-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800"><i data-lucide="send"></i></button>
           </form>
-          <p class="text-[11px] text-neutral-400 mt-2">Long answers auto‑collapse with a “Show full answer” toggle.</p>
+          <p class="text-[11px] text-neutral-400 mt-2 text-center">Solace can make mistakes. Double-check with TASK staff.</p>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- Optional: set these to enable Supabase lookup -->
-  <script>
-    window.SUPABASE_URL = window.SUPABASE_URL || '';
-    window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
-  </script>
-
-  <!-- App (module) -->
   <script type="module">
-    import { answerBank, matchHardcoded, classifyTrainingQ } from '/data/hardcoded.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const $ = (q, el=document)=>el.querySelector(q);
-    const uid = ()=>Math.random().toString(36).slice(2,9);
-    const messages = $('#messages');
+    // --- Hardcoded Answers (integrated directly) ---
+    function matchHardcoded(query) {
+        const q = query.toLowerCase();
+        const data = {
+            sora: {
+                keywords: ['sora', 'security'],
+                response: {
+                    id: 'training_program',
+                    program: {
+                        label: 'SORA Security Training',
+                        location: 'TASK Campus',
+                        schedule: '2-day class, varies by month',
+                        duration: '16 hours',
+                        purpose_outcomes: 'State-required certification for security guards. Covers roles, responsibilities, emergency procedures, and use of force.',
+                        instructor: 'Certified SORA Instructor',
+                        eligibility: '18+ years old, pass background check.',
+                        cost: 'Free for eligible participants.',
+                        next_start_date: 'TBD',
+                        signup_link: 'https://forms.office.com/r/4j7x4kY7wu',
+                        contact_info: 'EandE@trentonsoupkitchen.org or 609-697-6215'
+                    }
+                }
+            },
+            culinary: {
+                keywords: ['culinary', 'cooking', 'kitchen', 'chef'],
+                response: {
+                    id: 'training_program',
+                    program: {
+                        label: 'The Culinary Academy at TASK',
+                        location: 'Main kitchen, TASK Campus',
+                        schedule: 'Monday - Friday, 9 AM - 3 PM',
+                        duration: '10 weeks class + 2-week internship',
+                        purpose_outcomes: 'Provides comprehensive culinary arts training, ServSafe certification, and job placement assistance.',
+                        instructor: 'Executive Chef and culinary team',
+                        eligibility: 'Interview and assessment required.',
+                        cost: 'Free for accepted students.',
+                        next_start_date: 'Application will open in November.',
+                        signup_link: 'https://forms.office.com/r/Me7avaaXWx',
+                        contact_info: 'EandE@trentonsoupkitchen.org or 609-697-6215'
+                    }
+                }
+            },
+             forklift: {
+                keywords: ['forklift'],
+                response: {
+                    id: 'training_program',
+                    program: {
+                        label: 'Forklift Certification Class',
+                        location: 'TASK Conference Room',
+                        schedule: 'October 14th at 2 pm',
+                        duration: 'One-day training (2 hours)',
+                        purpose_outcomes: 'Focuses on the written portion of the forklift operator test. Passing this is often all you need to get hired for warehouse and logistics employment.',
+                        instructor: 'Certified Instructor',
+                        cost: 'Free for eligible participants.',
+                        signup_link: 'https://forms.office.com/r/pXe4G2y0JH',
+                        contact_info: 'Call 609-697-6215 or 609-697-6166 for more information'
+                    }
+                }
+            },
+            appointments: {
+                keywords: ['appointment', 'schedule', 'meet'],
+                response: { html: "To schedule an appointment with a Social Services Specialist, please call (609)-337-1624. We don't accept walk-ins for appointments, so be sure to call first! Everyone has a meeting for an Individual Employment Plan to get started." }
+            },
+             bus: {
+                keywords: ['bus ticket', 'transportation'],
+                response: { html: "We provide bus tickets for the first two weeks of employment, and for orientations or interviews, but only for those who have completed an Individual Employment Plan (IEP) with us first." }
+            },
+            taskinfo: {
+                keywords: ['hours', 'location', 'address', 'contact task'],
+                response: {html: `
+                    <p><strong>Trenton Area Soup Kitchen (TASK)</strong></p>
+                    <p><strong>Address:</strong> 72 1/2 Escher Street, Trenton, NJ 08609</p>
+                    <p><strong>Phone:</strong> <a href="tel:609-695-5456" class="text-blue-600 hover:underline">(609)-695-5456</a></p>
+                    <p><strong>Meal Hours:</strong></p>
+                    <ul>
+                        <li><strong>Lunch:</strong> Monday – Saturday, 10:30 am – 1 pm</li>
+                        <li><strong>Dinner:</strong> Monday – Thursday, 3:30 pm – 5 pm</li>
+                    </ul>
+                `}
+            },
+            crisis: {
+                keywords: ['crisis', 'suicide', 'help now'],
+                response: {html: `
+                    <p>If you are in a crisis, please reach out. Help is available.</p>
+                    <ul>
+                        <li><strong>National Suicide Prevention Lifeline:</strong> <a href="tel:988" class="text-blue-600 hover:underline">988</a></li>
+                        <li><strong>Mercer County Crisis Intervention:</strong> <a href="tel:609-396-4357" class="text-blue-600 hover:underline">(609) 396-4357</a></li>
+                    </ul>
+                `}
+            }
+        };
 
-    const renderIcons = () => lucide.createIcons();
-
-    const mdify = (text) => {
-      if(!text) return '';
-      const parts = String(text).split(/\n{2,}|### /g).map(s=>s.trim()).filter(Boolean);
-      return parts.map(p=>{
-        if(p.length>600){
-          return '<ul class="list-disc ml-5">'+p.split(/\.?\s+(?=[A-Z])/).slice(0,8).map(s=>`<li>${s.trim()}</li>`).join('')+'</ul>'
+        for (const key in data) {
+            if (data[key].keywords.some(k => q.includes(k))) {
+                return data[key].response;
+            }
         }
-        return `<p>${p}</p>`;
-      }).join('');
-    };
-
-    const chunkIfLong = (html) => {
-      const div=document.createElement('div'); div.innerHTML=html; const t=div.textContent||'';
-      if(t.length<900) return html;
-      return `<details class="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><summary class="cursor-pointer select-none text-sm">Show full answer</summary><div class="prose max-w-none mt-2">${html}</div></details>`;
-    };
-
-    // Supabase fallback
-    const SUPABASE_URL = window.SUPABASE_URL||'';
-    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY||'';
-    async function fetchFromSupabase(query){
-      try{
-        if(!SUPABASE_URL||!SUPABASE_ANON_KEY) return null;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/faqs?select=answer&topic=ilike.*${encodeURIComponent(query)}*`,{
-          headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}
-        });
-        if(!res.ok) return null; const rows=await res.json();
-        if(rows?.[0]?.answer) return { title:'From knowledge base', answer: rows[0].answer };
-      }catch(e){ console.warn('Supabase error',e); }
-      return null;
+        return null;
     }
+    
+    // --- Gemini API Call ---
+    const API_KEY = ""; // Kept empty as per instructions
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+    
+    async function fetchFromGemini(query, lang = 'en') {
+      const payload = {
+          contents: [{ parts: [{ text: query }] }],
+          systemInstruction: { parts: [{ text: `You are a helpful assistant for a nonprofit called TASK (Trenton Area Soup Kitchen). Be concise and respond in the following language: ${lang}. If you don't know an answer, say you can't find information on that topic.` }] }
+      };
+      
+      let response;
+      let retries = 3;
+      let delay = 1000;
 
-    // Gemini last
-    async function fetchFromGemini(query){
-      try{
-        const r = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:query}],max_tokens:400})});
-        const d = await r.json();
-        return { title:'AI', answer: d.reply || 'Model unavailable.' };
-      }catch(e){ return { title:'AI', answer:'Model unavailable.' }; }
-    }
+      while (retries > 0) {
+        try {
+            response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-    // State + UI
-    const state={chats:{},currentId:null};
-    function newChat(title='New chat'){ const id=uid(); state.chats[id]={id,title,messages:[]}; state.currentId=id; renderChatList(); renderThread(); $('#chatTitle').value=title; return id; }
-    function selectChat(id){ state.currentId=id; renderChatList(); renderThread(); }
-    function deleteCurrent(){ if(!state.currentId) return; delete state.chats[state.currentId]; state.currentId=Object.keys(state.chats)[0]||newChat(); renderChatList(); renderThread(); }
-    function renameCurrent(){ if(!state.currentId) return; const t=prompt('Rename chat to:', $('#chatTitle').value.trim()||'Untitled'); if(t){ state.chats[state.currentId].title=t; $('#chatTitle').value=t; renderChatList(); } }
+            if (response.ok) {
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                return { title: 'AI Assistant', answer: text || 'I could not process that request.' };
+            }
+        } catch (error) {
+            console.error('Gemini API fetch error:', error);
+        }
 
-    function renderChatList(){ const wrap=$('#chatList'); wrap.innerHTML=''; Object.values(state.chats).forEach(c=>{ const b=document.createElement('button'); b.className=`w-full text-left px-3 py-2 rounded-xl ${c.id===state.currentId?'bg-neutral-900 text-white':'hover:bg-neutral-100'}`; b.innerHTML=`<div class="text-sm font-medium">${c.title||'Untitled'}</div>`; b.onclick=()=>selectChat(c.id); wrap.appendChild(b); }); }
-    function renderThread(){ const thread=$('#thread'); thread.innerHTML=''; const chat=state.chats[state.currentId]; (chat?.messages||[]).forEach(m=>thread.appendChild(renderMsg(m))); messages.scrollTop=messages.scrollHeight; }
-    function renderMsg(m){ const wrap=document.createElement('div'); wrap.className='msg'; wrap.innerHTML=`<div class="flex gap-3"><div class="shrink-0 w-8 h-8 rounded-xl grid place-items-center ${m.role==='user'?'bg-neutral-900 text-white':'bg-neutral-100'}"><i data-lucide="${m.role==='user'?'user':'bot'}"></i></div><div class="flex-1">${m.role==='assistant'?`<div class="text-[11px] text-neutral-500 mb-1">${m.title||''}</div>`:''}<div class="prose max-w-none">${m.html}</div></div></div>`; renderIcons(); return wrap; }
-    function push(role, html, title=''){ const chat=state.chats[state.currentId]; const msg={role,html,title}; chat.messages.push(msg); $('#thread').appendChild(renderMsg(msg)); messages.scrollTop=messages.scrollHeight; }
-
-    // Router: Hardcoded ➜ Supabase ➜ Gemini
-    function formatProgramCard(p){
-      return [
-        `**${p.label}**`,
-        `• **Location:** ${p.location}`,
-        `• **Schedule:** ${p.schedule}`,
-        `• **Duration:** ${p.duration}`,
-        `• **Purpose/Outcomes:** ${p.purpose_outcomes}`,
-        `• **Instructor:** ${p.instructor}`,
-        `• **Eligibility:** ${p.eligibility}`,
-        `• **Cost:** ${p.cost}`,
-        `• **Next start:** ${p.next_start_date}`,
-        `• **Apply:** ${p.signup_link}`,
-        `• **Contact:** ${p.contact_info}`,
-        p.notes?`• **Notes:** ${p.notes}`:''
-      ].filter(Boolean).join('\n');
-    }
-
-    async function answer(query){
-      // 1) HARDCODED (external module)
-      const hit = matchHardcoded(query);
-      if(hit){
-        if(hit.html){ push('assistant', chunkIfLong(mdify(hit.html)), 'TASK (hardcoded)'); return; }
-        if(hit.id==='training_program' && hit.program){
-          const html = formatProgramCard(hit.program);
-          push('assistant', chunkIfLong(mdify(html)), 'TASK (hardcoded program)');
-          return;
+        retries--;
+        if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2; // Exponential backoff
         }
       }
-      // 2) SUPABASE
-      const kb = await fetchFromSupabase(query);
-      if(kb){ push('assistant', chunkIfLong(mdify(kb.answer)), kb.title); return; }
-      // 3) GEMINI
-      const ai = await fetchFromGemini(query);
-      push('assistant', chunkIfLong(mdify(ai.answer)), ai.title);
+      return { title: 'AI Assistant', answer: 'The AI model is currently unavailable. Please try again later.' };
     }
 
-    // Wire up UI
-    $('#composer').addEventListener('submit', async (e)=>{
-      e.preventDefault(); const q=$('#prompt').value.trim(); if(!q) return; $('#prompt').value=''; push('user', mdify(q));
-      const chat=state.chats[state.currentId]; if(chat.messages.length<=1){ chat.title=q.slice(0,50); $('#chatTitle').value=chat.title; renderChatList(); }
-      await answer(q);
-    });
-    $('#newChatBtn').onclick=()=>newChat();
-    $('#deleteChatTool').onclick=deleteCurrent;
-    $('#renameChatTool').onclick=renameCurrent;
-    $('#chatTitle').addEventListener('change',(e)=>{ const t=e.target.value.trim(); if(t){ state.chats[state.currentId].title=t; renderChatList(); }});
-    $('#toggleMenu').onclick=()=>document.querySelector('aside').classList.toggle('hidden');
+    async function analyzeQuery(query) {
+        const analysisPrompt = `Analyze the following text for language and emotion. Respond with only a JSON object with "language" (e.g., "en", "es") and "emotion" ("neutral", "angry", "frustrated"). Text: "${query}"`;
+        const payload = {
+            contents: [{ parts: [{ text: analysisPrompt }] }],
+        };
+        try {
+             const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if(response.ok) {
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                return JSON.parse(text.replace(/```json|```/g, '').trim());
+            }
+        } catch (e) {
+            console.warn("Could not analyze query", e);
+        }
+        return { language: 'en', emotion: 'neutral' };
+    }
+    
+    const $ = (q, el=document)=>el.querySelector(q);
+    const messagesEl = $('#messages');
+    const renderIcons = () => lucide.createIcons();
 
+    // --- Firebase & State ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    let db, auth, userId, unsubscribe;
+    let chats = {};
+    let currentId = null;
+
+    try {
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+    } catch (e) {
+        console.error("Firebase initialization failed. Chat history will not be saved.", e);
+        // Fallback to in-memory state if firebase fails
+        $('#chatList').innerHTML = '<div class="p-3 text-xs text-red-500">Could not connect to database.</div>';
+    }
+    
+    onAuthStateChanged(auth, async user => {
+        if (user) {
+            userId = user.uid;
+            loadUserChats();
+        }
+    });
+
+    if (auth) {
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Firebase auth failed:", error);
+        }
+    }
+
+    function loadUserChats() {
+        if (unsubscribe) unsubscribe();
+        const chatsCollection = collection(db, `artifacts/${appId}/users/${userId}/chats`);
+        const q = query(chatsCollection);
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            const newChats = {};
+            snapshot.docs.forEach(doc => {
+                newChats[doc.id] = { id: doc.id, ...doc.data() };
+            });
+            chats = newChats;
+
+            // Sort chats by createdAt timestamp (newest first)
+            const sortedChats = Object.values(chats).sort((a, b) => {
+                const timeA = a.createdAt?.seconds || 0;
+                const timeB = b.createdAt?.seconds || 0;
+                return timeB - timeA;
+            });
+
+            chats = sortedChats.reduce((acc, chat) => {
+                acc[chat.id] = chat;
+                return acc;
+            }, {});
+
+            if (!currentId || !chats[currentId]) {
+                currentId = sortedChats[0]?.id || null;
+            }
+            if (!currentId) {
+                newChat();
+            } else {
+                renderChatList();
+                renderThread();
+            }
+        }, error => {
+            console.error("Error listening to chat updates:", error);
+        });
+    }
+
+    // --- utils ---
+    function toHtmlParagraphs(text){
+      if(!text) return '';
+      let formatted = String(text)
+        .replace(/https?:\/\/[^\s]+/g, (url) => `<a href="${url}" target="_blank" class="text-blue-600 hover:underline">${url}</a>`)
+        .split(/\n{2,}/g).map(s=>s.trim()).filter(Boolean).map(p => '<p>'+p+'</p>').join('');
+      
+      formatted = formatted.replace(/(\d{3}[-.\s]?\d{3}[-.\s]?\d{4})/g, "<a href='tel:$1' class='text-blue-600 hover:underline'>$1</a>");
+      formatted = formatted.replace(/([a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6})/g, "<a href='mailto:$1' class='text-blue-600 hover:underline'>$1</a>");
+      return formatted;
+    }
+    function chunkIfLong(html){
+      const d=document.createElement('div'); d.innerHTML=html; const t=d.textContent||''; if(t.length<900) return html;
+      return '<details class="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><summary class="cursor-pointer select-none text-sm">Show full answer</summary><div class="prose max-w-none mt-2">'+html+'</div></details>';
+    }
+
+    // State & rendering
+    async function newChat(title='New chat'){
+      if (!db || !userId) {
+          console.warn("Firestore not available. Cannot create new chat.");
+          return;
+      }
+      const newChatRef = doc(collection(db, `artifacts/${appId}/users/${userId}/chats`));
+      const newChatData = {
+          id: newChatRef.id,
+          title: title,
+          messages: [],
+          createdAt: serverTimestamp()
+      };
+      await setDoc(newChatRef, newChatData);
+      currentId = newChatRef.id;
+      chats[currentId] = newChatData;
+      selectChat(currentId);
+    }
+    function selectChat(id){ currentId=id; renderChatList(); renderThread(); }
+    async function deleteCurrent(){ 
+        if(!currentId || !db || !userId) return; 
+        const oldId = currentId;
+        delete chats[oldId];
+        const remainingChats = Object.values(chats).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        currentId = remainingChats[0]?.id || null;
+        if (!currentId) { newChat(); }
+        renderChatList(); 
+        renderThread();
+        await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, oldId));
+    }
+    async function renameCurrent(){ 
+        if(!currentId || !db || !userId) return; 
+        const chat = chats[currentId];
+        const t = prompt('Rename chat to:', ($('#chatTitle').value||'').trim() || chat.title); 
+        if(t){ 
+            chat.title=t; 
+            $('#chatTitle').value=t; 
+            renderChatList(); 
+            await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId), { title: t });
+        } 
+    }
+    function renderChatList(){ 
+        const wrap=$('#chatList'); 
+        wrap.innerHTML=''; 
+        const sorted = Object.values(chats).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        sorted.forEach(c=>{ 
+            const b=document.createElement('button'); 
+            b.className=("w-full text-left px-3 py-2 rounded-2xl "+(c.id===currentId?'bg-orange-100':'hover:bg-neutral-50 border border-neutral-200')); 
+            b.innerHTML='<div class="text-sm font-medium truncate">'+(c.title||'Untitled')+'</div>'; 
+            b.onclick=()=>selectChat(c.id); wrap.appendChild(b); 
+        }); 
+    }
+    function renderThread(){ 
+        const t=$('#thread'); 
+        t.innerHTML=''; 
+        const chat=chats[currentId]; 
+        if (chat) {
+            $('#chatTitle').value = chat.title;
+            (chat.messages || []).forEach(m=>t.appendChild(renderMsg(m))); 
+        } else {
+             $('#chatTitle').value = "New Chat";
+        }
+        messagesEl.scrollTop=messagesEl.scrollHeight; 
+    }
+    function renderMsg(m){
+      const isUser=m.role==='user';
+      const badge='<div class="shrink-0 w-8 h-8 rounded-xl grid place-items-center '+(isUser?'bg-neutral-900 text-white':'bg-neutral-100')+'"><i data-lucide="'+(isUser?'user':'bot')+'"></i></div>';
+      const title=!isUser?('<div class="text-[11px] text-neutral-500 mb-1">'+(m.title||'')+'</div>'):'';
+      let body;
+      if (m.isCard) {
+          body = m.html;
+      } else {
+          body = '<div class="prose max-w-none">'+m.html+'</div>';
+      }
+      const wrapper=document.createElement('div'); wrapper.className='msg';
+      wrapper.innerHTML='<div class="flex gap-3">'+badge+'<div class="flex-1">'+title+body+'</div></div>';
+      if (m.id) wrapper.dataset.msgId = m.id;
+      renderIcons(); return wrapper;
+    }
+    async function pushMessage(role,html,title, isCard = false){ 
+      if (!currentId) return;
+      const chat = chats[currentId]; 
+      const msg={role, html, title:title||'', isCard, timestamp: new Date().toISOString()}; 
+      
+      const chatRef = doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId);
+      await updateDoc(chatRef, { messages: arrayUnion(msg) });
+      
+      messagesEl.scrollTop=messagesEl.scrollHeight; 
+    }
+
+    function renderThinking() {
+        const thinkingId = `thinking-${Date.now()}`;
+        const html = `<div class="flex items-center space-x-1"><div class="loader-dot w-2 h-2 bg-neutral-400 rounded-full"></div><div class="loader-dot w-2 h-2 bg-neutral-400 rounded-full"></div><div class="loader-dot w-2 h-2 bg-neutral-400 rounded-full"></div></div>`;
+        const msg = { role: 'assistant', html: html, title: 'Assistant', id: thinkingId };
+        $('#thread').appendChild(renderMsg(msg));
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return thinkingId;
+    }
+    
+    // Router: Hardcoded → Gemini
+    function formatProgramCard(p){
+      const fields = ['location', 'schedule', 'duration', 'purpose_outcomes', 'instructor', 'eligibility', 'cost', 'next_start_date', 'signup_link', 'contact_info'];
+      let html = `<div class="border rounded-2xl p-4 space-y-2 bg-neutral-50">
+                    <h3 class="font-semibold text-base">${p.label}</h3>`;
+      
+      fields.forEach(field => {
+        if (p[field]) {
+            const label = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const value = toHtmlParagraphs(p[field]);
+            html += `<p class="text-sm"><strong>${label}:</strong> ${value}</p>`;
+        }
+      });
+      html += `</div>`;
+      return html;
+    }
+    
+    async function handleQuery(query) {
+        if(!query) return;
+        $('#prompt').value='';
+        await pushMessage('user', toHtmlParagraphs(query));
+        
+        const chat = chats[currentId];
+        if (chat && chat.messages && chat.messages.length <= 1) {
+            const newTitle = query.slice(0, 50);
+            chat.title = newTitle;
+            $('#chatTitle').value = newTitle;
+            renderChatList();
+            await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId), { title: newTitle });
+        }
+        
+        const thinkingId = renderThinking();
+        const analysis = await analyzeQuery(query);
+        let calmingPrefix = '';
+
+        if (analysis.emotion === 'angry' || analysis.emotion === 'frustrated') {
+            calmingPrefix = analysis.language === 'es' ? 
+                "<p>Parece que estás pasando por un momento difícil. Estoy aquí para ayudarte.</p>" : 
+                "<p>It sounds like you're having a tough time. I'm here to help.</p>";
+        }
+
+        const hit = matchHardcoded(query);
+        let response;
+        let isCard = false;
+
+        if(hit){
+            if(hit.html){ 
+                response = { html: chunkIfLong(toHtmlParagraphs(hit.html)), title: 'TASK (knowledge base)' };
+            } else if(hit.id==='training_program' && hit.program){ 
+                response = { html: formatProgramCard(hit.program), title: 'TASK (program details)' };
+                isCard = true;
+            }
+        }
+        
+        if (!response) {
+            const ai = await fetchFromGemini(query, analysis.language); 
+            response = { html: chunkIfLong(toHtmlParagraphs(ai.answer)), title: ai.title };
+        }
+
+        const thinkingEl = $(`[data-msg-id="${thinkingId}"]`);
+        if(thinkingEl) thinkingEl.remove();
+
+        await pushMessage('assistant', calmingPrefix + response.html, response.title, isCard);
+    }
+    
+    $('#composer').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const q = ($('#prompt').value || '').trim();
+        handleQuery(q);
+    });
+
+    $('#prompt').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const q = ($('#prompt').value || '').trim();
+            handleQuery(q);
+        }
+    });
+
+    // Mobile sidebar toggle
+    const aside = document.querySelector('aside');
+    const backdrop = $('#backdrop');
+    $('#toggleMenu').onclick = () => {
+      aside.classList.toggle('hidden-mobile');
+      backdrop.classList.toggle('hidden');
+    };
+    backdrop.onclick = () => {
+      aside.classList.add('hidden-mobile');
+      backdrop.classList.add('hidden');
+    }
+
+    // --- Splash interactions + theme sky animation ---
+    const splash=$('#splash'), sky=$('#sky'), shooting=$('#shooting');
+    const botWrap=$('#bot'), botBubble=$('#botBubble'), antenna=$('#antenna'), botHalo=$('#botHalo');
+    let themeIndex = 0;
+    const themes = ['day', 'sunrise', 'sunset', 'dusk', 'night'];
+    let meteorInterval = null;
+    let synth, mischiefTimeout;
+
+    const facts=[
+      "Your resume is your ticket to an interview. Let's make it shine!",
+      "TASK was founded in 1982. That's a lot of meals served!",
+      "A journey of a thousand miles begins with a single step... and a great resume!",
+      "Psst... I know the best interview tip: Be yourself! (And maybe wear a clean shirt.)",
+      "The sun is 93 million miles away, but your next job could be just around the corner!",
+      "Thinking about a new career? The Culinary Program is a recipe for success!",
+      "Even on the cloudiest days, I'm here to help you find a bright future.",
+      "Are you ready to launch your career? Let's get this mission started!",
+      "Confidence is key! Let's practice some interview questions together."
+    ];
+    const initialPhrase = "Hello! I'm Solace. My job is to help you get ready for work, find work, and keep it. Let's begin!";
+
+    // Sound generation
+    function playRobotSound() {
+        if (!synth) {
+            Tone.start();
+            synth = new Tone.Synth({
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 0.1 }
+            }).toDestination();
+        }
+        const notes = ['C4', 'E4', 'G4', 'C5'];
+        synth.triggerAttackRelease(notes[Math.floor(Math.random() * notes.length)], '8n');
+    }
+
+    function createRandomShootingStar() {
+      const m=document.createElement('div'); 
+      m.className='meteor';
+      const startX = (Math.random() * 140 - 20) + 'vw';
+      const startY = (Math.random() * -50) + 'vh';
+      const endX = (parseInt(startX) + Math.random() * 60 + 20) + 'vw';
+      const endY = (parseInt(startY) + Math.random() * 60 + 40) + 'vh';
+      const angle = (Math.atan2(parseInt(endY) - parseInt(startY), parseInt(endX) - parseInt(startX)) * 180 / Math.PI) + 'deg';
+
+      m.style.setProperty('--start-x', startX);
+      m.style.setProperty('--start-y', startY);
+      m.style.setProperty('--end-x', endX);
+      m.style.setProperty('--end-y', endY);
+      m.style.setProperty('--angle', angle);
+      
+      shooting.appendChild(m); 
+      requestAnimationFrame(()=>m.classList.add('animate')); 
+      setTimeout(()=>m.remove(),2000);
+    }
+
+    function playSky(theme){
+      sky.className = 'sky'; // reset
+      sky.classList.add(`${theme}Sky`);
+      sky.classList.toggle('is-dark', theme !== 'day' && theme !== 'sunrise');
+      
+      const config = {
+          day: { sun: true, moon: false, clouds: true, stars: false },
+          sunrise: { sun: true, moon: false, clouds: true, stars: false },
+          sunset: { sun: true, moon: false, clouds: false, stars: true },
+          dusk: { sun: false, moon: true, clouds: false, stars: true },
+          night: { sun: false, moon: true, clouds: false, stars: true }
+      };
+      
+      const current = config[theme];
+      $('#sun').style.opacity = current.sun ? 1 : 0;
+      $('#moon').style.opacity = current.moon ? 1 : 0;
+      $('#stars').style.opacity = current.stars ? 1 : 0;
+      document.querySelectorAll('.cloud').forEach(c => {
+        c.style.animationPlayState = current.clouds ? 'running' : 'paused';
+        c.style.opacity = current.clouds ? 1 : 0;
+      });
+
+      if (meteorInterval) clearInterval(meteorInterval);
+      shooting.innerHTML = '';
+
+      if (theme === 'night' || theme === 'dusk') {
+        meteorInterval = setInterval(createRandomShootingStar, 4500);
+      }
+    }
+    
+    function getThemeForTime() {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 8) return 'sunrise';
+        if (hour >= 8 && hour < 17) return 'day';
+        if (hour >= 17 && hour < 19) return 'sunset';
+        if (hour >= 19 && hour < 21) return 'dusk';
+        return 'night';
+    }
+
+    // Mischievous Robot Actions
+    function doMischief() {
+        const currentTheme = themes[themeIndex];
+        let availableActions = ['crashScreen', 'peekFromBottom', 'hangOnWords'];
+        
+        if (currentTheme === 'day' || currentTheme === 'sunrise' || currentTheme === 'sunset') availableActions.push('grabSun', 'rideCloud');
+        if (currentTheme === 'night' || currentTheme === 'dusk' || currentTheme === 'sunset') availableActions.push('swingConstellation');
+        
+        const action = availableActions[Math.floor(Math.random() * availableActions.length)];
+        botWrap.style.animationPlayState = 'paused';
+        botHalo.style.animationPlayState = 'paused';
+
+        let targetTransform;
+        switch(action) {
+            case 'grabSun':
+                const sunEl = $('#sun');
+                if (sunEl) {
+                    const rect = sunEl.getBoundingClientRect();
+                    targetTransform = `translate(${rect.left + rect.width/2 - botWrap.offsetWidth/2}px, ${rect.top + rect.height/2 - botWrap.offsetHeight/2}px) scale(0.8) rotate(-15deg)`;
+                }
+                break;
+            case 'rideCloud':
+                const cloudEl = $('#cloud2');
+                 if(cloudEl) {
+                    const rect = cloudEl.getBoundingClientRect();
+                    targetTransform = `translate(${rect.left + rect.width/2 - botWrap.offsetWidth/2}px, ${rect.top - 20}px) scale(0.9)`;
+                 }
+                break;
+            case 'swingConstellation':
+                const constEl = $('#constellation1');
+                if(constEl) {
+                     const rect = constEl.getBoundingClientRect();
+                    targetTransform = `translate(${rect.left + rect.width - botWrap.offsetWidth/2}px, ${rect.top + rect.height/2 - botWrap.offsetHeight/2}px) scale(0.85) rotate(15deg)`;
+                }
+                break;
+            case 'crashScreen':
+                targetTransform = `translate(-50%, -50%) scale(2.5) rotate(10deg)`;
+                break;
+            case 'peekFromBottom':
+                targetTransform = `translate(-50%, calc(50vh - 80px))`;
+                break;
+            case 'hangOnWords':
+                const titleEl = document.querySelector('#hero h1');
+                if (titleEl) {
+                    const rect = titleEl.getBoundingClientRect();
+                     targetTransform = `translate(${rect.left + rect.width/2 - botWrap.offsetWidth/2}px, ${rect.top - 100}px) scale(0.9) rotate(5deg)`;
+                }
+                break;
+        }
+        
+        if (targetTransform) {
+            botWrap.style.transform = targetTransform;
+            setTimeout(() => {
+                if(action === 'hangOnWords') {
+                    // "slip"
+                    botWrap.style.transform += ' translateY(100vh) rotate(180deg)';
+                }
+            }, 2000);
+
+            setTimeout(() => {
+                botWrap.style.transform = '';
+                botWrap.style.animationPlayState = 'running';
+                botHalo.style.animationPlayState = 'running';
+            }, 3000); 
+        } else {
+             botWrap.style.animationPlayState = 'running';
+             botHalo.style.animationPlayState = 'running';
+        }
+    }
+
+
+    $('#themeBtn').addEventListener('click', ()=>{ 
+      themeIndex = (themeIndex + 1) % themes.length;
+      playSky(themes[themeIndex]); 
+    });
+
+    $('#startBtn').addEventListener('click', ()=>{
+      if(mischiefTimeout) clearTimeout(mischiefTimeout);
+      splash.style.opacity='0';
+      setTimeout(()=>{ splash.style.display='none'; }, 260);
+    });
+    
+    botHalo.addEventListener('click', ()=>{
+      playRobotSound();
+      if(antenna){ antenna.classList.add('ideaFlash'); setTimeout(()=>antenna.classList.remove('ideaFlash'), 900); }
+      typeWriter(facts[Math.floor(Math.random()*facts.length)], 0);
+      if(themes[themeIndex] === 'night'){ createRandomShootingStar(); }
+    });
+    
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiIndex = 0;
+    document.addEventListener('keydown', (e) => {
+        if (splash.style.display === 'none') return;
+        if (e.key === konamiCode[konamiIndex]) {
+            konamiIndex++;
+            if (konamiIndex === konamiCode.length) {
+                konamiIndex = 0;
+                botWrap.classList.add('robot-secret-spin');
+                typeWriter("✨ Konami Power! ✨", 0);
+                playRobotSound();
+                setTimeout(() => botWrap.classList.remove('robot-secret-spin'), 1000);
+            }
+        } else {
+            konamiIndex = 0;
+        }
+    });
+    
+    function typeWriter(text, i, onComplete) {
+        if (i < text.length) {
+            botBubble.innerHTML = text.substring(0, i + 1);
+            setTimeout(() => typeWriter(text, i + 1, onComplete), 30);
+        } else if (onComplete) {
+            onComplete();
+        }
+    }
+    
+    function updateBubblePosition() {
+        const botRect = botWrap.getBoundingClientRect();
+        
+        if(botRect.top > window.innerHeight / 2) {
+            botBubble.classList.remove('bottom');
+            botBubble.classList.add('top');
+        } else {
+            botBubble.classList.remove('top');
+            botBubble.classList.add('bottom');
+        }
+    }
+    
     // init
-    newChat();
-    push('assistant', mdify('Hi! Ask me about **SORA**, the **Culinary program**, job help, or events. I will always use TASK\'s **hardcoded answers first**, then our knowledge base, and AI last.'), 'Welcome');
-    renderIcons();
+    function initialize() {
+        renderIcons();
+        const initialTheme = getThemeForTime();
+        themeIndex = themes.indexOf(initialTheme);
+        playSky(initialTheme);
+        botBubble.classList.add('hidden');
+        
+        let bubbleAnimation;
+        function animateBubblePosition() {
+            updateBubblePosition();
+            bubbleAnimation = requestAnimationFrame(animateBubblePosition);
+        }
+
+        setTimeout(() => {
+            botBubble.classList.remove('hidden');
+            typeWriter(initialPhrase, 0, () => {
+                mischiefTimeout = setInterval(doMischief, 12000);
+                animateBubblePosition(); // Start updating bubble position continuously
+            });
+        }, 1000);
+    }
+    
+    initialize();
   </script>
 </body>
 </html>
+
