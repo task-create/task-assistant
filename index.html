@@ -5,29 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Solace • TASK Assistant</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
-  <!-- Tailwind CDN (warning is informational; fine for now) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: '#ff8a00' }}}};
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand:'#ff8a00' }}}};
   </script>
   <style>
-    :root { --brand:#ff8a00; --ink:#0f172a; }
+    :root { --brand:#ff8a00; }
     .custom-scrollbar::-webkit-scrollbar{width:8px;height:8px}
     .custom-scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:6px}
+    .bubble{ word-break: break-word; overflow-wrap:anywhere; }
     .bubble a{ text-decoration: underline; }
-    .bubble{ word-break: break-word; overflow-wrap: anywhere; }
-    .bubble pre, .bubble code { white-space: pre-wrap; }
     .composer-shell{position:sticky;bottom:0;background:linear-gradient(to top,rgba(255,255,255,.96),rgba(255,255,255,0))}
     .dark .composer-shell{background:linear-gradient(to top,rgba(15,23,42,.96),rgba(15,23,42,0))}
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 antialiased">
 
+<!-- Splash -->
+<div id="splash" class="fixed inset-0 z-50 grid place-items-center bg-gray-100 dark:bg-[#0b1220]">
+  <div class="w-full max-w-md p-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl text-center">
+    <div class="w-20 h-20 mx-auto rounded-2xl bg-brand text-black font-black grid place-items-center text-4xl">S</div>
+    <h1 class="mt-4 text-2xl font-bold">Solace</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">Your guide to career and community resources.</p>
+    <div class="mt-6 flex items-center justify-center gap-2">
+      <button id="btnStart" class="px-5 py-2 rounded-lg bg-brand text-black font-semibold">Start</button>
+      <button id="btnThemeSplash" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700">Theme</button>
+    </div>
+  </div>
+</div>
+
 <!-- App -->
-<div class="h-screen w-screen grid lg:grid-cols-[280px_1fr]">
+<div id="app" class="h-screen w-screen grid lg:grid-cols-[280px_1fr] hidden">
 
   <!-- Sidebar -->
-  <aside class="hidden lg:flex flex-col h-full border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f172a]">
+  <aside class="flex flex-col h-full border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f172a]">
     <div class="p-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-800">
       <div class="w-9 h-9 rounded-lg bg-brand text-black font-bold grid place-items-center">S</div>
       <div class="font-semibold">Solace</div>
@@ -37,7 +48,6 @@
       <button id="btnNew" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">New</button>
       <button id="btnRename" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Rename</button>
       <button id="btnDelete" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Del</button>
-      <button id="btnTheme" class="ml-auto px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700">Theme</button>
     </div>
 
     <div class="px-3">
@@ -45,9 +55,14 @@
       <div id="quick" class="mt-2 space-y-2"></div>
     </div>
 
-    <div class="p-3">
+    <div class="p-3 flex-1 custom-scrollbar overflow-y-auto">
       <h3 class="text-xs font-semibold text-gray-500 uppercase">Recent</h3>
-      <div id="history" class="mt-2 custom-scrollbar overflow-y-auto" style="max-height: 45vh;"></div>
+      <div id="history" class="mt-2 space-y-1"></div>
+    </div>
+
+    <!-- Theme at bottom -->
+    <div class="p-3 border-t border-gray-200 dark:border-gray-800">
+      <button id="btnTheme" class="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700">Theme</button>
     </div>
   </aside>
 
@@ -76,12 +91,10 @@
     <!-- Composer -->
     <div class="composer-shell px-4 py-3 md:px-6 md:py-4">
       <form id="composer" class="max-w-3xl mx-auto relative">
-        <textarea id="input" rows="1" placeholder="Ask about trainings, jobs, resources, appointments…"
-          class="w-full resize-none rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0f172a] p-4 pr-28 focus:ring-2 focus:ring-brand"></textarea>
-        <div class="absolute right-2 bottom-2 flex items-center gap-2">
-          <button id="btnTransit" type="button" class="px-3 py-1.5 text-sm rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" title="NJ TRANSIT Trip Planner">NJT</button>
-          <button id="send" class="px-3 py-1.5 rounded-md text-black bg-brand disabled:bg-gray-400">Send</button>
-        </div>
+        <textarea id="input" rows="1"
+          placeholder="Ask about trainings, jobs, resources, appointments…"
+          class="w-full resize-none rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0f172a] p-4 pr-24 focus:ring-2 focus:ring-brand"></textarea>
+        <button id="send" class="absolute right-2 bottom-2 px-3 py-1.5 rounded-md text-black bg-brand disabled:bg-gray-400">Send</button>
       </form>
     </div>
 
@@ -96,21 +109,31 @@ const ENGAGE = {
   trainings:   "https://bycell.co/ddmtn",
   resources:   "https://bycell.co/ddmua",
 };
-const API_AI = "/api/ai";      // same origin
-const API_SUGGEST = "/api/suggest"; // optional; not required
+const API_AI = "/api/ai";
 
 /* --------------------------- Theme --------------------------- */
 const applyTheme = (t)=>{ document.documentElement.classList.toggle('dark', t==='dark'); localStorage.setItem('theme', t); };
 const toggleTheme = ()=> applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark');
+
+/* init theme on load (before showing anything) */
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light'));
-document.getElementById('btnTheme')?.addEventListener('click',toggleTheme);
-document.getElementById('btnThemeM')?.addEventListener('click',toggleTheme);
+
+/* Splash handlers */
+document.getElementById('btnThemeSplash').addEventListener('click', toggleTheme);
+document.getElementById('btnStart').addEventListener('click', ()=>{
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+});
+
+/* Sidebar theme buttons */
+document.getElementById('btnTheme')?.addEventListener('click', toggleTheme);
+document.getElementById('btnThemeM')?.addEventListener('click', toggleTheme);
 
 /* --------------------------- State --------------------------- */
 let chats = JSON.parse(localStorage.getItem('chats')||'{}');
-let activeId = localStorage.getItem('activeId') || null; // declare BEFORE functions (fixes TDZ)
+let activeId = localStorage.getItem('activeId') || null; // define before any usage
 
-/* transit flow state */
+/* Transit flow */
 const transitFlow = { active:false, origin:null, destination:null };
 
 /* --------------------------- Utils --------------------------- */
@@ -124,9 +147,7 @@ function ensureChat(){
   }
 }
 function linkifyText(s=''){
-  // urls
   let out = s.replace(/(https?:\/\/[^\s)]+)\b/gi, m => `<a href="${m}" target="_blank" rel="noopener noreferrer">${m}</a>`);
-  // phone numbers
   out = out.replace(/(\(\d{3}\)\s?\d{3}-\d{4}|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b)/g, m => `<a href="tel:${m.replace(/[^\d]/g,'')}">${m}</a>`);
   return out;
 }
@@ -134,7 +155,6 @@ function addMsg(role, html){
   ensureChat();
   const rec = { role, html, ts: Date.now() };
   chats[activeId].messages.push(rec);
-  // title: first user line becomes title
   if(role==='user' && chats[activeId].title==='New chat'){
     const t = html.replace(/<[^>]+>/g,'').trim().slice(0,40);
     chats[activeId].title = t || 'New chat';
@@ -160,6 +180,24 @@ function scrollToBottom(){
 }
 
 /* --------------------------- Renderers --------------------------- */
+function renderQuick(){
+  const q = document.getElementById('quick'); if(!q) return;
+  const items = [
+    {label:'Schedule Appointment', href: ENGAGE.appointment, emoji:'📅'},
+    {label:'Find Jobs',           href: ENGAGE.jobs,        emoji:'🔎'},
+    {label:'Training Programs',   href: ENGAGE.trainings,   emoji:'🎓'},
+    {label:'Community Resources', href: ENGAGE.resources,   emoji:'📚'},
+    {label:'NJ TRANSIT Trip Planner', href:'#',             emoji:'🚌', onClick: ()=>startTransitFlow()}
+  ];
+  q.innerHTML='';
+  items.forEach(it=>{
+    const a = document.createElement(it.href==='#'?'button':'a');
+    a.className='w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+    a.innerHTML = `<span class="flex items-center gap-2"><span>${it.emoji}</span><span>${it.label}</span></span><span>›</span>`;
+    if(it.href==='#') a.onclick=it.onClick; else { a.href=it.href; a.target='_blank'; a.rel='noopener noreferrer'; }
+    q.appendChild(a);
+  });
+}
 function renderHistory(){
   const h = document.getElementById('history');
   if(!h) return;
@@ -186,26 +224,6 @@ function renderChat(){
     items.forEach(m=> body.appendChild(bubble(m.role, m.html)));
   }
   scrollToBottom();
-}
-
-/* --------------------------- Quick actions --------------------------- */
-function renderQuick(){
-  const q = document.getElementById('quick'); if(!q) return;
-  const items = [
-    {label:'Schedule Appointment', href: ENGAGE.appointment, emoji:'📅'},
-    {label:'Find Jobs', href: ENGAGE.jobs, emoji:'🔎'},
-    {label:'Training Programs', href: ENGAGE.trainings, emoji:'🎓'},
-    {label:'Community Resources', href: ENGAGE.resources, emoji:'📚'},
-    {label:'NJ TRANSIT Trip Planner', href:'#', emoji:'🚌', onClick: ()=>startTransitFlow()}
-  ];
-  q.innerHTML='';
-  items.forEach(it=>{
-    const a = document.createElement(it.href==='#'?'button':'a');
-    a.className='w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-    a.innerHTML = `<span class="flex items-center gap-2"><span>${it.emoji}</span><span>${it.label}</span></span><span>›</span>`;
-    if(it.href==='#') a.onclick=it.onClick; else { a.href=it.href; a.target='_blank'; a.rel='noopener noreferrer'; }
-    q.appendChild(a);
-  });
 }
 
 /* --------------------------- NJ TRANSIT flow --------------------------- */
@@ -238,6 +256,13 @@ function maybeHandleTransit(userText){
   }
   return false;
 }
+// also auto-start flow if user types something like "nj transit" or "trip planner"
+function maybeStartTransitFromText(t){
+  if(/\bnj\s*transit\b|\btrip\s*planner\b/i.test(t) && !transitFlow.active){
+    startTransitFlow(); return true;
+  }
+  return false;
+}
 
 /* --------------------------- Network --------------------------- */
 async function fetchAI(prompt){
@@ -251,7 +276,6 @@ async function fetchAI(prompt){
     throw new Error(t || `HTTP ${r.status}`);
   }
   const j = await r.json();
-  // Accept either {text} or {reply}
   return j.text || j.reply || '(no response)';
 }
 
@@ -261,7 +285,7 @@ function init(){
   ensureChat();
   renderQuick(); renderHistory(); renderChat();
 
-  // actions
+  // new/rename/delete
   document.getElementById('btnNew')?.addEventListener('click', ()=>{
     activeId = newId();
     chats[activeId] = { id: activeId, title:'New chat', messages: [] };
@@ -269,8 +293,7 @@ function init(){
   });
   document.getElementById('btnRename')?.addEventListener('click', ()=>{
     ensureChat();
-    const current = chats[activeId].title || '';
-    const t = prompt('Rename chat:', current);
+    const t = prompt('Rename chat:', chats[activeId].title || '');
     if(t){ chats[activeId].title = t.trim(); save(); renderHistory(); }
   });
   document.getElementById('btnDelete')?.addEventListener('click', ()=>{
@@ -286,8 +309,6 @@ function init(){
   const input = document.getElementById('input');
   const send = document.getElementById('send');
   const form = document.getElementById('composer');
-  const btnTransit = document.getElementById('btnTransit');
-
   const update = ()=> send.disabled = !input.value.trim();
   ['input','keyup','change','paste'].forEach(ev=> input.addEventListener(ev, update));
   update();
@@ -296,42 +317,37 @@ function init(){
     if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); }
   });
 
-  btnTransit.addEventListener('click', startTransitFlow);
-
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     const textRaw = input.value.trim();
     if(!textRaw) return;
     input.value=''; update();
 
-    // trip planner capture?
+    if(maybeStartTransitFromText(textRaw)){ addMsg('user', linkifyText(textRaw)); return; }
     if(maybeHandleTransit(textRaw)){ addMsg('user', linkifyText(textRaw)); return; }
 
-    // show user bubble immediately
     addMsg('user', linkifyText(textRaw));
 
-    // placeholder
     const body = document.getElementById('chatBody');
     const thinking = bubble('assistant', '…');
     body.appendChild(thinking); scrollToBottom();
 
     try{
-      // optional tone detector (non-blocking)
-      // fetch(API_SUGGEST,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:textRaw})}).catch(()=>{});
-
       const replyHtml = linkifyText(await fetchAI(textRaw));
       thinking.querySelector('.bubble').innerHTML = replyHtml;
-      // also record into history
       chats[activeId].messages.push({ role:'assistant', html: replyHtml, ts: Date.now() });
       save();
     }catch(err){
-      thinking.querySelector('.bubble').innerHTML = `Sorry — upstream error.<br/><small class="text-gray-500">${(err.message||'').slice(0,300)}</small>`;
+      // Show status but keep layout tight
+      const msg = (err.message||'').replace(/</g,'&lt;').slice(0,300);
+      thinking.querySelector('.bubble').innerHTML = `Sorry — upstream error.<br/><small class="text-gray-500">${msg}</small>`;
       save();
     }
   });
 }
 
 init();
+renderQuick();
 </script>
 </body>
 </html>
