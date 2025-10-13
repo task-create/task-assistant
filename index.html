@@ -7,32 +7,27 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* smooth sticky for the collapsible menu */
-    .sticky-tools { position: sticky; top: 0; z-index: 20; }
-    .prose p { margin: .5rem 0; }
-    .msg { animation: fade .2s ease-in; }
-    @keyframes fade { from {opacity:.4; transform: translateY(3px);} to {opacity:1; transform:none;} }
-    details > summary::-webkit-details-marker{display:none}
+    .sticky-tools{position:sticky;top:0;z-index:20}
+    .prose p{margin:.5rem 0}
+    .msg{animation:fade .2s ease-in}
+    @keyframes fade{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+    details>summary::-webkit-details-marker{display:none}
   </style>
 </head>
 <body class="h-screen bg-neutral-50 text-neutral-900">
   <div class="h-screen grid grid-cols-1 md:grid-cols-[300px,1fr]">
-    <!-- LEFT: sidebar -->
+    <!-- SIDEBAR -->
     <aside class="border-r border-neutral-200 bg-white flex flex-col">
       <div class="p-3 sticky-tools bg-white border-b border-neutral-200 flex items-center gap-2">
         <div class="text-xl font-semibold">Solace</div>
         <span class="text-xs text-neutral-500 ml-auto">TASK Assistant</span>
       </div>
-
-      <!-- New chat button -->
       <div class="p-3">
         <button id="newChatBtn" class="w-full flex items-center justify-center gap-2 rounded-2xl px-3 py-2 bg-neutral-900 text-white hover:bg-neutral-800">
           <i data-lucide="message-circle"></i>
           <span>New chat</span>
         </button>
       </div>
-
-      <!-- Recent header with tools directly UNDER it (your request) -->
       <div class="px-3 flex items-center justify-between">
         <div class="text-sm font-medium tracking-wide uppercase text-neutral-500">Recent</div>
         <div class="flex items-center gap-2 text-neutral-500">
@@ -44,281 +39,154 @@
           </button>
         </div>
       </div>
-
-      <!-- Chat list -->
-      <div id="chatList" class="overflow-auto p-2 space-y-1">
-        <!-- items rendered here -->
-      </div>
-
-      <!-- Footer -->
-      <div class="mt-auto p-3 text-xs text-neutral-400">v1.3 — hardcoded → Supabase → Gemini</div>
+      <div id="chatList" class="overflow-auto p-2 space-y-1"></div>
+      <div class="mt-auto p-3 text-xs text-neutral-400">v1.4 — hardcoded.js ➜ Supabase ➜ Gemini</div>
     </aside>
 
-    <!-- RIGHT: conversation -->
+    <!-- MAIN -->
     <main class="flex flex-col min-h-0">
-      <!-- Sticky top tools row -->
       <div class="sticky-tools bg-white border-b border-neutral-200">
         <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2">
           <button id="toggleMenu" class="md:hidden p-2 rounded-xl border border-neutral-200"><i data-lucide="sidebar"></i></button>
           <input id="chatTitle" class="flex-1 bg-transparent outline-none text-base font-medium" value="New chat" />
-          <div class="ml-auto text-xs text-neutral-400">Answers: Hardcoded → Supabase → Gemini</div>
+          <div class="ml-auto text-xs text-neutral-400">Answers: Hardcoded ➜ Supabase ➜ Gemini</div>
         </div>
       </div>
-
-      <!-- Messages -->
-      <div id="messages" class="flex-1 overflow-auto">
-        <div class="max-w-3xl mx-auto px-4 py-6 space-y-6" id="thread"></div>
-      </div>
-
-      <!-- Composer -->
+      <div id="messages" class="flex-1 overflow-auto"><div class="max-w-3xl mx-auto px-4 py-6 space-y-6" id="thread"></div></div>
       <div class="border-t border-neutral-200 bg-white">
         <div class="max-w-3xl mx-auto p-4">
           <form id="composer" class="flex gap-2">
             <textarea id="prompt" rows="1" placeholder="Ask about SORA training, Culinary program, Job help…" class="flex-1 resize-none px-3 py-2 rounded-2xl border border-neutral-300 focus:ring-2 focus:ring-neutral-900/10 outline-none"></textarea>
-            <button class="px-4 py-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800">
-              <i data-lucide="send"></i>
-            </button>
+            <button class="px-4 py-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800"><i data-lucide="send"></i></button>
           </form>
-          <p class="text-[11px] text-neutral-400 mt-2">No giant walls of text: long answers are auto‑summarized with an Expand toggle. 
-            You can still view the full source if needed.</p>
+          <p class="text-[11px] text-neutral-400 mt-2">Long answers auto‑collapse with a “Show full answer” toggle.</p>
         </div>
       </div>
     </main>
   </div>
 
+  <!-- Optional: set these to enable Supabase lookup -->
   <script>
-    // ————————————————————————————————————————
-    // 0) Utilities
-    // ————————————————————————————————————————
-    const $ = (q, el=document) => el.querySelector(q);
-    const $$ = (q, el=document) => [...el.querySelectorAll(q)];
-    const uid = () => Math.random().toString(36).slice(2,9);
+    window.SUPABASE_URL = window.SUPABASE_URL || '';
+    window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+  </script>
 
-    function renderIconify(){ lucide.createIcons(); }
+  <!-- App (module) -->
+  <script type="module">
+    import { answerBank, matchHardcoded, classifyTrainingQ } from '/data/hardcoded.js';
 
-    function mdify(text){
-      // extremely light formatting to break walls of text → bullets & paragraphs.
+    const $ = (q, el=document)=>el.querySelector(q);
+    const uid = ()=>Math.random().toString(36).slice(2,9);
+    const messages = $('#messages');
+
+    const renderIcons = () => lucide.createIcons();
+
+    const mdify = (text) => {
       if(!text) return '';
-      // split big paragraphs
-      const parts = text.split(/\n{2,}|### /g).map(s => s.trim()).filter(Boolean);
-      return parts.map(p => {
-        // if it looks like a run-on paragraph, convert numbered lists where appropriate
-        if(/[0-9]+\)/.test(p) || /\*\*/.test(p)) return `<p>${p}</p>`;
-        // add bullets for long commas
-        if(p.length > 500){
-          return '<ul class="list-disc ml-5">' + p.split(/\.?\s+(?=[A-Z])/).slice(0,8).map(s=>`<li>${s.trim()}</li>`).join('') + '</ul>'
+      const parts = String(text).split(/\n{2,}|### /g).map(s=>s.trim()).filter(Boolean);
+      return parts.map(p=>{
+        if(p.length>600){
+          return '<ul class="list-disc ml-5">'+p.split(/\.?\s+(?=[A-Z])/).slice(0,8).map(s=>`<li>${s.trim()}</li>`).join('')+'</ul>'
         }
-        return `<p>${p}</p>`
+        return `<p>${p}</p>`;
       }).join('');
-    }
-
-    function chunkIfLong(html){
-      // Wrap long content in <details> with a short summary
-      const tmp = document.createElement('div');
-      tmp.innerHTML = html;
-      const text = tmp.textContent || '';
-      if(text.length < 900) return html;
-      const short = text.slice(0, 400) + '…';
-      return `
-        <details class="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-          <summary class="cursor-pointer select-none text-sm">Show full answer</summary>
-          <div class="prose max-w-none mt-2">${html}</div>
-        </details>`;
-    }
-
-    // ————————————————————————————————————————
-    // 1) Data: HARD‑CODED answers come FIRST
-    // Keep these tight, factual, and maintained by you. They beat Supabase/Gemini.
-    // ————————————————————————————————————————
-    const HARD = [
-      {
-        keys: ['sora','sora program','tell me about sora','video model'],
-        title: 'SORA training at TASK (short version)',
-        answer: `**SORA Unarmed Security License @ TASK**\n\n• **Format:** Virtual class hosted in the TASK Computer Lab (camera on)\n• **Schedule:** Two days, **9:00 AM – 5:00 PM**\n• **Location:** TASK Computer Lab (arrive **8:30 AM**)\n• **Bring:** Headphones (wired), pen & paper, email login info\n• **Rules:** Follow instructor directions; no disruptions; keep area clean\n• **Cost:** Covered by TASK (we pay the fees)\n• **Next Steps:** Reply with full name. If you had a prior SORA account and forgot the password, email **pdu@njsp.org** for reset.`
-      },
-      {
-        keys: ['culinary','culinary program','eca','chef','kitchen class'],
-        title: 'TASK Culinary Training (10‑week overview)',
-        answer: `**Emilio Culinary Academy (ECA) — 10 weeks**\n\n• **Weeks 1–8 (Class):** Knife skills, stations, food safety/ServSafe prep, stocks/soups, sauces, baking basics, line simulation, teamwork.\n• **Weeks 9–10 (Internship):** Hands‑on in TASK kitchen with Chef Adam.\n• **Goal:** Leave with ServSafe cert + job readiness (resume, mock interviews).\n• **When/Where:** TASK Kitchen/Classroom — arrive **8:45 AM** on day one.\n• **Bring:** Notebook, closed‑toe shoes, positive attitude.\n• **Outcome:** Job placement support + references for strong performers.`
-      },
-      {
-        keys: ['who teaches the class','who is the instructor','chef adam'],
-        title: 'Instructor',
-        answer: `**Chef Adam Livow** leads the training with support from TASK staff.\nStudents practice in a real production kitchen and complete a two‑week internship.`
-      }
-    ];
-
-    function findHardAnswer(q){
-      const s = q.toLowerCase();
-      for(const item of HARD){
-        if(item.keys.some(k => s.includes(k))) return item;
-      }
-      return null;
-    }
-
-    // ————————————————————————————————————————
-    // 2) Supabase fallback (SECOND)
-    // NOTE: Replace with your real project URL and anon key.
-    // Query a table like `faqs(topic text, answer text)` by ILIKE match.
-    // Returns null when nothing found.
-    // ————————————————————————————————————————
-    const SUPABASE_URL = window.SUPABASE_URL || '';
-    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
-
-    async function fetchFromSupabase(query){
-      try{
-        if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return null; // disabled if not configured
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/faqs?select=answer&topic=ilike.*${encodeURIComponent(query)}*`, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        });
-        if(!res.ok) return null;
-        const rows = await res.json();
-        if(rows && rows[0] && rows[0].answer) return { title: 'From knowledge base', answer: rows[0].answer };
-      }catch(e){ console.warn('Supabase error', e); }
-      return null;
-    }
-
-    // ————————————————————————————————————————
-    // 3) Gemini LAST (your /api/ai proxy). Keep answers compact.
-    // ————————————————————————————————————————
-    async function fetchFromGemini(query){
-      try{
-        const res = await fetch('/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: [{role:'user', content: query}], max_tokens: 400 })
-        });
-        const data = await res.json();
-        return { title: 'AI', answer: data.reply || 'Sorry, I could not generate a response.' };
-      }catch(e){
-        console.warn('Gemini error', e);
-        return { title: 'AI', answer: 'Model is unavailable right now.' };
-      }
-    }
-
-    // ————————————————————————————————————————
-    // 4) Conversation state + UI
-    // ————————————————————————————————————————
-    const state = {
-      chats: {},
-      currentId: null
     };
 
-    function newChat(title='New chat'){
-      const id = uid();
-      state.chats[id] = { id, title, messages: [] };
-      state.currentId = id;
-      renderChatList();
-      renderThread();
-      $('#chatTitle').value = title;
-      return id;
+    const chunkIfLong = (html) => {
+      const div=document.createElement('div'); div.innerHTML=html; const t=div.textContent||'';
+      if(t.length<900) return html;
+      return `<details class="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><summary class="cursor-pointer select-none text-sm">Show full answer</summary><div class="prose max-w-none mt-2">${html}</div></details>`;
+    };
+
+    // Supabase fallback
+    const SUPABASE_URL = window.SUPABASE_URL||'';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY||'';
+    async function fetchFromSupabase(query){
+      try{
+        if(!SUPABASE_URL||!SUPABASE_ANON_KEY) return null;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/faqs?select=answer&topic=ilike.*${encodeURIComponent(query)}*`,{
+          headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}
+        });
+        if(!res.ok) return null; const rows=await res.json();
+        if(rows?.[0]?.answer) return { title:'From knowledge base', answer: rows[0].answer };
+      }catch(e){ console.warn('Supabase error',e); }
+      return null;
     }
 
-    function selectChat(id){ state.currentId = id; renderChatList(); renderThread(); }
-
-    function deleteCurrent(){ if(!state.currentId) return; delete state.chats[state.currentId]; state.currentId = Object.keys(state.chats)[0] || newChat(); renderChatList(); renderThread(); }
-
-    function renameCurrent(){ if(!state.currentId) return; const t = prompt('Rename chat to:',$('#chatTitle').value.trim()||'Untitled'); if(t){ state.chats[state.currentId].title = t; $('#chatTitle').value = t; renderChatList(); } }
-
-    function renderChatList(){
-      const wrap = $('#chatList');
-      wrap.innerHTML = '';
-      Object.values(state.chats).forEach(c => {
-        const btn = document.createElement('button');
-        btn.className = `w-full text-left px-3 py-2 rounded-xl ${c.id===state.currentId?'bg-neutral-900 text-white':'hover:bg-neutral-100'}`;
-        btn.innerHTML = `<div class="text-sm font-medium">${c.title || 'Untitled'}</div>`;
-        btn.onclick = () => selectChat(c.id);
-        wrap.appendChild(btn);
-      });
+    // Gemini last
+    async function fetchFromGemini(query){
+      try{
+        const r = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:query}],max_tokens:400})});
+        const d = await r.json();
+        return { title:'AI', answer: d.reply || 'Model unavailable.' };
+      }catch(e){ return { title:'AI', answer:'Model unavailable.' }; }
     }
 
-    function renderThread(){
-      const thread = $('#thread');
-      thread.innerHTML = '';
-      const chat = state.chats[state.currentId];
-      (chat?.messages||[]).forEach(m => thread.appendChild(renderMsg(m)));
-      messages.scrollTop = messages.scrollHeight;
+    // State + UI
+    const state={chats:{},currentId:null};
+    function newChat(title='New chat'){ const id=uid(); state.chats[id]={id,title,messages:[]}; state.currentId=id; renderChatList(); renderThread(); $('#chatTitle').value=title; return id; }
+    function selectChat(id){ state.currentId=id; renderChatList(); renderThread(); }
+    function deleteCurrent(){ if(!state.currentId) return; delete state.chats[state.currentId]; state.currentId=Object.keys(state.chats)[0]||newChat(); renderChatList(); renderThread(); }
+    function renameCurrent(){ if(!state.currentId) return; const t=prompt('Rename chat to:', $('#chatTitle').value.trim()||'Untitled'); if(t){ state.chats[state.currentId].title=t; $('#chatTitle').value=t; renderChatList(); } }
+
+    function renderChatList(){ const wrap=$('#chatList'); wrap.innerHTML=''; Object.values(state.chats).forEach(c=>{ const b=document.createElement('button'); b.className=`w-full text-left px-3 py-2 rounded-xl ${c.id===state.currentId?'bg-neutral-900 text-white':'hover:bg-neutral-100'}`; b.innerHTML=`<div class="text-sm font-medium">${c.title||'Untitled'}</div>`; b.onclick=()=>selectChat(c.id); wrap.appendChild(b); }); }
+    function renderThread(){ const thread=$('#thread'); thread.innerHTML=''; const chat=state.chats[state.currentId]; (chat?.messages||[]).forEach(m=>thread.appendChild(renderMsg(m))); messages.scrollTop=messages.scrollHeight; }
+    function renderMsg(m){ const wrap=document.createElement('div'); wrap.className='msg'; wrap.innerHTML=`<div class="flex gap-3"><div class="shrink-0 w-8 h-8 rounded-xl grid place-items-center ${m.role==='user'?'bg-neutral-900 text-white':'bg-neutral-100'}"><i data-lucide="${m.role==='user'?'user':'bot'}"></i></div><div class="flex-1">${m.role==='assistant'?`<div class="text-[11px] text-neutral-500 mb-1">${m.title||''}</div>`:''}<div class="prose max-w-none">${m.html}</div></div></div>`; renderIcons(); return wrap; }
+    function push(role, html, title=''){ const chat=state.chats[state.currentId]; const msg={role,html,title}; chat.messages.push(msg); $('#thread').appendChild(renderMsg(msg)); messages.scrollTop=messages.scrollHeight; }
+
+    // Router: Hardcoded ➜ Supabase ➜ Gemini
+    function formatProgramCard(p){
+      return [
+        `**${p.label}**`,
+        `• **Location:** ${p.location}`,
+        `• **Schedule:** ${p.schedule}`,
+        `• **Duration:** ${p.duration}`,
+        `• **Purpose/Outcomes:** ${p.purpose_outcomes}`,
+        `• **Instructor:** ${p.instructor}`,
+        `• **Eligibility:** ${p.eligibility}`,
+        `• **Cost:** ${p.cost}`,
+        `• **Next start:** ${p.next_start_date}`,
+        `• **Apply:** ${p.signup_link}`,
+        `• **Contact:** ${p.contact_info}`,
+        p.notes?`• **Notes:** ${p.notes}`:''
+      ].filter(Boolean).join('\n');
     }
 
-    function renderMsg(m){
-      const wrap = document.createElement('div');
-      wrap.className = 'msg';
-      wrap.innerHTML = `
-        <div class="flex gap-3">
-          <div class="shrink-0 w-8 h-8 rounded-xl grid place-items-center ${m.role==='user'?'bg-neutral-900 text-white':'bg-neutral-100'}">
-            <i data-lucide="${m.role==='user'?'user':'bot'}"></i>
-          </div>
-          <div class="flex-1">
-            ${m.role==='assistant' ? `<div class="text-[11px] text-neutral-500 mb-1">${m.title||''}</div>` : ''}
-            <div class="prose max-w-none">${m.html}</div>
-          </div>
-        </div>`;
-      renderIconify();
-      return wrap;
-    }
-
-    function push(role, html, title=''){
-      const chat = state.chats[state.currentId];
-      const msg = { role, html, title };
-      chat.messages.push(msg);
-      $('#thread').appendChild(renderMsg(msg));
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    // ————————————————————————————————————————
-    // 5) Answer router: HARD → SUPABASE → GEMINI
-    // ————————————————————————————————————————
     async function answer(query){
-      // 1) HARD
-      const hard = findHardAnswer(query);
-      if(hard){
-        const html = chunkIfLong(mdify(hard.answer));
-        push('assistant', html, hard.title);
-        return;
+      // 1) HARDCODED (external module)
+      const hit = matchHardcoded(query);
+      if(hit){
+        if(hit.html){ push('assistant', chunkIfLong(mdify(hit.html)), 'TASK (hardcoded)'); return; }
+        if(hit.id==='training_program' && hit.program){
+          const html = formatProgramCard(hit.program);
+          push('assistant', chunkIfLong(mdify(html)), 'TASK (hardcoded program)');
+          return;
+        }
       }
       // 2) SUPABASE
       const kb = await fetchFromSupabase(query);
-      if(kb){
-        const html = chunkIfLong(mdify(kb.answer));
-        push('assistant', html, kb.title);
-        return;
-      }
+      if(kb){ push('assistant', chunkIfLong(mdify(kb.answer)), kb.title); return; }
       // 3) GEMINI
       const ai = await fetchFromGemini(query);
-      const html = chunkIfLong(mdify(ai.answer));
-      push('assistant', html, ai.title);
+      push('assistant', chunkIfLong(mdify(ai.answer)), ai.title);
     }
 
-    // ————————————————————————————————————————
-    // 6) Wire up UI
-    // ————————————————————————————————————————
+    // Wire up UI
     $('#composer').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const q = $('#prompt').value.trim();
-      if(!q) return;
-      $('#prompt').value = '';
-      push('user', mdify(q));
-      // title from first message
-      const chat = state.chats[state.currentId];
-      if(chat.messages.length <= 1){ chat.title = q.slice(0, 50); $('#chatTitle').value = chat.title; renderChatList(); }
+      e.preventDefault(); const q=$('#prompt').value.trim(); if(!q) return; $('#prompt').value=''; push('user', mdify(q));
+      const chat=state.chats[state.currentId]; if(chat.messages.length<=1){ chat.title=q.slice(0,50); $('#chatTitle').value=chat.title; renderChatList(); }
       await answer(q);
     });
-
-    $('#newChatBtn').onclick = ()=> newChat();
-    $('#deleteChatTool').onclick = deleteCurrent;
-    $('#renameChatTool').onclick = renameCurrent;
-    $('#chatTitle').addEventListener('change', (e)=>{ const t = e.target.value.trim(); if(t){ state.chats[state.currentId].title = t; renderChatList(); }});
-
-    // mobile sidebar toggle
-    $('#toggleMenu').onclick = ()=> document.querySelector('aside').classList.toggle('hidden');
+    $('#newChatBtn').onclick=()=>newChat();
+    $('#deleteChatTool').onclick=deleteCurrent;
+    $('#renameChatTool').onclick=renameCurrent;
+    $('#chatTitle').addEventListener('change',(e)=>{ const t=e.target.value.trim(); if(t){ state.chats[state.currentId].title=t; renderChatList(); }});
+    $('#toggleMenu').onclick=()=>document.querySelector('aside').classList.toggle('hidden');
 
     // init
-    const first = newChat();
-    push('assistant', mdify('Hi! Ask me about **SORA**, the **Culinary program**, job help, or events. I will always use TASK\'s hardcoded answers first, then our knowledge base, and AI last.'), 'Welcome');
-    renderIconify();
+    newChat();
+    push('assistant', mdify('Hi! Ask me about **SORA**, the **Culinary program**, job help, or events. I will always use TASK\'s **hardcoded answers first**, then our knowledge base, and AI last.'), 'Welcome');
+    renderIcons();
   </script>
 </body>
 </html>
