@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Solace • TASK Assistant</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
+  <!-- Tailwind (CDN is fine for now) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ brand:'#ff8a00' }}}};
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ brand:'#ff8a00' } } } };
   </script>
   <style>
     :root { --brand:#ff8a00; }
@@ -15,6 +16,8 @@
     .custom-scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:6px}
     .bubble{ word-break:break-word; overflow-wrap:anywhere; }
     .bubble a{ text-decoration:underline }
+    .bubble ul{ margin-top:.25rem; margin-bottom:.25rem }
+    .bubble p+ul{ margin-top:.25rem }
     .composer-shell{position:sticky;bottom:0;background:linear-gradient(to top,rgba(255,255,255,.96),rgba(255,255,255,0))}
     .dark .composer-shell{background:linear-gradient(to top,rgba(15,23,42,.96),rgba(15,23,42,0))}
   </style>
@@ -24,7 +27,7 @@
 <!-- Splash -->
 <div id="splash" class="fixed inset-0 z-50 grid place-items-center bg-gray-100 dark:bg-[#0b1220]">
   <div class="relative w-full max-w-md p-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl text-center">
-    <!-- Theme toggle top-left (sun/moon) -->
+    <!-- Theme toggle top-left -->
     <button id="btnThemeSplash" class="absolute left-3 top-3 p-2 rounded-full border border-gray-200 dark:border-gray-700" title="Toggle theme" aria-label="Toggle theme">
       <span id="themeIconSplash">☀️</span>
     </button>
@@ -50,8 +53,6 @@
 
     <div class="p-3 flex items-center gap-2">
       <button id="btnNew" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">New</button>
-      <button id="btnRename" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Rename</button>
-      <button id="btnDelete" class="px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Del</button>
     </div>
 
     <div class="px-3">
@@ -97,15 +98,14 @@
     <!-- Composer -->
     <div class="composer-shell px-4 py-3 md:px-6 md:py-4">
       <form id="composer" class="max-w-3xl mx-auto relative" autocomplete="off">
-        <textarea id="input"
-          class="w-full p-4 pr-24 text-base bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-gray-700 rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none"
-          rows="1" placeholder="Ask about trainings, jobs, resources, appointments…"></textarea>
-        <button id="send" type="submit"
-          class="absolute right-2 bottom-2 px-4 py-2 rounded-lg bg-brand text-black font-semibold disabled:bg-gray-400 disabled:text-white disabled:cursor-not-allowed"
-          disabled>Send</button>
+        <textarea id="input" rows="1" placeholder="Ask about trainings, jobs, resources, appointments…" 
+          class="w-full p-4 pr-28 bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-gray-700 rounded-xl resize-none focus:ring-2 focus:ring-brand focus:outline-none"></textarea>
+        <div class="absolute right-2 bottom-2 flex items-center gap-2">
+          <button id="send" type="submit" class="px-4 py-2 bg-brand text-black rounded-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>Send</button>
+        </div>
       </form>
 
-      <!-- Disclaimer -->
+      <!-- Disclaimer under composer -->
       <p class="max-w-3xl mx-auto mt-2 text-xs text-gray-500">
         Solace can make mistakes — please confirm important info with TASK staff.
       </p>
@@ -121,7 +121,7 @@ const ENGAGE = {
   trainings:"https://bycell.co/ddmtn",
   resources:"https://bycell.co/ddmua"
 };
-/* If this html is served from another origin, still hit the right API */
+/* Resolve API base (works on localhost or off-origin preview) */
 const API_AI = (location.hostname.endsWith("task-assistant-xi.vercel.app") || location.hostname==="localhost")
   ? "/api/ai"
   : "https://task-assistant-xi.vercel.app/api/ai";
@@ -166,12 +166,34 @@ function ensureChat(){
     save(); renderHistory();
   }
 }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function linkify(s=''){
-  // URLs
   let out = s.replace(/(https?:\/\/[^\s)]+)\b/gi, m => `<a href="${m}" target="_blank" rel="noopener">${m}</a>`);
-  // Phone numbers
   out = out.replace(/(\(\d{3}\)\s?\d{3}-\d{4}|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b)/g, m => `<a href="tel:${m.replace(/[^\d]/g,'')}">${m}</a>`);
   return out;
+}
+function mdLiteToHtml(text){
+  const safe = escapeHtml(text || '');
+  const lines = safe.replace(/\r\n/g,'\n').split('\n');
+  const out = [];
+  let inList = false;
+  const flush = ()=>{ if(inList){ out.push('</ul>'); inList=false; } };
+  for (let raw of lines){
+    const line = raw.trim();
+    if (/^(\*|-|•)\s+/.test(line)){
+      if (!inList){ out.push('<ul class="list-disc pl-5 space-y-1">'); inList=true; }
+      out.push('<li>' + linkify(line.replace(/^(\*|-|•)\s+/, '')) + '</li>');
+      continue;
+    }
+    if (line === ''){ flush(); out.push('<br/>'); continue; }
+    flush(); out.push('<p>' + linkify(line) + '</p>');
+  }
+  flush();
+  return out.join('');
+}
+function formatAssistant(text){
+  if ((text||'').length < 280) return linkify(text||'');
+  return mdLiteToHtml(text||'');
 }
 function bubble(role, html){
   const w=document.createElement('div');
@@ -195,6 +217,20 @@ function addMsg(role, html){
 }
 function scrollToBottom(){ document.getElementById('chatWrap')?.scrollTo({ top: 9e9, behavior:'smooth' }); }
 
+/* Rename / Delete helpers shown next to active chat */
+function renameChat(id){
+  const t = prompt('Rename chat:', chats[id]?.title || '');
+  if (!t) return;
+  chats[id].title = t.trim() || chats[id].title;
+  save(); renderHistory(); renderChat();
+}
+function deleteChat(id){
+  if(!confirm('Delete this chat?')) return;
+  delete chats[id];
+  activeId = Object.keys(chats)[0] || null;
+  save(); renderHistory(); renderChat();
+}
+
 /* --------------------------- Renderers --------------------------- */
 function renderQuick(){
   const q=document.getElementById('quick'); q.innerHTML='';
@@ -215,12 +251,41 @@ function renderQuick(){
 }
 function renderHistory(){
   const h=document.getElementById('history'); h.innerHTML='';
-  Object.values(chats).sort((a,b)=>b.id.localeCompare(a.id)).forEach(c=>{
-    const btn=document.createElement('button');
-    btn.className=`w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${c.id===activeId?'bg-brand/20':''}`;
-    btn.textContent=c.title||'Untitled';
-    btn.onclick=()=>{ activeId=c.id; save(); renderChat(); renderHistory(); };
-    h.appendChild(btn);
+  const rows = Object.values(chats).sort((a,b)=> b.id.localeCompare(a.id));
+  rows.forEach(c=>{
+    const row = document.createElement('div');
+    const isActive = c.id === activeId;
+    row.className = `flex items-center justify-between px-2 py-1 rounded
+      hover:bg-gray-100 dark:hover:bg-gray-800 ${isActive?'bg-brand/20':''}`;
+
+    const left = document.createElement('button');
+    left.className = 'flex-1 text-left truncate';
+    left.title = c.title || 'Untitled';
+    left.textContent = c.title || 'Untitled';
+    left.onclick = ()=>{ activeId=c.id; save(); renderChat(); renderHistory(); };
+
+    const right = document.createElement('div');
+    if (isActive){
+      right.className = 'flex items-center gap-1 pl-2';
+      const bEdit = document.createElement('button');
+      bEdit.className = 'p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700';
+      bEdit.title = 'Rename';
+      bEdit.textContent = '✏️';
+      bEdit.onclick = (e)=>{ e.stopPropagation(); renameChat(c.id); };
+
+      const bDel = document.createElement('button');
+      bDel.className = 'p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700';
+      bDel.title = 'Delete';
+      bDel.textContent = '🗑️';
+      bDel.onclick = (e)=>{ e.stopPropagation(); deleteChat(c.id); };
+
+      right.appendChild(bEdit);
+      right.appendChild(bDel);
+    }
+
+    row.appendChild(left);
+    row.appendChild(right);
+    h.appendChild(row);
   });
 }
 function renderChat(){
@@ -259,7 +324,7 @@ async function fetchAI(prompt){
   const r = await fetch(API_AI, {
     method:'POST',
     headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
-    body: JSON.stringify({ prompt })                          // <-- POST only (prevents 405)
+    body: JSON.stringify({ prompt })   // POST only to avoid 405
   });
   if(!r.ok){
     const t = await r.text().catch(()=> '');
@@ -274,8 +339,6 @@ function init(){
   ensureChat(); renderQuick(); renderHistory(); renderChat();
 
   document.getElementById('btnNew').onclick = ()=>{ activeId=newId(); chats[activeId]={id:activeId,title:'New chat',messages:[]}; save(); renderHistory(); renderChat(); };
-  document.getElementById('btnRename').onclick = ()=>{ ensureChat(); const t=prompt('Rename chat:',chats[activeId].title||''); if(t){chats[activeId].title=t.trim(); save(); renderHistory();} };
-  document.getElementById('btnDelete').onclick = ()=>{ if(!activeId) return; if(confirm('Delete this chat?')){ delete chats[activeId]; activeId=Object.keys(chats)[0]||null; save(); renderHistory(); renderChat(); } };
 
   const input=document.getElementById('input'), send=document.getElementById('send'), form=document.getElementById('composer');
   const up=()=> send.disabled=!input.value.trim(); ['input','keyup','change','paste'].forEach(ev=> input.addEventListener(ev,up)); up();
@@ -292,7 +355,7 @@ function init(){
     const body=document.getElementById('chatBody'); const thinking=bubble('assistant','…'); body.appendChild(thinking); scrollToBottom();
 
     try{
-      const html = linkify(await fetchAI(raw));              // <- hits /api/ai (Tier-0 → Supabase → Gemini)
+      const html = formatAssistant(await fetchAI(raw));  // Supabase-first server, then Gemini
       thinking.querySelector('.bubble').innerHTML = html;
       chats[activeId].messages.push({role:'assistant', html, ts:Date.now()}); save();
     }catch(err){
