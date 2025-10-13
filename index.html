@@ -1,324 +1,324 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Solace • TASK Assistant</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solace</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ brand:'#ff8a00' }}}};
-  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    :root { --brand:#ff8a00; }
-    .custom-scrollbar::-webkit-scrollbar{width:8px;height:8px}
-    .custom-scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:6px}
-    .bubble{ word-break:break-word; overflow-wrap:anywhere; }
-    .bubble a{ text-decoration:underline }
-    .composer-shell{position:sticky;bottom:0;background:linear-gradient(to top,rgba(255,255,255,.96),rgba(255,255,255,0))}
-    .dark .composer-shell{background:linear-gradient(to top,rgba(15,23,42,.96),rgba(15,23,42,0))}
+    /* smooth sticky for the collapsible menu */
+    .sticky-tools { position: sticky; top: 0; z-index: 20; }
+    .prose p { margin: .5rem 0; }
+    .msg { animation: fade .2s ease-in; }
+    @keyframes fade { from {opacity:.4; transform: translateY(3px);} to {opacity:1; transform:none;} }
+    details > summary::-webkit-details-marker{display:none}
   </style>
 </head>
-<body class="bg-gray-100 dark:bg-[#0b1220] text-gray-900 dark:text-gray-100 antialiased">
-
-<!-- Splash -->
-<div id="splash" class="fixed inset-0 z-50 grid place-items-center bg-gray-100 dark:bg-[#0b1220]">
-  <div class="relative w-full max-w-md p-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl text-center">
-    <!-- Theme toggle (top-left as sun/moon) -->
-    <button id="btnThemeSplash" class="absolute left-3 top-3 p-2 rounded-full border border-gray-200 dark:border-gray-700" title="Toggle theme" aria-label="Toggle theme">
-      <span id="themeIconSplash">☀️</span>
-    </button>
-
-    <div class="w-20 h-20 mx-auto rounded-2xl bg-brand text-black font-black grid place-items-center text-4xl">S</div>
-    <h1 class="mt-4 text-2xl font-bold">Solace</h1>
-    <p class="mt-2 text-gray-600 dark:text-gray-400">Your guide to career and community resources.</p>
-    <div class="mt-6">
-      <button id="btnStart" class="px-6 py-2 rounded-lg bg-brand text-black font-semibold">Start</button>
-    </div>
-  </div>
-</div>
-
-<!-- App -->
-<div id="app" class="h-screen w-screen grid lg:grid-cols-[280px_1fr] hidden">
-
-  <!-- Sidebar -->
-  <aside class="flex flex-col h-full border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f172a]">
-    <div class="p-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-800">
-      <div class="w-9 h-9 rounded-lg bg-brand text-black font-bold grid place-items-center">S</div>
-      <div class="font-semibold">Solace</div>
-    </div>
-
-    <div class="p-3">
-      <button id="btnNew" class="w-full px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">New Chat</button>
-    </div>
-
-    <div class="px-3">
-      <h3 class="text-xs font-semibold text-gray-500 uppercase">Quick Actions</h3>
-      <div id="quick" class="mt-2 space-y-2"></div>
-    </div>
-
-    <div class="p-3 flex-1 custom-scrollbar overflow-y-auto">
-      <h3 class="text-xs font-semibold text-gray-500 uppercase">Recent</h3>
-      <div id="history" class="mt-2 space-y-1"></div>
-    </div>
-
-    <!-- Theme at bottom -->
-    <div class="p-3 border-t border-gray-200 dark:border-gray-800">
-      <button id="btnTheme" class="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700">
-        <span id="themeIconSide">☀️</span> Theme
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="flex flex-col h-screen">
-
-    <!-- Main header with title + Rename/Delete -->
-    <header class="hidden lg:flex items-center justify-between px-4 py-3 bg-white dark:bg-[#0f172a] border-b border-gray-200 dark:border-gray-800">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-md bg-brand text-black font-bold grid place-items-center">S</div>
-        <div id="chatTitle" class="font-semibold truncate">New chat</div>
+<body class="h-screen bg-neutral-50 text-neutral-900">
+  <div class="h-screen grid grid-cols-1 md:grid-cols-[300px,1fr]">
+    <!-- LEFT: sidebar -->
+    <aside class="border-r border-neutral-200 bg-white flex flex-col">
+      <div class="p-3 sticky-tools bg-white border-b border-neutral-200 flex items-center gap-2">
+        <div class="text-xl font-semibold">Solace</div>
+        <span class="text-xs text-neutral-500 ml-auto">TASK Assistant</span>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="btnRename" class="px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700">Rename</button>
-        <button id="btnDelete" class="px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700">Delete</button>
-        <button id="btnThemeM" class="px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700"><span id="themeIconM">☀️</span></button>
-      </div>
-    </header>
 
-    <!-- Chat scroll -->
-    <section id="chatWrap" class="flex-1 overflow-y-auto custom-scrollbar p-4">
-      <div id="chatBody" class="max-w-3xl mx-auto space-y-3">
-        <div class="text-center mt-8 text-gray-600 dark:text-gray-400">
-          <div class="w-16 h-16 mx-auto rounded-xl bg-brand text-black font-black grid place-items-center text-3xl">S</div>
-          <p class="mt-3">How can I help you today?</p>
+      <!-- New chat button -->
+      <div class="p-3">
+        <button id="newChatBtn" class="w-full flex items-center justify-center gap-2 rounded-2xl px-3 py-2 bg-neutral-900 text-white hover:bg-neutral-800">
+          <i data-lucide="message-circle"></i>
+          <span>New chat</span>
+        </button>
+      </div>
+
+      <!-- Recent header with tools directly UNDER it (your request) -->
+      <div class="px-3 flex items-center justify-between">
+        <div class="text-sm font-medium tracking-wide uppercase text-neutral-500">Recent</div>
+        <div class="flex items-center gap-2 text-neutral-500">
+          <button id="renameChatTool" class="p-1 hover:text-neutral-900" title="Rename selected chat">
+            <i data-lucide="pencil"></i>
+          </button>
+          <button id="deleteChatTool" class="p-1 hover:text-red-600" title="Delete selected chat">
+            <i data-lucide="trash-2"></i>
+          </button>
         </div>
       </div>
-    </section>
 
-    <!-- Composer -->
-    <div class="composer-shell px-4 py-3 md:px-6 md:py-4">
-      <form id="composer" class="max-w-3xl mx-auto relative">
-        <textarea id="input" rows="1" placeholder="Ask about trainings, jobs, resources, appointments…"
-          class="w-full p-4 pr-16 rounded-xl bg-white dark:bg-[#0f172a] border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand resize-none"></textarea>
-        <button id="send" class="absolute right-2 bottom-2 px-3 py-2 rounded-lg bg-brand text-black font-semibold disabled:bg-gray-400" disabled>Send</button>
-      </form>
-      <p class="max-w-3xl mx-auto mt-2 text-xs text-gray-500">
-        Solace can make mistakes — please confirm important info with TASK staff.
-      </p>
-    </div>
-  </main>
-</div>
+      <!-- Chat list -->
+      <div id="chatList" class="overflow-auto p-2 space-y-1">
+        <!-- items rendered here -->
+      </div>
 
-<script type="module">
-/* --------------------------- Config --------------------------- */
-const ENGAGE = {
-  appointment:"https://bycell.co/ddncs",
-  jobs:"https://bycell.co/ddmtq",
-  trainings:"https://bycell.co/ddmtn",
-  resources:"https://bycell.co/ddmua",
-};
-const API_AI = (location.hostname.endsWith("task-assistant-xi.vercel.app") || location.hostname==="localhost")
-  ? "/api/ai"
-  : "https://task-assistant-xi.vercel.app/api/ai";
+      <!-- Footer -->
+      <div class="mt-auto p-3 text-xs text-neutral-400">v1.3 — hardcoded → Supabase → Gemini</div>
+    </aside>
 
-/* --------------------------- Theme --------------------------- */
-const sun = "☀️", moon = "🌙";
-function setThemeIcon(isDark){
-  const icon = isDark ? sun : moon; // show opposite so the button indicates the toggle
-  ["themeIconSplash","themeIconSide","themeIconM"].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.textContent = icon;
-  });
-}
-function applyTheme(mode){
-  document.documentElement.classList.toggle('dark', mode==='dark');
-  localStorage.setItem('theme', mode);
-  setThemeIcon(mode==='dark');
-}
-function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark'); }
-applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
-["btnThemeSplash","btnTheme","btnThemeM"].forEach(id=>document.getElementById(id)?.addEventListener('click', toggleTheme));
+    <!-- RIGHT: conversation -->
+    <main class="flex flex-col min-h-0">
+      <!-- Sticky top tools row -->
+      <div class="sticky-tools bg-white border-b border-neutral-200">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2">
+          <button id="toggleMenu" class="md:hidden p-2 rounded-xl border border-neutral-200"><i data-lucide="sidebar"></i></button>
+          <input id="chatTitle" class="flex-1 bg-transparent outline-none text-base font-medium" value="New chat" />
+          <div class="ml-auto text-xs text-neutral-400">Answers: Hardcoded → Supabase → Gemini</div>
+        </div>
+      </div>
 
-/* Splash → App */
-document.getElementById('btnStart').addEventListener('click', ()=>{
-  document.getElementById('splash').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-});
+      <!-- Messages -->
+      <div id="messages" class="flex-1 overflow-auto">
+        <div class="max-w-3xl mx-auto px-4 py-6 space-y-6" id="thread"></div>
+      </div>
 
-/* --------------------------- Chat state --------------------------- */
-let chats = JSON.parse(localStorage.getItem('chats')||'{}');
-let activeId = localStorage.getItem('activeId') || null;
-let lastTopic = null;                // <-- sticky topic
+      <!-- Composer -->
+      <div class="border-t border-neutral-200 bg-white">
+        <div class="max-w-3xl mx-auto p-4">
+          <form id="composer" class="flex gap-2">
+            <textarea id="prompt" rows="1" placeholder="Ask about SORA training, Culinary program, Job help…" class="flex-1 resize-none px-3 py-2 rounded-2xl border border-neutral-300 focus:ring-2 focus:ring-neutral-900/10 outline-none"></textarea>
+            <button class="px-4 py-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800">
+              <i data-lucide="send"></i>
+            </button>
+          </form>
+          <p class="text-[11px] text-neutral-400 mt-2">No giant walls of text: long answers are auto‑summarized with an Expand toggle. 
+            You can still view the full source if needed.</p>
+        </div>
+      </div>
+    </main>
+  </div>
 
-/* Transit flow state */
-const transit = { active:false, origin:null, destination:null };
+  <script>
+    // ————————————————————————————————————————
+    // 0) Utilities
+    // ————————————————————————————————————————
+    const $ = (q, el=document) => el.querySelector(q);
+    const $$ = (q, el=document) => [...el.querySelectorAll(q)];
+    const uid = () => Math.random().toString(36).slice(2,9);
 
-/* --------------------------- Utils --------------------------- */
-function save(){
-  localStorage.setItem('chats', JSON.stringify(chats));
-  localStorage.setItem('activeId', activeId||'');
-}
-function newId(){ return 'c_'+Date.now(); }
-function ensureChat(){
-  if(!activeId || !chats[activeId]){
-    activeId=newId(); chats[activeId]={id:activeId,title:'New chat',messages:[]};
-    save(); renderHistory();
-  }
-}
-function linkify(s=''){
-  let out = s.replace(/(https?:\/\/[^\s)]+)\b/gi, m => `<a href="${m}" target="_blank" rel="noopener">${m}</a>`);
-  out = out.replace(/(\(\d{3}\)\s?\d{3}-\d{4}|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b)/g, m => `<a href="tel:${m.replace(/[^\d]/g,'')}">${m}</a>`);
-  return out;
-}
-function bubble(role, html){
-  const w=document.createElement('div');
-  w.className=`flex ${role==='user'?'justify-end':'justify-start'}`;
-  const b=document.createElement('div');
-  b.className=`bubble max-w-[85%] rounded-2xl px-4 py-3 shadow text-sm leading-6 ${
-    role==='user' ? 'bg-brand text-black' : 'bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-700'
-  }`;
-  b.innerHTML = html;
-  w.appendChild(b);
-  return w;
-}
-function addMsg(role, html){
-  ensureChat();
-  chats[activeId].messages.push({ role, html, ts: Date.now() });
-  if(role==='user' && (chats[activeId].title||'')==='New chat'){
-    const t = html.replace(/<[^>]+>/g,'').slice(0,40);
-    chats[activeId].title = t || 'New chat';
-  }
-  save(); renderChat(); renderHistory();
-}
-function scrollToBottom(){ document.getElementById('chatWrap')?.scrollTo({ top: 9e9, behavior:'smooth' }); }
+    function renderIconify(){ lucide.createIcons(); }
 
-/* --------------------------- Renderers --------------------------- */
-function renderQuick(){
-  const q=document.getElementById('quick'); q.innerHTML='';
-  const items=[
-    {label:'Schedule Appointment',href:ENGAGE.appointment,emoji:'📅'},
-    {label:'Find Jobs',href:ENGAGE.jobs,emoji:'🔎'},
-    {label:'Training Programs',href:ENGAGE.trainings,emoji:'🎓'},
-    {label:'Community Resources',href:ENGAGE.resources,emoji:'📚'},
-    {label:'NJ TRANSIT Trip Planner',href:'#',emoji:'🚌',onClick:startTransit}
-  ];
-  items.forEach(it=>{
-    const el=document.createElement(it.href==='#'?'button':'a');
-    el.className='w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-    el.innerHTML=`<span class="flex items-center gap-2"><span>${it.emoji}</span><span>${it.label}</span></span><span>›</span>`;
-    if(it.href==='#'){ el.onclick=it.onClick; } else { el.href=it.href; el.target='_blank'; el.rel='noopener noreferrer'; }
-    q.appendChild(el);
-  });
-}
-function renderHistory(){
-  const h=document.getElementById('history'); h.innerHTML='';
-  Object.values(chats).sort((a,b)=>b.id.localeCompare(a.id)).forEach(c=>{
-    const btn=document.createElement('button');
-    btn.className=`w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${c.id===activeId?'bg-brand/20':''}`;
-    btn.textContent=c.title||'Untitled';
-    btn.onclick=()=>{ activeId=c.id; save(); renderChat(); renderHistory(); };
-    h.appendChild(btn);
-  });
-}
-function renderChat(){
-  const title=document.getElementById('chatTitle'); title.textContent = (chats[activeId]?.title)||'New chat';
-  const body=document.getElementById('chatBody'); body.innerHTML='';
-  const items=(chats[activeId]?.messages)||[];
-  if(!items.length){
-    const empty=document.createElement('div');
-    empty.className='text-center mt-8 text-gray-600 dark:text-gray-400';
-    empty.innerHTML=`<div class="w-16 h-16 mx-auto rounded-xl bg-brand text-black font-black grid place-items-center text-3xl">S</div><p class="mt-3">How can I help you today?</p>`;
-    body.appendChild(empty);
-  }else{
-    items.forEach(m=> body.appendChild(bubble(m.role, m.html)));
-  }
-  scrollToBottom();
-}
-
-/* --------------------------- NJ TRANSIT flow --------------------------- */
-function startTransit(){ transit.active=true; transit.origin=null; transit.destination=null; addMsg('assistant','🚌 Sure — let’s plan your trip. <b>What is your <i>origin</i> address?</b>'); }
-function maybeStartTransitByText(t){ if(/\bnj\s*transit\b|\btrip\s*planner\b/i.test(t)&&!transit.active){ startTransit(); return true; } return false; }
-function handleTransitStep(t){
-  if(!transit.active) return false;
-  if(!transit.origin){ transit.origin=t.trim(); addMsg('assistant','Got it. <b>What is your destination address?</b>'); return true; }
-  if(!transit.destination){
-    transit.destination=t.trim();
-    const o=encodeURIComponent(transit.origin), d=encodeURIComponent(transit.destination);
-    const njt=`https://www.njtransit.com/trip-planner?from=${o}&to=${d}&mode=transit`;
-    const g=`https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=transit`;
-    addMsg('assistant', `Here are your pre-filled links:<br>• <a href="${njt}" target="_blank" rel="noopener">NJ TRANSIT Trip Planner</a><br>• <a href="${g}" target="_blank" rel="noopener">Google Maps (Transit)</a><br>Safe travels! 🚆`);
-    transit.active=false; return true;
-  }
-  return false;
-}
-
-/* ---------------- Sticky topic detection ---------------- */
-function detectTopicFromUserText(t) {
-  const s = t.toLowerCase();
-  if (/\bsora\b|\bsecurity\s*(officer|guard)\b/.test(s)) return "sora";
-  if (/\bemilio\b|\bculinary\b/.test(s)) return "emilio";
-  if (/\bforklift\b/.test(s)) return "forklift";
-  if (/\bappointment\b|\bschedule\b|\bmake\s+an?\s+appointment\b/.test(s)) return "appointment";
-  if (/\bnj\s*transit\b|\btrip\s*planner\b/.test(s)) return "njt";
-  if (/\bresource(s)?\b/.test(s)) return "resources";
-  if (/\bjobs?\b/.test(s)) return "jobs";
-  return lastTopic;
-}
-
-/* --------------------------- Network --------------------------- */
-async function fetchAI(prompt){
-  const r = await fetch(API_AI, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
-    body: JSON.stringify({ prompt, context: { lastTopic } })   // send sticky topic
-  });
-  if(!r.ok){
-    const t = await r.text().catch(()=> '');
-    throw new Error(t || `HTTP ${r.status}`);
-  }
-  const j = await r.json().catch(()=> ({}));
-  if (j.topic) lastTopic = j.topic;                            // update sticky topic from server
-  return j.text || j.reply || '(no response)';
-}
-
-/* --------------------------- Boot --------------------------- */
-function init(){
-  ensureChat(); renderQuick(); renderHistory(); renderChat();
-
-  document.getElementById('btnNew').onclick = ()=>{ activeId=newId(); chats[activeId]={id:activeId,title:'New chat',messages:[]}; save(); renderHistory(); renderChat(); };
-  document.getElementById('btnRename').onclick = ()=>{ ensureChat(); const t=prompt('Rename chat:',chats[activeId].title||''); if(t){chats[activeId].title=t.trim(); save(); renderHistory(); renderChat();} };
-  document.getElementById('btnDelete').onclick = ()=>{ if(!activeId) return; if(confirm('Delete this chat?')){ delete chats[activeId]; activeId=Object.keys(chats)[0]||null; save(); renderHistory(); renderChat(); } };
-
-  const input=document.getElementById('input'), send=document.getElementById('send'), form=document.getElementById('composer');
-  const up=()=> send.disabled=!input.value.trim(); ['input','keyup','change','paste'].forEach(ev=> input.addEventListener(ev,up)); up();
-  input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); form.requestSubmit(); }});
-
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const raw=input.value.trim(); if(!raw) return;
-    lastTopic = detectTopicFromUserText(raw);        // keep topic sticky
-
-    input.value=''; up();
-
-    if(maybeStartTransitByText(raw) || handleTransitStep(raw)){ addMsg('user', linkify(raw)); return; }
-
-    addMsg('user', linkify(raw));
-    const body=document.getElementById('chatBody'); const thinking=bubble('assistant','…'); body.appendChild(thinking); scrollToBottom();
-
-    try{
-      const html = linkify(await fetchAI(raw));
-      thinking.querySelector('.bubble').innerHTML = html;
-      chats[activeId].messages.push({role:'assistant', html, ts:Date.now()}); save(); renderChat();
-    }catch(err){
-      const msg=(err.message||'').replace(/</g,'&lt;').slice(0,1000);
-      thinking.querySelector('.bubble').innerHTML=`Sorry — upstream error.<br/><small class="text-gray-500">${msg}</small>`;
-      save();
+    function mdify(text){
+      // extremely light formatting to break walls of text → bullets & paragraphs.
+      if(!text) return '';
+      // split big paragraphs
+      const parts = text.split(/\n{2,}|### /g).map(s => s.trim()).filter(Boolean);
+      return parts.map(p => {
+        // if it looks like a run-on paragraph, convert numbered lists where appropriate
+        if(/[0-9]+\)/.test(p) || /\*\*/.test(p)) return `<p>${p}</p>`;
+        // add bullets for long commas
+        if(p.length > 500){
+          return '<ul class="list-disc ml-5">' + p.split(/\.?\s+(?=[A-Z])/).slice(0,8).map(s=>`<li>${s.trim()}</li>`).join('') + '</ul>'
+        }
+        return `<p>${p}</p>`
+      }).join('');
     }
-  });
-}
 
-init();
-renderQuick();
-</script>
+    function chunkIfLong(html){
+      // Wrap long content in <details> with a short summary
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const text = tmp.textContent || '';
+      if(text.length < 900) return html;
+      const short = text.slice(0, 400) + '…';
+      return `
+        <details class="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+          <summary class="cursor-pointer select-none text-sm">Show full answer</summary>
+          <div class="prose max-w-none mt-2">${html}</div>
+        </details>`;
+    }
+
+    // ————————————————————————————————————————
+    // 1) Data: HARD‑CODED answers come FIRST
+    // Keep these tight, factual, and maintained by you. They beat Supabase/Gemini.
+    // ————————————————————————————————————————
+    const HARD = [
+      {
+        keys: ['sora','sora program','tell me about sora','video model'],
+        title: 'SORA training at TASK (short version)',
+        answer: `**SORA Unarmed Security License @ TASK**\n\n• **Format:** Virtual class hosted in the TASK Computer Lab (camera on)\n• **Schedule:** Two days, **9:00 AM – 5:00 PM**\n• **Location:** TASK Computer Lab (arrive **8:30 AM**)\n• **Bring:** Headphones (wired), pen & paper, email login info\n• **Rules:** Follow instructor directions; no disruptions; keep area clean\n• **Cost:** Covered by TASK (we pay the fees)\n• **Next Steps:** Reply with full name. If you had a prior SORA account and forgot the password, email **pdu@njsp.org** for reset.`
+      },
+      {
+        keys: ['culinary','culinary program','eca','chef','kitchen class'],
+        title: 'TASK Culinary Training (10‑week overview)',
+        answer: `**Emilio Culinary Academy (ECA) — 10 weeks**\n\n• **Weeks 1–8 (Class):** Knife skills, stations, food safety/ServSafe prep, stocks/soups, sauces, baking basics, line simulation, teamwork.\n• **Weeks 9–10 (Internship):** Hands‑on in TASK kitchen with Chef Adam.\n• **Goal:** Leave with ServSafe cert + job readiness (resume, mock interviews).\n• **When/Where:** TASK Kitchen/Classroom — arrive **8:45 AM** on day one.\n• **Bring:** Notebook, closed‑toe shoes, positive attitude.\n• **Outcome:** Job placement support + references for strong performers.`
+      },
+      {
+        keys: ['who teaches the class','who is the instructor','chef adam'],
+        title: 'Instructor',
+        answer: `**Chef Adam Livow** leads the training with support from TASK staff.\nStudents practice in a real production kitchen and complete a two‑week internship.`
+      }
+    ];
+
+    function findHardAnswer(q){
+      const s = q.toLowerCase();
+      for(const item of HARD){
+        if(item.keys.some(k => s.includes(k))) return item;
+      }
+      return null;
+    }
+
+    // ————————————————————————————————————————
+    // 2) Supabase fallback (SECOND)
+    // NOTE: Replace with your real project URL and anon key.
+    // Query a table like `faqs(topic text, answer text)` by ILIKE match.
+    // Returns null when nothing found.
+    // ————————————————————————————————————————
+    const SUPABASE_URL = window.SUPABASE_URL || '';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+
+    async function fetchFromSupabase(query){
+      try{
+        if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return null; // disabled if not configured
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/faqs?select=answer&topic=ilike.*${encodeURIComponent(query)}*`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+        if(!res.ok) return null;
+        const rows = await res.json();
+        if(rows && rows[0] && rows[0].answer) return { title: 'From knowledge base', answer: rows[0].answer };
+      }catch(e){ console.warn('Supabase error', e); }
+      return null;
+    }
+
+    // ————————————————————————————————————————
+    // 3) Gemini LAST (your /api/ai proxy). Keep answers compact.
+    // ————————————————————————————————————————
+    async function fetchFromGemini(query){
+      try{
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: [{role:'user', content: query}], max_tokens: 400 })
+        });
+        const data = await res.json();
+        return { title: 'AI', answer: data.reply || 'Sorry, I could not generate a response.' };
+      }catch(e){
+        console.warn('Gemini error', e);
+        return { title: 'AI', answer: 'Model is unavailable right now.' };
+      }
+    }
+
+    // ————————————————————————————————————————
+    // 4) Conversation state + UI
+    // ————————————————————————————————————————
+    const state = {
+      chats: {},
+      currentId: null
+    };
+
+    function newChat(title='New chat'){
+      const id = uid();
+      state.chats[id] = { id, title, messages: [] };
+      state.currentId = id;
+      renderChatList();
+      renderThread();
+      $('#chatTitle').value = title;
+      return id;
+    }
+
+    function selectChat(id){ state.currentId = id; renderChatList(); renderThread(); }
+
+    function deleteCurrent(){ if(!state.currentId) return; delete state.chats[state.currentId]; state.currentId = Object.keys(state.chats)[0] || newChat(); renderChatList(); renderThread(); }
+
+    function renameCurrent(){ if(!state.currentId) return; const t = prompt('Rename chat to:',$('#chatTitle').value.trim()||'Untitled'); if(t){ state.chats[state.currentId].title = t; $('#chatTitle').value = t; renderChatList(); } }
+
+    function renderChatList(){
+      const wrap = $('#chatList');
+      wrap.innerHTML = '';
+      Object.values(state.chats).forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left px-3 py-2 rounded-xl ${c.id===state.currentId?'bg-neutral-900 text-white':'hover:bg-neutral-100'}`;
+        btn.innerHTML = `<div class="text-sm font-medium">${c.title || 'Untitled'}</div>`;
+        btn.onclick = () => selectChat(c.id);
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderThread(){
+      const thread = $('#thread');
+      thread.innerHTML = '';
+      const chat = state.chats[state.currentId];
+      (chat?.messages||[]).forEach(m => thread.appendChild(renderMsg(m)));
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function renderMsg(m){
+      const wrap = document.createElement('div');
+      wrap.className = 'msg';
+      wrap.innerHTML = `
+        <div class="flex gap-3">
+          <div class="shrink-0 w-8 h-8 rounded-xl grid place-items-center ${m.role==='user'?'bg-neutral-900 text-white':'bg-neutral-100'}">
+            <i data-lucide="${m.role==='user'?'user':'bot'}"></i>
+          </div>
+          <div class="flex-1">
+            ${m.role==='assistant' ? `<div class="text-[11px] text-neutral-500 mb-1">${m.title||''}</div>` : ''}
+            <div class="prose max-w-none">${m.html}</div>
+          </div>
+        </div>`;
+      renderIconify();
+      return wrap;
+    }
+
+    function push(role, html, title=''){
+      const chat = state.chats[state.currentId];
+      const msg = { role, html, title };
+      chat.messages.push(msg);
+      $('#thread').appendChild(renderMsg(msg));
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // ————————————————————————————————————————
+    // 5) Answer router: HARD → SUPABASE → GEMINI
+    // ————————————————————————————————————————
+    async function answer(query){
+      // 1) HARD
+      const hard = findHardAnswer(query);
+      if(hard){
+        const html = chunkIfLong(mdify(hard.answer));
+        push('assistant', html, hard.title);
+        return;
+      }
+      // 2) SUPABASE
+      const kb = await fetchFromSupabase(query);
+      if(kb){
+        const html = chunkIfLong(mdify(kb.answer));
+        push('assistant', html, kb.title);
+        return;
+      }
+      // 3) GEMINI
+      const ai = await fetchFromGemini(query);
+      const html = chunkIfLong(mdify(ai.answer));
+      push('assistant', html, ai.title);
+    }
+
+    // ————————————————————————————————————————
+    // 6) Wire up UI
+    // ————————————————————————————————————————
+    $('#composer').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const q = $('#prompt').value.trim();
+      if(!q) return;
+      $('#prompt').value = '';
+      push('user', mdify(q));
+      // title from first message
+      const chat = state.chats[state.currentId];
+      if(chat.messages.length <= 1){ chat.title = q.slice(0, 50); $('#chatTitle').value = chat.title; renderChatList(); }
+      await answer(q);
+    });
+
+    $('#newChatBtn').onclick = ()=> newChat();
+    $('#deleteChatTool').onclick = deleteCurrent;
+    $('#renameChatTool').onclick = renameCurrent;
+    $('#chatTitle').addEventListener('change', (e)=>{ const t = e.target.value.trim(); if(t){ state.chats[state.currentId].title = t; renderChatList(); }});
+
+    // mobile sidebar toggle
+    $('#toggleMenu').onclick = ()=> document.querySelector('aside').classList.toggle('hidden');
+
+    // init
+    const first = newChat();
+    push('assistant', mdify('Hi! Ask me about **SORA**, the **Culinary program**, job help, or events. I will always use TASK\'s hardcoded answers first, then our knowledge base, and AI last.'), 'Welcome');
+    renderIconify();
+  </script>
 </body>
 </html>
