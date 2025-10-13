@@ -7,14 +7,14 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a00'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand:'#ff8a00' }}}};
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ brand:'#ff8a00' }}}};
   </script>
   <style>
     :root { --brand:#ff8a00; }
     .custom-scrollbar::-webkit-scrollbar{width:8px;height:8px}
     .custom-scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:6px}
-    .bubble{ word-break: break-word; overflow-wrap:anywhere; }
-    .bubble a{ text-decoration: underline; }
+    .bubble{ word-break:break-word; overflow-wrap:anywhere; }
+    .bubble a{ text-decoration:underline }
     .composer-shell{position:sticky;bottom:0;background:linear-gradient(to top,rgba(255,255,255,.96),rgba(255,255,255,0))}
     .dark .composer-shell{background:linear-gradient(to top,rgba(15,23,42,.96),rgba(15,23,42,0))}
   </style>
@@ -23,13 +23,17 @@
 
 <!-- Splash -->
 <div id="splash" class="fixed inset-0 z-50 grid place-items-center bg-gray-100 dark:bg-[#0b1220]">
-  <div class="w-full max-w-md p-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl text-center">
+  <div class="relative w-full max-w-md p-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl text-center">
+    <!-- Theme toggle top-left -->
+    <button id="btnThemeSplash" class="absolute left-3 top-3 p-2 rounded-full border border-gray-200 dark:border-gray-700" title="Toggle theme" aria-label="Toggle theme">
+      <span id="themeIconSplash">☀️</span>
+    </button>
+
     <div class="w-20 h-20 mx-auto rounded-2xl bg-brand text-black font-black grid place-items-center text-4xl">S</div>
     <h1 class="mt-4 text-2xl font-bold">Solace</h1>
     <p class="mt-2 text-gray-600 dark:text-gray-400">Your guide to career and community resources.</p>
-    <div class="mt-6 flex items-center justify-center gap-2">
-      <button id="btnStart" class="px-5 py-2 rounded-lg bg-brand text-black font-semibold">Start</button>
-      <button id="btnThemeSplash" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700">Theme</button>
+    <div class="mt-6">
+      <button id="btnStart" class="px-6 py-2 rounded-lg bg-brand text-black font-semibold">Start</button>
     </div>
   </div>
 </div>
@@ -62,7 +66,9 @@
 
     <!-- Theme at bottom -->
     <div class="p-3 border-t border-gray-200 dark:border-gray-800">
-      <button id="btnTheme" class="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700">Theme</button>
+      <button id="btnTheme" class="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700">
+        <span id="themeIconSide">☀️</span> Theme
+      </button>
     </div>
   </aside>
 
@@ -75,10 +81,10 @@
         <div class="w-8 h-8 rounded-md bg-brand text-black font-bold grid place-items-center">S</div>
         <div class="font-semibold">Solace</div>
       </div>
-      <button id="btnThemeM" class="px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700">Theme</button>
+      <button id="btnThemeM" class="px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700"><span id="themeIconM">☀️</span></button>
     </header>
 
-    <!-- Chat -->
+    <!-- Chat scroll -->
     <section id="chatWrap" class="flex-1 overflow-y-auto custom-scrollbar p-4">
       <div id="chatBody" class="max-w-3xl mx-auto space-y-3">
         <div class="text-center mt-8 text-gray-600 dark:text-gray-400">
@@ -94,7 +100,7 @@
         <textarea id="input" rows="1"
           placeholder="Ask about trainings, jobs, resources, appointments…"
           class="w-full resize-none rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0f172a] p-4 pr-24 focus:ring-2 focus:ring-brand"></textarea>
-        <button id="send" class="absolute right-2 bottom-2 px-3 py-1.5 rounded-md text-black bg-brand disabled:bg-gray-400">Send</button>
+        <button id="send" type="submit" class="absolute right-2 bottom-2 px-3 py-1.5 rounded-md text-black bg-brand disabled:bg-gray-400">Send</button>
       </form>
     </div>
 
@@ -104,121 +110,118 @@
 <script type="module">
 /* --------------------------- Config --------------------------- */
 const ENGAGE = {
-  appointment: "https://bycell.co/ddncs",
-  jobs:        "https://bycell.co/ddmtq",
-  trainings:   "https://bycell.co/ddmtn",
-  resources:   "https://bycell.co/ddmua",
+  appointment:"https://bycell.co/ddncs",
+  jobs:"https://bycell.co/ddmtq",
+  trainings:"https://bycell.co/ddmtn",
+  resources:"https://bycell.co/ddmua"
 };
-const API_AI = "/api/ai";
+/* If this html is served from another origin, still hit the right API */
+const API_AI = (location.hostname.endsWith("task-assistant-xi.vercel.app") || location.hostname==="localhost")
+  ? "/api/ai"
+  : "https://task-assistant-xi.vercel.app/api/ai";
 
 /* --------------------------- Theme --------------------------- */
-const applyTheme = (t)=>{ document.documentElement.classList.toggle('dark', t==='dark'); localStorage.setItem('theme', t); };
-const toggleTheme = ()=> applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark');
+const sun = "☀️", moon = "🌙";
+function setThemeIcon(isDark){
+  const icon = isDark ? sun : moon; // show opposite so the button indicates the toggle
+  ["themeIconSplash","themeIconSide","themeIconM"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent = icon;
+  });
+}
+function applyTheme(mode){
+  document.documentElement.classList.toggle('dark', mode==='dark');
+  localStorage.setItem('theme', mode);
+  setThemeIcon(mode==='dark');
+}
+function toggleTheme(){ applyTheme(localStorage.getItem('theme')==='dark'?'light':'dark'); }
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
 
-/* init theme on load (before showing anything) */
-applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light'));
+["btnThemeSplash","btnTheme","btnThemeM"].forEach(id=>document.getElementById(id)?.addEventListener('click', toggleTheme));
 
-/* Splash handlers */
-document.getElementById('btnThemeSplash').addEventListener('click', toggleTheme);
+/* Splash → App */
 document.getElementById('btnStart').addEventListener('click', ()=>{
   document.getElementById('splash').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
 });
 
-/* Sidebar theme buttons */
-document.getElementById('btnTheme')?.addEventListener('click', toggleTheme);
-document.getElementById('btnThemeM')?.addEventListener('click', toggleTheme);
-
-/* --------------------------- State --------------------------- */
+/* --------------------------- Chat state --------------------------- */
 let chats = JSON.parse(localStorage.getItem('chats')||'{}');
-let activeId = localStorage.getItem('activeId') || null; // define before any usage
+let activeId = localStorage.getItem('activeId') || null;
 
-/* Transit flow */
-const transitFlow = { active:false, origin:null, destination:null };
+/* Transit flow state */
+const transit = { active:false, origin:null, destination:null };
 
 /* --------------------------- Utils --------------------------- */
 function save(){ localStorage.setItem('chats', JSON.stringify(chats)); localStorage.setItem('activeId', activeId||''); }
 function newId(){ return 'c_'+Date.now(); }
 function ensureChat(){
-  if(!activeId || !chats[activeId]) {
-    activeId = newId();
-    chats[activeId] = { id: activeId, title: 'New chat', messages: [] };
+  if(!activeId || !chats[activeId]){
+    activeId=newId(); chats[activeId]={id:activeId,title:'New chat',messages:[]};
     save(); renderHistory();
   }
 }
-function linkifyText(s=''){
-  let out = s.replace(/(https?:\/\/[^\s)]+)\b/gi, m => `<a href="${m}" target="_blank" rel="noopener noreferrer">${m}</a>`);
+function linkify(s=''){
+  let out = s.replace(/(https?:\/\/[^\s)]+)\b/gi, m => `<a href="${m}" target="_blank" rel="noopener">${m}</a>`);
   out = out.replace(/(\(\d{3}\)\s?\d{3}-\d{4}|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b)/g, m => `<a href="tel:${m.replace(/[^\d]/g,'')}">${m}</a>`);
   return out;
 }
+function bubble(role, html){
+  const w=document.createElement('div');
+  w.className=`flex ${role==='user'?'justify-end':'justify-start'}`;
+  const b=document.createElement('div');
+  b.className=`bubble max-w-[85%] rounded-2xl px-4 py-3 shadow text-sm leading-6 ${
+    role==='user' ? 'bg-brand text-black' : 'bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-700'
+  }`;
+  b.innerHTML = html;
+  w.appendChild(b);
+  return w;
+}
 function addMsg(role, html){
   ensureChat();
-  const rec = { role, html, ts: Date.now() };
-  chats[activeId].messages.push(rec);
-  if(role==='user' && chats[activeId].title==='New chat'){
-    const t = html.replace(/<[^>]+>/g,'').trim().slice(0,40);
+  chats[activeId].messages.push({ role, html, ts: Date.now() });
+  if(role==='user' && (chats[activeId].title||'')==='New chat'){
+    const t = html.replace(/<[^>]+>/g,'').slice(0,40);
     chats[activeId].title = t || 'New chat';
   }
   save(); renderChat(); renderHistory();
 }
-function bubble(role, html){
-  const wrap = document.createElement('div');
-  wrap.className = `flex ${role==='user'?'justify-end':'justify-start'}`;
-  const inner = document.createElement('div');
-  inner.className = `bubble max-w-[85%] rounded-2xl px-4 py-3 shadow text-sm leading-6 ${
-    role==='user'
-      ? 'bg-brand text-black'
-      : 'bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-700'
-  }`;
-  inner.innerHTML = html;
-  wrap.appendChild(inner);
-  return wrap;
-}
-function scrollToBottom(){
-  const wrap = document.getElementById('chatWrap');
-  wrap?.scrollTo({ top: wrap.scrollHeight, behavior: 'smooth' });
-}
+function scrollToBottom(){ document.getElementById('chatWrap')?.scrollTo({ top: 9e9, behavior:'smooth' }); }
 
 /* --------------------------- Renderers --------------------------- */
 function renderQuick(){
-  const q = document.getElementById('quick'); if(!q) return;
-  const items = [
-    {label:'Schedule Appointment', href: ENGAGE.appointment, emoji:'📅'},
-    {label:'Find Jobs',           href: ENGAGE.jobs,        emoji:'🔎'},
-    {label:'Training Programs',   href: ENGAGE.trainings,   emoji:'🎓'},
-    {label:'Community Resources', href: ENGAGE.resources,   emoji:'📚'},
-    {label:'NJ TRANSIT Trip Planner', href:'#',             emoji:'🚌', onClick: ()=>startTransitFlow()}
+  const q=document.getElementById('quick'); q.innerHTML='';
+  const items=[
+    {label:'Schedule Appointment',href:ENGAGE.appointment,emoji:'📅'},
+    {label:'Find Jobs',href:ENGAGE.jobs,emoji:'🔎'},
+    {label:'Training Programs',href:ENGAGE.trainings,emoji:'🎓'},
+    {label:'Community Resources',href:ENGAGE.resources,emoji:'📚'},
+    {label:'NJ TRANSIT Trip Planner',href:'#',emoji:'🚌',onClick:startTransit}
   ];
-  q.innerHTML='';
   items.forEach(it=>{
-    const a = document.createElement(it.href==='#'?'button':'a');
-    a.className='w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
-    a.innerHTML = `<span class="flex items-center gap-2"><span>${it.emoji}</span><span>${it.label}</span></span><span>›</span>`;
-    if(it.href==='#') a.onclick=it.onClick; else { a.href=it.href; a.target='_blank'; a.rel='noopener noreferrer'; }
-    q.appendChild(a);
+    const el=document.createElement(it.href==='#'?'button':'a');
+    el.className='w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+    el.innerHTML=`<span class="flex items-center gap-2"><span>${it.emoji}</span><span>${it.label}</span></span><span>›</span>`;
+    if(it.href==='#'){ el.onclick=it.onClick; } else { el.href=it.href; el.target='_blank'; el.rel='noopener noreferrer'; }
+    q.appendChild(el);
   });
 }
 function renderHistory(){
-  const h = document.getElementById('history');
-  if(!h) return;
-  h.innerHTML = '';
+  const h=document.getElementById('history'); h.innerHTML='';
   Object.values(chats).sort((a,b)=>b.id.localeCompare(a.id)).forEach(c=>{
-    const row = document.createElement('button');
-    row.className = `w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${c.id===activeId?'bg-brand/20':''}`;
-    row.textContent = c.title || 'Untitled';
-    row.title = c.title || 'Untitled';
-    row.onclick = ()=>{ activeId=c.id; save(); renderChat(); renderHistory(); };
-    h.appendChild(row);
+    const btn=document.createElement('button');
+    btn.className=`w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${c.id===activeId?'bg-brand/20':''}`;
+    btn.textContent=c.title||'Untitled';
+    btn.onclick=()=>{ activeId=c.id; save(); renderChat(); renderHistory(); };
+    h.appendChild(btn);
   });
 }
 function renderChat(){
-  const body = document.getElementById('chatBody');
-  body.innerHTML = '';
-  const items = (chats[activeId]?.messages)||[];
+  const body=document.getElementById('chatBody'); body.innerHTML='';
+  const items=(chats[activeId]?.messages)||[];
   if(!items.length){
-    const empty = document.createElement('div');
-    empty.className="text-center mt-8 text-gray-600 dark:text-gray-400";
-    empty.innerHTML = `<div class="w-16 h-16 mx-auto rounded-xl bg-brand text-black font-black grid place-items-center text-3xl">S</div><p class="mt-3">How can I help you today?</p>`;
+    const empty=document.createElement('div');
+    empty.className='text-center mt-8 text-gray-600 dark:text-gray-400';
+    empty.innerHTML=`<div class="w-16 h-16 mx-auto rounded-xl bg-brand text-black font-black grid place-items-center text-3xl">S</div><p class="mt-3">How can I help you today?</p>`;
     body.appendChild(empty);
   }else{
     items.forEach(m=> body.appendChild(bubble(m.role, m.html)));
@@ -227,39 +230,18 @@ function renderChat(){
 }
 
 /* --------------------------- NJ TRANSIT flow --------------------------- */
-function startTransitFlow(){
-  transitFlow.active = true; transitFlow.origin = null; transitFlow.destination = null;
-  addMsg('assistant', '🚌 Sure — let’s plan your trip. <b>What is your <i>origin</i> address?</b>');
-}
-function maybeHandleTransit(userText){
-  if(!transitFlow.active) return false;
-  if(!transitFlow.origin){
-    transitFlow.origin = userText.trim();
-    addMsg('assistant', 'Got it. <b>What is your destination address?</b>');
-    return true;
-  }
-  if(!transitFlow.destination){
-    transitFlow.destination = userText.trim();
-    const o = encodeURIComponent(transitFlow.origin);
-    const d = encodeURIComponent(transitFlow.destination);
-    const njt = `https://www.njtransit.com/trip-planner?from=${o}&to=${d}&mode=transit`;
-    const gmaps = `https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=transit`;
-    const html = [
-      `<b>Here are your pre-filled links:</b>`,
-      `• <a href="${njt}" target="_blank" rel="noopener">NJ TRANSIT Trip Planner</a>`,
-      `• <a href="${gmaps}" target="_blank" rel="noopener">Google Maps (Transit)</a>`,
-      `<br/>Safe travels! 🚆`
-    ].join('<br/>');
-    addMsg('assistant', html);
-    transitFlow.active = false;
-    return true;
-  }
-  return false;
-}
-// also auto-start flow if user types something like "nj transit" or "trip planner"
-function maybeStartTransitFromText(t){
-  if(/\bnj\s*transit\b|\btrip\s*planner\b/i.test(t) && !transitFlow.active){
-    startTransitFlow(); return true;
+function startTransit(){ transit.active=true; transit.origin=null; transit.destination=null; addMsg('assistant','🚌 Sure — let’s plan your trip. <b>What is your <i>origin</i> address?</b>'); }
+function maybeStartTransitByText(t){ if(/\bnj\s*transit\b|\btrip\s*planner\b/i.test(t)&&!transit.active){ startTransit(); return true; } return false; }
+function handleTransitStep(t){
+  if(!transit.active) return false;
+  if(!transit.origin){ transit.origin=t.trim(); addMsg('assistant','Got it. <b>What is your destination address?</b>'); return true; }
+  if(!transit.destination){
+    transit.destination=t.trim();
+    const o=encodeURIComponent(transit.origin), d=encodeURIComponent(transit.destination);
+    const njt=`https://www.njtransit.com/trip-planner?from=${o}&to=${d}&mode=transit`;
+    const g=`https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=transit`;
+    addMsg('assistant', `Here are your pre-filled links:<br>• <a href="${njt}" target="_blank" rel="noopener">NJ TRANSIT Trip Planner</a><br>• <a href="${g}" target="_blank" rel="noopener">Google Maps (Transit)</a><br>Safe travels! 🚆`);
+    transit.active=false; return true;
   }
   return false;
 }
@@ -268,79 +250,46 @@ function maybeStartTransitFromText(t){
 async function fetchAI(prompt){
   const r = await fetch(API_AI, {
     method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ prompt })
+    headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+    body: JSON.stringify({ prompt })                          // <-- POST only (prevents 405)
   });
   if(!r.ok){
-    const t = await r.text().catch(()=> '');
+    const t = await r.text().catch(()=> '');                 // show upstream content
     throw new Error(t || `HTTP ${r.status}`);
   }
-  const j = await r.json();
+  const j = await r.json().catch(()=> ({}));
   return j.text || j.reply || '(no response)';
 }
 
 /* --------------------------- Boot --------------------------- */
 function init(){
-  // ensure one chat
-  ensureChat();
-  renderQuick(); renderHistory(); renderChat();
+  ensureChat(); renderQuick(); renderHistory(); renderChat();
 
-  // new/rename/delete
-  document.getElementById('btnNew')?.addEventListener('click', ()=>{
-    activeId = newId();
-    chats[activeId] = { id: activeId, title:'New chat', messages: [] };
-    save(); renderHistory(); renderChat();
-  });
-  document.getElementById('btnRename')?.addEventListener('click', ()=>{
-    ensureChat();
-    const t = prompt('Rename chat:', chats[activeId].title || '');
-    if(t){ chats[activeId].title = t.trim(); save(); renderHistory(); }
-  });
-  document.getElementById('btnDelete')?.addEventListener('click', ()=>{
-    if(!activeId) return;
-    if(confirm('Delete this chat?')){
-      delete chats[activeId];
-      activeId = Object.keys(chats)[0] || null;
-      save(); renderHistory(); renderChat();
-    }
-  });
+  document.getElementById('btnNew').onclick = ()=>{ activeId=newId(); chats[activeId]={id:activeId,title:'New chat',messages:[]}; save(); renderHistory(); renderChat(); };
+  document.getElementById('btnRename').onclick = ()=>{ ensureChat(); const t=prompt('Rename chat:',chats[activeId].title||''); if(t){chats[activeId].title=t.trim(); save(); renderHistory();} };
+  document.getElementById('btnDelete').onclick = ()=>{ if(!activeId) return; if(confirm('Delete this chat?')){ delete chats[activeId]; activeId=Object.keys(chats)[0]||null; save(); renderHistory(); renderChat(); } };
 
-  // composer
-  const input = document.getElementById('input');
-  const send = document.getElementById('send');
-  const form = document.getElementById('composer');
-  const update = ()=> send.disabled = !input.value.trim();
-  ['input','keyup','change','paste'].forEach(ev=> input.addEventListener(ev, update));
-  update();
-
-  input.addEventListener('keydown', (e)=>{
-    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); }
-  });
+  const input=document.getElementById('input'), send=document.getElementById('send'), form=document.getElementById('composer');
+  const up=()=> send.disabled=!input.value.trim(); ['input','keyup','change','paste'].forEach(ev=> input.addEventListener(ev,up)); up();
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); form.requestSubmit(); }});
 
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    const textRaw = input.value.trim();
-    if(!textRaw) return;
-    input.value=''; update();
+    const raw=input.value.trim(); if(!raw) return;
+    input.value=''; up();
 
-    if(maybeStartTransitFromText(textRaw)){ addMsg('user', linkifyText(textRaw)); return; }
-    if(maybeHandleTransit(textRaw)){ addMsg('user', linkifyText(textRaw)); return; }
+    if(maybeStartTransitByText(raw) || handleTransitStep(raw)){ addMsg('user', linkify(raw)); return; }
 
-    addMsg('user', linkifyText(textRaw));
-
-    const body = document.getElementById('chatBody');
-    const thinking = bubble('assistant', '…');
-    body.appendChild(thinking); scrollToBottom();
+    addMsg('user', linkify(raw));
+    const body=document.getElementById('chatBody'); const thinking=bubble('assistant','…'); body.appendChild(thinking); scrollToBottom();
 
     try{
-      const replyHtml = linkifyText(await fetchAI(textRaw));
-      thinking.querySelector('.bubble').innerHTML = replyHtml;
-      chats[activeId].messages.push({ role:'assistant', html: replyHtml, ts: Date.now() });
-      save();
+      const html = linkify(await fetchAI(raw));              // <- hits /api/ai which reads Supabase first
+      thinking.querySelector('.bubble').innerHTML = html;
+      chats[activeId].messages.push({role:'assistant', html, ts:Date.now()}); save();
     }catch(err){
-      // Show status but keep layout tight
-      const msg = (err.message||'').replace(/</g,'&lt;').slice(0,300);
-      thinking.querySelector('.bubble').innerHTML = `Sorry — upstream error.<br/><small class="text-gray-500">${msg}</small>`;
+      const msg=(err.message||'').replace(/</g,'&lt;').slice(0,800);
+      thinking.querySelector('.bubble').innerHTML=`Sorry — upstream error.<br/><small class="text-gray-500">${msg}</small>`;
       save();
     }
   });
