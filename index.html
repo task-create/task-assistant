@@ -11,12 +11,14 @@
     :root { --ring: 0 0% 9%; }
     .sticky-tools{position:sticky;top:0;z-index:30}
     .prose p{margin:.5rem 0}
+    .prose ul{margin:.5rem 0; padding-left: 1.5rem;}
+    .prose li{margin-top: .25rem;}
     .msg{animation:fade .2s ease-in}
     @keyframes fade{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
     details>summary::-webkit-details-marker{display:none}
 
     /* Splash backgrounds */
-    .splash{position:fixed;inset:0;display:grid;place-items:center;z-index:60;transition:opacity .25s ease}
+    .splash{position:fixed;inset:0;display:grid;place-items:center;z-index:60;transition:opacity .25s ease; user-select: none;}
     .sky{position:absolute;inset:0;overflow:hidden;pointer-events:none; transition: background 2s ease;}
     .daySky{background:linear-gradient(180deg, #87CEEB 0%, #b6dcff 55%, #ffffff 100%);}  
     .sunriseSky{background: linear-gradient(180deg, #1e294b 0%, #ffecd2 60%, #fcb69f 100%);}
@@ -49,7 +51,7 @@
         filter: drop-shadow(0 0 10px #e6efff);
     }
 
-    /* Clouds (SVG outlined, fade in/out) */
+    /* Clouds */
     .cloud{position:absolute;width:420px;height:160px;animation:cloudMove 42s linear infinite; transition: opacity 1.5s ease-out, transform 0.5s;
       filter:drop-shadow(0 6px 14px rgba(0,0,0,.08))}
     .cloud path{fill:#ffffff;stroke:#8fb1e6;stroke-width:3}
@@ -60,7 +62,7 @@
       100%{transform:translateX(110vw);opacity:0}
     }
 
-    /* STARS (dense) + CONSTELLATIONS + SHOOTERS */
+    /* STARS */
     .stars{position:absolute;inset:0;opacity:0; transition: opacity 1.5s ease-in-out;}
     #starfield1, #starfield2, #starfield3 {
         position: absolute;
@@ -117,115 +119,50 @@
      }
 
     /* ROBOT */
-    .botWrap{position:absolute;left:50%;top:50%;width:160px;height:160px;margin-inline:auto;pointer-events:none;z-index:1; will-change: transform; transition: transform 0.8s ease-in-out;}
-    .bot{width:160px;height:160px; position:relative;}
-    .orbit{animation:soarAndPlay 30s ease-in-out infinite;}
-    @keyframes soarAndPlay {
-        0% { transform: translate(-50vw, -40vh) rotate(-90deg) scale(0.8); }
-        15% { transform: translate(40vw, -30vh) rotate(90deg) scale(1.2); }
-        30% { transform: translate(35vw, 40vh) rotate(180deg) scale(0.9); }
-        45% { transform: translate(-45vw, 30vh) rotate(270deg) scale(1.1); }
-        60% { transform: translate(0, 0) scale(1.5); } /* Center screen bigger */
-        75% { transform: translate(-30vw, -35vh) rotate(320deg) scale(1); }
-        90% { transform: translate(20vw, 20vh) rotate(400deg) scale(0.8); }
-        100% { transform: translate(-50vw, -40vh) rotate(450deg); }
-    }
-    .botHalo{position:absolute;left:50%;top:50%;width:64px;height:64px;border-radius:50%;pointer-events:auto;z-index:3; animation:soarAndPlay 30s ease-in-out infinite;}
-    .robot-secret-spin svg { animation: spin-secret 1s ease-out; }
-    @keyframes spin-secret {
-      from { transform: rotate(0deg) scale(1); }
-      to { transform: rotate(360deg) scale(1); }
-    }
-
-
-    .antennaLight{animation:blink 1.2s ease-in-out infinite;filter:drop-shadow(0 0 6px #f59e0b)}
-    @keyframes blink{0%,100%{opacity:.5}50%{opacity:1}}
-
+    .botWrap{position:absolute;left:50%;top:50%;width:140px;height:140px;margin-inline:auto;z-index:1; will-change: transform; transition: transform 0.8s ease-in-out, opacity 0.5s ease-in-out; cursor: grab; pointer-events: auto;}
+    .botWrap:active { cursor: grabbing; }
+    .bot{width:140px;height:140px; position:relative;}
+    .bot-arm, .bot-leg { transition: transform 0.3s ease-out; }
+    
     /* bubble */
     .botBubble {
-        position: absolute;
-        left: 50%;
-        background: linear-gradient(180deg, #ffffff, #f6f7fb);
-        border-radius: 16px;
-        padding: 10px 14px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
-        border: 1px solid rgba(0, 0, 0, .06);
-        pointer-events: none;
-        z-index: 10;
-        width: max-content;
-        max-width: 220px;
-        transition: opacity 0.3s, transform 0.3s;
+        position: absolute; left: 50%; background: linear-gradient(180deg, #ffffff, #f6f7fb);
+        border-radius: 16px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+        border: 1px solid rgba(0, 0, 0, .06); pointer-events: none; z-index: 10;
+        width: max-content; max-width: 240px; transition: opacity 0.3s, transform 0.3s;
     }
-    .botBubble.hidden {
-        opacity: 0;
-        transform: translateX(-50%) translateY(10px);
-    }
-    .botBubble.top {
-        bottom: 105%;
-        transform: translateX(-50%);
-    }
-    .botBubble.bottom {
-        top: 105%;
-        transform: translateX(-50%);
-    }
-    .botBubble:before {
-        content: "";
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 10px solid transparent;
-    }
-    .botBubble.top:before {
-        top: 100%;
-        border-top-color: #f6f7fb;
-    }
-    .botBubble.bottom:before {
-        bottom: 100%;
-        border-bottom-color: #ffffff;
-    }
+    .botBubble.hidden { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    .botBubble.top { bottom: 100%; transform: translateX(-50%); }
+    .botBubble.bottom { top: 100%; transform: translateX(-50%); }
+    .botBubble:before { content: ""; position: absolute; left: 50%; transform: translateX(-50%); border: 10px solid transparent; }
+    .botBubble.top:before { top: 100%; border-top-color: #f6f7fb; }
+    .botBubble.bottom:before { bottom: 100%; border-bottom-color: #ffffff; }
     
-    .bot-eye { animation: eyeGlow 3s ease-in-out infinite; }
-    .bot-eye:last-child { animation-delay: 0.3s; }
-    @keyframes eyeGlow {
-        0%, 100% { fill: #A7F3D0; }
-        50% { fill: #dcfce7; }
-    }
-
     /* Mobile sidebar */
     @media (max-width: 767px) {
-      aside.hidden-mobile {
-        transform: translateX(-100%);
-      }
-      aside {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 300px;
-        z-index: 50;
-        transition: transform 0.3s ease-in-out;
-      }
-      #backdrop {
-        position: fixed;
-        inset: 0;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 40;
-        transition: opacity 0.3s ease-in-out;
-      }
-       #backdrop.hidden {
-        opacity: 0;
-        pointer-events: none;
-       }
+      aside.hidden-mobile { transform: translateX(-100%); }
+      aside { position: fixed; top: 0; bottom: 0; left: 0; width: 300px; z-index: 50; transition: transform 0.3s ease-in-out; }
+      #backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 40; transition: opacity 0.3s ease-in-out; }
+       #backdrop.hidden { opacity: 0; pointer-events: none; }
     }
-    .loader-dot {
-      animation: loader-blink 1.4s infinite both;
-    }
+    .loader-dot { animation: loader-blink 1.4s infinite both; }
     .loader-dot:nth-child(2) { animation-delay: 0.2s; }
     .loader-dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes loader-blink {
-        0%, 80%, 100% { opacity: .2; }
-        40% { opacity: 1; }
-    }
+    @keyframes loader-blink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
+
+    /* In-Chat Theming */
+    .theme-dark aside { background-color: #111827; border-color: #374151; color: #d1d5db; }
+    .theme-dark aside .sticky-tools { background-color: #111827; border-color: #374151;}
+    .theme-dark aside button { border-color: #374151; }
+    .theme-dark aside button:hover { background-color: #1f2937; }
+    .theme-dark aside #newChatBtn, .theme-dark aside #newChatBtn:hover { background-color: #4f46e5; color: white; }
+    .theme-dark aside .text-neutral-500 { color: #6b7280; }
+    .theme-dark main { background-color: #1f2937; color: #d1d5db; }
+    .theme-dark main .sticky-tools, .theme-dark main .border-t { background-color: #1f2937; border-color: #374151; }
+    .theme-dark main #chatTitle { color: #f9fafb; }
+    .theme-dark main #prompt { background-color: #111827; border-color: #4b5563; color: #f9fafb; }
+    .theme-dark main #sendBtn { background-color: #4f46e5; }
+    .theme-dark .msg .bg-neutral-100 { background-color: #374151; }
   </style>
 </head>
 <body class="h-screen bg-neutral-50 text-neutral-900 overflow-hidden">
@@ -253,39 +190,9 @@
         <div id="starfield2"></div>
         <div id="starfield3"></div>
         <div class="constellations">
-            <!-- Big Dipper -->
-            <svg id="constellation1" width="220" height="150" viewBox="0 0 220 120" fill="none" stroke="#b6c8ff" stroke-width="1" style="left:15%;top:18%;">
-                <circle cx="10" cy="100" r="2.5"></circle>
-                <circle cx="50" cy="85" r="2.5"></circle>
-                <circle cx="90" cy="70" r="2.5"></circle>
-                <circle cx="130" cy="55" r="2.5"></circle>
-                <circle cx="175" cy="65" r="2.5"></circle>
-                <circle cx="180" cy="25" r="2.5"></circle>
-                <circle cx="210" cy="80" r="2.5"></circle>
-                <path d="M10 100 L50 85 L90 70 L130 55 L175 65 M130 55 L180 25 M175 65 L210 80"></path>
-            </svg>
-            <!-- Orion -->
-            <svg id="constellation2" width="200" height="220" viewBox="0 0 200 220" fill="none" stroke="#b6c8ff" stroke-width="1" style="left:65%;top:45%;">
-                 <circle cx="10" cy="10" r="2.5"></circle>
-                 <circle cx="70" cy="20" r="2.5"></circle>
-                 <circle cx="10" cy="80" r="2.5"></circle>
-                 <circle cx="70" cy="80" r="2.5"></circle>
-                 <circle cx="40" cy="130" r="2.5"></circle>
-                 <circle cx="50" cy="140" r="2.5"></circle>
-                 <circle cx="60" cy="150" r="2.5"></circle>
-                 <circle cx="10" cy="210" r="2.5"></circle>
-                 <circle cx="80" cy="200" r="2.5"></circle>
-                 <path d="M10 10 L10 80 L40 130 L10 210 M70 20 L70 80 L60 150 L80 200 M40 130 L50 140 L60 150"></path>
-            </svg>
-             <!-- Cassiopeia -->
-            <svg id="constellation3" width="180" height="120" viewBox="0 0 180 120" fill="none" stroke="#d1deff" stroke-width="1" style="left: 40%; top: 70%;">
-                <circle cx="10" cy="50" r="2.5"></circle>
-                <circle cx="50" cy="20" r="2.5"></circle>
-                <circle cx="90" cy="50" r="2.5"></circle>
-                <circle cx="130" cy="20" r="2.5"></circle>
-                <circle cx="170" cy="50" r="2.5"></circle>
-                <path d="M10 50 L50 20 L90 50 L130 20 L170 50"></path>
-            </svg>
+            <svg id="constellation1" width="220" height="150" viewBox="0 0 220 120" fill="none" stroke="#b6c8ff" stroke-width="1" style="left:15%;top:18%;"><path d="M10 100 L50 85 L90 70 L130 55 L175 65 M130 55 L180 25 M175 65 L210 80"></path></svg>
+            <svg id="constellation2" width="200" height="220" viewBox="0 0 200 220" fill="none" stroke="#b6c8ff" stroke-width="1" style="left:65%;top:45%;"><path d="M10 10 L10 80 L40 130 L10 210 M70 20 L70 80 L60 150 L80 200 M40 130 L50 140 L60 150"></path></svg>
+            <svg id="constellation3" width="180" height="120" viewBox="0 0 180 120" fill="none" stroke="#d1deff" stroke-width="1" style="left: 40%; top: 70%;"><path d="M10 50 L50 20 L90 50 L130 20 L170 50"></path></svg>
         </div>
         <div class="shooting" id="shooting"></div>
       </div>
@@ -293,35 +200,38 @@
 
     <!-- Hero (title + bot orbiting it) -->
     <div id="hero" class="relative z-10 text-center">
-        <div class="botWrap orbit" id="bot">
+        <div class="botWrap" id="bot">
             <div class="bot">
                 <div id="botBubble" class="botBubble bottom"></div>
-                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- legs -->
-                <rect x="70" y="130" width="18" height="34" rx="8" fill="#4B5563"></rect>
-                <rect x="112" y="130" width="18" height="34" rx="8" fill="#4B5563"></rect>
-                <!-- body -->
-                <rect x="40" y="60" width="120" height="80" rx="22" fill="#0F172A"></rect>
-                <!-- arms (one waving) -->
-                <rect x="22" y="85" width="16" height="44" rx="8" fill="#4B5563">
-                    <animateTransform attributeName="transform" type="rotate" values="0 30 90;20 30 90;0 30 90" dur="2.5s" repeatCount="indefinite"/>
-                </rect>
-                <rect x="164" y="85" width="16" height="44" rx="8" fill="#4B5563"></rect>
-                <!-- face -->
-                <circle class="bot-eye" cx="82" cy="95" r="9" fill="#A7F3D0"></circle>
-                <circle class="bot-eye" cx="118" cy="95" r="9" fill="#A7F3D0"></circle>
-                <path d="M80 112 Q100 124 120 112" stroke="#E5E7EB" stroke-width="4" stroke-linecap="round" fill="none"></path>
-                <!-- antenna -->
-                <rect x="98" y="42" width="8" height="18" rx="4" fill="#0F172A"></rect>
-                <circle id="antenna" class="antennaLight" cx="102" cy="38" r="6" fill="#F59E0B"></circle>
+                <svg id="solace-svg" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g id="solace-body">
+                        <path d="M25 70C25 45.1472 45.1472 25 70 25C94.8528 25 115 45.1472 115 70V95C115 106.046 106.046 115 95 115H45C33.9543 115 25 106.046 25 95V70Z" fill="#0F172A"/>
+                        <circle id="solace-antenna-light" cx="70" cy="20" r="6" fill="#F59E0B"/>
+                        <rect x="67" y="22" width="6" height="8" rx="3" fill="#0F172A"/>
+                    </g>
+                     <g id="solace-leg-left" class="bot-leg" style="transform-origin: 50px 115px;">
+                        <rect x="40" y="110" width="20" height="25" rx="10" fill="#4B5563"/>
+                    </g>
+                    <g id="solace-leg-right" class="bot-leg" style="transform-origin: 90px 115px;">
+                        <rect x="80" y="110" width="20" height="25" rx="10" fill="#4B5563"/>
+                    </g>
+                    <g id="solace-face" style="transform-origin: center; transition: transform 0.2s ease;">
+                        <circle cx="55" cy="70" r="7" fill="#A7F3D0"/>
+                        <circle cx="85" cy="70" r="7" fill="#A7F3D0"/>
+                        <path d="M58 85C62.6667 91 77.3333 91 82 85" stroke="#E5E7EB" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    </g>
+                    <g id="solace-arm-left" class="bot-arm" style="transform-origin: 25px 70px;">
+                        <rect x="10" y="62" width="15" height="40" rx="7.5" fill="#4B5563"/>
+                    </g>
+                    <g id="solace-arm-right" class="bot-arm" style="transform-origin: 115px 70px;">
+                        <rect x="115" y="62" width="15" height="40" rx="7.5" fill="#4B5563"/>
+                    </g>
                 </svg>
             </div>
         </div>
-        <!-- click halo (separate hit area that never overlaps buttons) -->
-        <div id="botHalo" class="botHalo" title="Hi! Click me ✨"></div>
 
         <div class="relative">
-            <h1 class="text-2xl font-semibold">Welcome to Solace</h1>
+            <h1 id="hero-title" class="text-2xl font-semibold">Welcome to Solace</h1>
             <p class="text-sm text-neutral-600 mt-1">Ask about trainings, jobs, resources, or appointments.</p>
             <div class="mt-4 flex items-center justify-center gap-2">
                 <button id="startBtn" class="px-4 py-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800">Start Chat</button>
@@ -332,7 +242,7 @@
   </div>
 
   <!-- APP LAYOUT -->
-  <div class="h-screen grid grid-cols-1 md:grid-cols-[300px,1fr]">
+  <div id="app-container" class="h-screen grid grid-cols-1 md:grid-cols-[300px,1fr]">
     <!-- Mobile Backdrop -->
     <div id="backdrop" class="hidden md:hidden"></div>
     <!-- SIDEBAR -->
@@ -353,7 +263,6 @@
         <a href="https://www.njtransit.com/trip-planner-to" target="_blank" class="w-full flex items-center justify-between rounded-2xl px-3 py-2 border border-neutral-200 hover:bg-neutral-50"><span class="flex items-center gap-2"><i data-lucide="tram-front"></i>NJ TRANSIT Trip Planner</span><i data-lucide="chevron-right"></i></a>
       </div>
 
-      <!-- Recent with pencil + trash under header -->
       <div class="px-3 flex items-center justify-between mt-2">
         <div class="text-sm font-medium tracking-wide uppercase text-neutral-500">Recent</div>
         <div class="flex items-center gap-2 text-neutral-500">
@@ -362,15 +271,16 @@
         </div>
       </div>
       <div id="chatList" class="overflow-auto p-2 space-y-1"></div>
-      <div class="mt-auto p-3 text-xs text-neutral-400">v6.0 — The Solace Experience</div>
+      <div class="mt-auto p-3 text-xs text-neutral-400">v7.0 — The Final Cut</div>
     </aside>
 
     <!-- MAIN -->
-    <main class="flex flex-col min-h-0">
+    <main class="flex flex-col min-h-0 bg-white">
       <div class="sticky-tools bg-white border-b border-neutral-200">
         <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2">
           <button id="toggleMenu" class="md:hidden p-2 rounded-xl border border-neutral-200"><i data-lucide="sidebar"></i></button>
           <input id="chatTitle" class="flex-1 bg-transparent outline-none text-base font-medium" value="New chat" />
+          <button id="chatThemeBtn" class="p-2 rounded-xl border border-neutral-200" title="Toggle chat theme"><i data-lucide="palette"></i></button>
         </div>
       </div>
       <div id="messages" class="flex-1 overflow-auto"><div class="max-w-3xl mx-auto px-4 py-6 space-y-6" id="thread"></div></div>
@@ -465,7 +375,7 @@
                     <p><strong>Address:</strong> 72 1/2 Escher Street, Trenton, NJ 08609</p>
                     <p><strong>Phone:</strong> <a href="tel:609-695-5456" class="text-blue-600 hover:underline">(609)-695-5456</a></p>
                     <p><strong>Meal Hours:</strong></p>
-                    <ul>
+                    <ul class="list-disc pl-5">
                         <li><strong>Lunch:</strong> Monday – Saturday, 10:30 am – 1 pm</li>
                         <li><strong>Dinner:</strong> Monday – Thursday, 3:30 pm – 5 pm</li>
                     </ul>
@@ -475,10 +385,24 @@
                 keywords: ['crisis', 'suicide', 'help now'],
                 response: {html: `
                     <p>If you are in a crisis, please reach out. Help is available.</p>
-                    <ul>
+                    <ul class="list-disc pl-5">
                         <li><strong>National Suicide Prevention Lifeline:</strong> <a href="tel:988" class="text-blue-600 hover:underline">988</a></li>
                         <li><strong>Mercer County Crisis Intervention:</strong> <a href="tel:609-396-4357" class="text-blue-600 hover:underline">(609) 396-4357</a></li>
                     </ul>
+                `}
+            },
+            careertips: {
+                keywords: ['career tips', 'resume', 'interview'],
+                response: {html: `
+                    <p>Here are some career tips to help you on your journey:</p>
+                    <ul class="list-disc pl-5">
+                        <li><strong>Build a Strong Resume:</strong> Highlight your skills and experience clearly. Lead with results and use action verbs.</li>
+                        <li><strong>Practice Interview Skills:</strong> Prepare for common questions using the STAR method (Situation, Task, Action, Result). Show your enthusiasm!</li>
+                        <li><strong>Job Searching Smart:</strong> Apply on company websites when possible and never pay for equipment or send money.</li>
+                        <li><strong>Network:</strong> Connect with people in your desired field. Let people know you are looking for work.</li>
+                        <li><strong>Be Persistent:</strong> Job searching takes time and effort. Keep a positive attitude!</li>
+                    </ul>
+                    <p>For more detailed tips, check out our <a href="https://bycell.co/ddmui" target="_blank" class="text-blue-600 hover:underline">Career Tips page</a>.</p>
                 `}
             }
         };
@@ -764,6 +688,7 @@
     
     async function handleQuery(query) {
         if(!query) return;
+        playSendSound();
         $('#prompt').value='';
         await pushMessage('user', toHtmlParagraphs(query));
         
@@ -782,8 +707,8 @@
 
         if (analysis.emotion === 'angry' || analysis.emotion === 'frustrated') {
             calmingPrefix = analysis.language === 'es' ? 
-                "<p>Parece que estás pasando por un momento difícil. Estoy aquí para ayudarte.</p>" : 
-                "<p>It sounds like you're having a tough time. I'm here to help.</p>";
+                "<p>Entiendo tu frustración. Tomemos un respiro. Estoy aquí para ayudarte a encontrar una solución.</p>" : 
+                "<p>I understand your frustration. Let's take a breath. I'm here to help you find a solution.</p>";
         }
 
         const hit = matchHardcoded(query);
@@ -792,7 +717,7 @@
 
         if(hit){
             if(hit.html){ 
-                response = { html: chunkIfLong(toHtmlParagraphs(hit.html)), title: 'TASK (knowledge base)' };
+                response = { html: chunkIfLong(hit.html), title: 'TASK (knowledge base)' };
             } else if(hit.id==='training_program' && hit.program){ 
                 response = { html: formatProgramCard(hit.program), title: 'TASK (program details)' };
                 isCard = true;
@@ -808,19 +733,18 @@
         if(thinkingEl) thinkingEl.remove();
 
         await pushMessage('assistant', calmingPrefix + response.html, response.title, isCard);
+        playReceiveSound();
     }
     
-    $('#composer').addEventListener('submit', async (e) => {
+    $('#composer').addEventListener('submit', (e) => {
         e.preventDefault();
-        const q = ($('#prompt').value || '').trim();
-        handleQuery(q);
+        handleQuery(($('#prompt').value || '').trim());
     });
 
     $('#prompt').addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            const q = ($('#prompt').value || '').trim();
-            handleQuery(q);
+            $('#composer').requestSubmit();
         }
     });
 
@@ -836,13 +760,18 @@
       backdrop.classList.add('hidden');
     }
 
+     // Chat Theming
+    $('#chatThemeBtn').addEventListener('click', () => {
+        $('#app-container').classList.toggle('theme-dark');
+    });
+
     // --- Splash interactions + theme sky animation ---
     const splash=$('#splash'), sky=$('#sky'), shooting=$('#shooting');
-    const botWrap=$('#bot'), botBubble=$('#botBubble'), antenna=$('#antenna'), botHalo=$('#botHalo');
+    const botWrap=$('#bot'), botBubble=$('#botBubble');
     let themeIndex = 0;
     const themes = ['day', 'sunrise', 'sunset', 'dusk', 'night'];
     let meteorInterval = null;
-    let synth, mischiefTimeout;
+    let sendSynth, receiveSynth, mischiefTimeout, physicsLoop;
 
     const facts=[
       "Your resume is your ticket to an interview. Let's make it shine!",
@@ -858,16 +787,36 @@
     const initialPhrase = "Hello! I'm Solace. My job is to help you get ready for work, find work, and keep it. Let's begin!";
 
     // Sound generation
-    function playRobotSound() {
-        if (!synth) {
-            Tone.start();
-            synth = new Tone.Synth({
-                oscillator: { type: 'sine' },
-                envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 0.1 }
-            }).toDestination();
+    function playSendSound() {
+        if (!sendSynth) {
+            try {
+                if (Tone.context.state !== 'running') Tone.start();
+                sendSynth = new Tone.Synth({
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.005, decay: 0.2, sustain: 0.1, release: 0.2 },
+                    volume: -12
+                }).toDestination();
+            } catch(e) { console.warn("Audio context not started."); return; }
         }
-        const notes = ['C4', 'E4', 'G4', 'C5'];
-        synth.triggerAttackRelease(notes[Math.floor(Math.random() * notes.length)], '8n');
+        sendSynth.triggerAttackRelease('E5', '16n', Tone.now());
+    }
+    
+    function playReceiveSound() {
+        if (!receiveSynth) {
+            try {
+                if (Tone.context.state !== 'running') Tone.start();
+                 receiveSynth = new Tone.MetalSynth({
+                    frequency: 250,
+                    envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
+                    harmonicity: 5.1,
+                    modulationIndex: 32,
+                    resonance: 3000,
+                    octaves: 1.5,
+                    volume: -10
+                }).toDestination();
+            } catch(e) { console.warn("Audio context not started."); return; }
+        }
+        receiveSynth.triggerAttack(Tone.now());
     }
 
     function createRandomShootingStar() {
@@ -916,7 +865,7 @@
       shooting.innerHTML = '';
 
       if (theme === 'night' || theme === 'dusk') {
-        meteorInterval = setInterval(createRandomShootingStar, 4500);
+        meteorInterval = setInterval(createRandomShootingStar, 3000);
       }
     }
     
@@ -929,75 +878,129 @@
         return 'night';
     }
 
-    // Mischievous Robot Actions
-    function doMischief() {
-        const currentTheme = themes[themeIndex];
-        let availableActions = ['crashScreen', 'peekFromBottom', 'hangOnWords'];
+    // --- Robot Physics & Interaction Engine ---
+    let botState = { x: window.innerWidth / 2, y: window.innerHeight / 2, vx: 0, vy: 0, isDragging: false, isStunt: false };
+    let lastMouse = { x: 0, y: 0 };
+
+    function startDrag(e) {
+        botState.isDragging = true;
+        botWrap.style.transition = 'none';
+        lastMouse.x = e.clientX || e.touches[0].clientX;
+        lastMouse.y = e.clientY || e.touches[0].clientY;
+        if(mischiefTimeout) clearInterval(mischiefTimeout);
+        if(physicsLoop) cancelAnimationFrame(physicsLoop);
+    }
+
+    function drag(e) {
+        if (!botState.isDragging) return;
+        e.preventDefault();
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        botState.vx = (clientX - lastMouse.x) * 2;
+        botState.vy = (clientY - lastMouse.y) * 2;
+        botState.x += clientX - lastMouse.x;
+        botState.y += clientY - lastMouse.y;
+        lastMouse.x = clientX;
+        lastMouse.y = clientY;
+    }
+
+    function endDrag() {
+        if (!botState.isDragging) return;
+        botState.isDragging = false;
+        physicsLoop = requestAnimationFrame(updatePhysics);
+        mischiefTimeout = setInterval(doMischief, 10000);
+    }
+    
+    function updatePhysics() {
+        if(botState.isDragging || botState.isStunt) {
+            physicsLoop = requestAnimationFrame(updatePhysics);
+            return;
+        }
+
+        botState.x += botState.vx;
+        botState.y += botState.vy;
+
+        botState.vx *= 0.95; // friction
+        botState.vy *= 0.95;
+
+        if (botState.x < 80 || botState.x > window.innerWidth - 80) botState.vx *= -1.1;
+        if (botState.y < 80 || botState.y > window.innerHeight - 80) botState.vy *= -1.1;
+
+        botWrap.style.transform = `translate(${botState.x - botWrap.offsetWidth/2}px, ${botState.y - botWrap.offsetHeight/2}px) rotate(${botState.vx}deg)`;
         
+        physicsLoop = requestAnimationFrame(updatePhysics);
+    }
+    
+    function doMischief() {
+        if(botState.isDragging || botState.isStunt) return;
+        botState.isStunt = true;
+
+        const currentTheme = themes[themeIndex];
+        let availableActions = ['crashScreen', 'peekFromBottom', 'hangOnWords', 'disappearAndReappear'];
         if (currentTheme === 'day' || currentTheme === 'sunrise' || currentTheme === 'sunset') availableActions.push('grabSun', 'rideCloud');
         if (currentTheme === 'night' || currentTheme === 'dusk' || currentTheme === 'sunset') availableActions.push('swingConstellation');
         
         const action = availableActions[Math.floor(Math.random() * availableActions.length)];
-        botWrap.style.animationPlayState = 'paused';
-        botHalo.style.animationPlayState = 'paused';
+        let targetEl;
 
-        let targetTransform;
+        typeWriter(facts[Math.floor(Math.random()*facts.length)], 0);
+
         switch(action) {
-            case 'grabSun':
-                const sunEl = $('#sun');
-                if (sunEl) {
-                    const rect = sunEl.getBoundingClientRect();
-                    targetTransform = `translate(${rect.left + rect.width/2 - botWrap.offsetWidth/2}px, ${rect.top + rect.height/2 - botWrap.offsetHeight/2}px) scale(0.8) rotate(-15deg)`;
-                }
-                break;
-            case 'rideCloud':
-                const cloudEl = $('#cloud2');
-                 if(cloudEl) {
-                    const rect = cloudEl.getBoundingClientRect();
-                    targetTransform = `translate(${rect.left + rect.width/2 - botWrap.offsetWidth/2}px, ${rect.top - 20}px) scale(0.9)`;
-                 }
-                break;
-            case 'swingConstellation':
-                const constEl = $('#constellation1');
-                if(constEl) {
-                     const rect = constEl.getBoundingClientRect();
-                    targetTransform = `translate(${rect.left + rect.width - botWrap.offsetWidth/2}px, ${rect.top + rect.height/2 - botWrap.offsetHeight/2}px) scale(0.85) rotate(15deg)`;
-                }
-                break;
+            case 'grabSun': targetEl = $('#sun'); break;
+            case 'rideCloud': targetEl = $('#cloud2'); break;
+            case 'swingConstellation': targetEl = $('#constellation1'); break;
+            case 'hangOnWords': targetEl = $('#hero-title'); break;
             case 'crashScreen':
-                targetTransform = `translate(-50%, -50%) scale(2.5) rotate(10deg)`;
+                botState.x = window.innerWidth/2; botState.y = window.innerHeight/2;
+                botWrap.style.transition = 'transform 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55)';
+                botWrap.style.transform = `translate(${botState.x - botWrap.offsetWidth/2}px, ${botState.y - botWrap.offsetHeight/2}px) scale(2.5) rotate(10deg)`;
                 break;
             case 'peekFromBottom':
-                targetTransform = `translate(-50%, calc(50vh - 80px))`;
-                break;
-            case 'hangOnWords':
-                const titleEl = document.querySelector('#hero h1');
-                if (titleEl) {
-                    const rect = titleEl.getBoundingClientRect();
-                     targetTransform = `translate(${rect.left + rect.width/2 - botWrap.offsetWidth/2}px, ${rect.top - 100}px) scale(0.9) rotate(5deg)`;
-                }
+                 botState.x = window.innerWidth/2; botState.y = window.innerHeight;
+                 botWrap.style.transition = 'transform 1s ease-out';
+                 botWrap.style.transform = `translate(${botState.x - botWrap.offsetWidth/2}px, ${botState.y - 100}px)`;
+                 break;
+            case 'disappearAndReappear':
+                botWrap.style.transition = 'transform 0.5s ease-in, opacity 0.5s ease-in';
+                botWrap.style.transform += ' scale(0)';
+                botWrap.style.opacity = '0';
+                setTimeout(() => {
+                    botState.x = Math.random() * window.innerWidth;
+                    botState.y = Math.random() * window.innerHeight;
+                    botWrap.style.transform = `translate(${botState.x}px, ${botState.y}px) scale(0)`;
+                }, 500);
+                 setTimeout(() => {
+                    botWrap.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
+                    botWrap.style.transform = `translate(${botState.x - botWrap.offsetWidth/2}px, ${botState.y - botWrap.offsetHeight/2}px) scale(1)`;
+                    botWrap.style.opacity = '1';
+                }, 1000);
                 break;
         }
         
-        if (targetTransform) {
-            botWrap.style.transform = targetTransform;
-            setTimeout(() => {
-                if(action === 'hangOnWords') {
-                    // "slip"
-                    botWrap.style.transform += ' translateY(100vh) rotate(180deg)';
-                }
-            }, 2000);
-
-            setTimeout(() => {
-                botWrap.style.transform = '';
-                botWrap.style.animationPlayState = 'running';
-                botHalo.style.animationPlayState = 'running';
-            }, 3000); 
-        } else {
-             botWrap.style.animationPlayState = 'running';
-             botHalo.style.animationPlayState = 'running';
+        if (targetEl && action !== 'crashScreen' && action !== 'peekFromBottom' && action !== 'disappearAndReappear') {
+            const rect = targetEl.getBoundingClientRect();
+            botState.x = rect.left + rect.width / 2;
+            botState.y = rect.top + rect.height / 2;
+            botWrap.style.transition = 'transform 0.8s ease-out';
+            botWrap.style.transform = `translate(${botState.x - botWrap.offsetWidth/2}px, ${botState.y - botWrap.offsetHeight/2}px) scale(0.9)`;
         }
+        
+        setTimeout(() => {
+            if(action === 'hangOnWords') {
+                botWrap.style.transition = 'transform 1.5s ease-in';
+                botState.vy = 30; // "slip"
+            }
+            botWrap.style.transition = 'transform 0.8s ease-in-out';
+            botState.isStunt = false;
+        }, 3000);
     }
+    
+    botWrap.addEventListener('mousedown', startDrag);
+    botWrap.addEventListener('touchstart', startDrag, {passive: false});
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('touchmove', drag, {passive: false});
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
 
 
     $('#themeBtn').addEventListener('click', ()=>{ 
@@ -1007,33 +1010,9 @@
 
     $('#startBtn').addEventListener('click', ()=>{
       if(mischiefTimeout) clearTimeout(mischiefTimeout);
+      if(physicsLoop) cancelAnimationFrame(physicsLoop);
       splash.style.opacity='0';
       setTimeout(()=>{ splash.style.display='none'; }, 260);
-    });
-    
-    botHalo.addEventListener('click', ()=>{
-      playRobotSound();
-      if(antenna){ antenna.classList.add('ideaFlash'); setTimeout(()=>antenna.classList.remove('ideaFlash'), 900); }
-      typeWriter(facts[Math.floor(Math.random()*facts.length)], 0);
-      if(themes[themeIndex] === 'night'){ createRandomShootingStar(); }
-    });
-    
-    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-    let konamiIndex = 0;
-    document.addEventListener('keydown', (e) => {
-        if (splash.style.display === 'none') return;
-        if (e.key === konamiCode[konamiIndex]) {
-            konamiIndex++;
-            if (konamiIndex === konamiCode.length) {
-                konamiIndex = 0;
-                botWrap.classList.add('robot-secret-spin');
-                typeWriter("✨ Konami Power! ✨", 0);
-                playRobotSound();
-                setTimeout(() => botWrap.classList.remove('robot-secret-spin'), 1000);
-            }
-        } else {
-            konamiIndex = 0;
-        }
     });
     
     function typeWriter(text, i, onComplete) {
@@ -1074,8 +1053,9 @@
         setTimeout(() => {
             botBubble.classList.remove('hidden');
             typeWriter(initialPhrase, 0, () => {
-                mischiefTimeout = setInterval(doMischief, 12000);
-                animateBubblePosition(); // Start updating bubble position continuously
+                mischiefTimeout = setInterval(doMischief, 8000);
+                animateBubblePosition();
+                physicsLoop = requestAnimationFrame(updatePhysics);
             });
         }, 1000);
     }
