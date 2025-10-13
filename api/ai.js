@@ -54,41 +54,47 @@ export default async function handler(req, res) {
 
     // ---------- TIER 0: HARDCODED ----------
     const hard = matchHardcoded(prompt, {});
-    if (hard) {
-      // Program-aware training Q&A
-      if (hard.id === "training_program" && hard.program) {
-        const p = hard.program;
-        const q = classifyTrainingQ(prompt);
-        let text = "";
-        if (q === "who")       text = section(p.label, p.instructor || "TASK staff / partner instructors");
-        else if (q === "where")text = section(p.label, p.location || "Trenton Area Soup Kitchen (Escher St.)");
-        else if (q === "why")  text = section(p.label, p.purpose_outcomes || "Job training leading to industry credentials and referrals.");
-        else if (q === "howlong") {
-          text = section("Duration", p.duration) + section("Schedule", p.schedule);
-        } else if (q === "when") {
-          text = section("Next start", p.next_start_date || "TBD") + (p.app_window ? section("Application window", p.app_window) : "");
-          text += section("Schedule", p.schedule);
-        } else if (q === "cost") {
-          text = section("Cost", p.cost || "Free");
-        } else if (q === "eligibility") {
-          text = section("Eligibility", p.eligibility || "See application.");
-        } else {
-          // general summary card
-          text = [
-            `**${p.label}**`,
-            p.purpose_outcomes,
-            section("Location", p.location),
-            section("Schedule", p.schedule),
-            section("Duration", p.duration),
-            section("Eligibility", p.eligibility),
-            section("Cost", p.cost),
-            section("Next start", p.next_start_date || "TBD"),
-            p.app_window ? section("Application window", p.app_window) : "",
-            section("Apply", p.signup_link),
-            section("Contact", p.contact_info),
-            p.notes ? `\n${p.notes}\n` : ""
-          ].filter(Boolean).join("\n");
-        }
+   function prettyProgramCard(p, q) {
+  const hdr = `### ${p.label}\n`;
+  const line = (k, v) => v ? `**${k}:** ${v}\n` : "";
+  const wrap = (arr) => arr.filter(Boolean).join("\n");
+
+  switch (q) {
+    case "who": return wrap([hdr, line("Instructor", p.instructor)]);
+    case "where": return wrap([hdr, line("Location", p.location)]);
+    case "why": return wrap([hdr, line("Purpose", p.purpose_outcomes)]);
+    case "howlong": return wrap([hdr, line("Duration", p.duration), line("Schedule", p.schedule)]);
+    case "when":
+      return wrap([
+        hdr,
+        line("Next Start", p.next_start_date),
+        p.app_window ? line("Application Window", p.app_window) : "",
+        line("Schedule", p.schedule)
+      ]);
+    case "cost": return wrap([hdr, line("Cost", p.cost)]);
+    case "eligibility": return wrap([hdr, line("Eligibility", p.eligibility)]);
+    default:
+      return wrap([
+        hdr,
+        p.purpose_outcomes,
+        "",
+        "—",
+        "",
+        line("Location", p.location),
+        line("Schedule", p.schedule),
+        line("Duration", p.duration),
+        line("Eligibility", p.eligibility),
+        line("Cost", p.cost),
+        line("Next Start", p.next_start_date || "TBD"),
+        p.app_window ? line("Application Window", p.app_window) : "",
+        line("Apply", p.signup_link),
+        line("Contact", p.contact_info),
+        "",
+        p.notes ? `> ${p.notes}` : ""
+      ]);
+  }
+}
+
         // Employment-only numbers appear on employment intent; trainings don't add them by default.
 
         // Optional translate Tier-0 if user began in Spanish/Haitian
