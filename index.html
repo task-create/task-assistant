@@ -271,7 +271,7 @@
         </div>
       </div>
       <div id="chatList" class="overflow-auto p-2 space-y-1"></div>
-      <div class="mt-auto p-3 text-xs text-neutral-400">v7.0 — The Final Cut</div>
+      <div class="mt-auto p-3 text-xs text-neutral-400">v7.1 — Bug Fixes</div>
     </aside>
 
     <!-- MAIN -->
@@ -490,9 +490,9 @@
 
     try {
         const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-        if (firebaseConfigStr && firebaseConfigStr.length > 2) {
+        if (firebaseConfigStr && firebaseConfigStr.trim().length > 2) {
             const firebaseConfig = JSON.parse(firebaseConfigStr);
-            if(firebaseConfig.projectId) {
+            if (firebaseConfig.projectId) {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -514,12 +514,13 @@
                  throw new Error("projectId not found in Firebase config");
             }
         } else {
-            throw new Error("Firebase config not available");
+            throw new Error("Firebase config not provided");
         }
     } catch (e) {
         console.error("Firebase initialization failed. Chat history will not be saved.", e);
         $('#chatList').innerHTML = '<div class="p-3 text-xs text-red-500">Could not connect to database. Chat history will not be saved.</div>';
-        newChat(); // Initialize a local-only chat
+        isFirebaseEnabled = false;
+        newChat(); 
     }
 
     function loadUserChats() {
@@ -814,7 +815,7 @@
     function playSendSound() {
         if (!sendSynth) {
             try {
-                if (Tone.context.state !== 'running') Tone.start();
+                if (Tone.context.state !== 'running') { Tone.start(); }
                 sendSynth = new Tone.Synth({
                     oscillator: { type: 'triangle' },
                     envelope: { attack: 0.005, decay: 0.2, sustain: 0.1, release: 0.2 },
@@ -828,7 +829,7 @@
     function playReceiveSound() {
         if (!receiveSynth) {
             try {
-                if (Tone.context.state !== 'running') Tone.start();
+                if (Tone.context.state !== 'running') { Tone.start(); }
                  receiveSynth = new Tone.MetalSynth({
                     frequency: 250,
                     envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
@@ -1035,6 +1036,7 @@
     $('#startBtn').addEventListener('click', ()=>{
       if(mischiefTimeout) clearTimeout(mischiefTimeout);
       if(physicsLoop) cancelAnimationFrame(physicsLoop);
+      Tone.start().catch(e => console.warn("Could not start audio context on click:", e));
       splash.style.opacity='0';
       setTimeout(()=>{ splash.style.display='none'; }, 260);
     });
