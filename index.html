@@ -486,38 +486,44 @@
     let db, auth, userId, unsubscribe;
     let chats = {};
     let currentId = null;
+    let isFirebaseEnabled = false;
 
     try {
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
+        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        if (firebaseConfigStr && firebaseConfigStr.length > 2) {
+            const firebaseConfig = JSON.parse(firebaseConfigStr);
+            if(firebaseConfig.projectId) {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isFirebaseEnabled = true;
+
+                onAuthStateChanged(auth, async user => {
+                    if (user) {
+                        userId = user.uid;
+                        loadUserChats();
+                    }
+                });
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } else {
+                 throw new Error("projectId not found in Firebase config");
+            }
+        } else {
+            throw new Error("Firebase config not available");
+        }
     } catch (e) {
         console.error("Firebase initialization failed. Chat history will not be saved.", e);
-        // Fallback to in-memory state if firebase fails
-        $('#chatList').innerHTML = '<div class="p-3 text-xs text-red-500">Could not connect to database.</div>';
-    }
-    
-    onAuthStateChanged(auth, async user => {
-        if (user) {
-            userId = user.uid;
-            loadUserChats();
-        }
-    });
-
-    if (auth) {
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        } catch (error) {
-            console.error("Firebase auth failed:", error);
-        }
+        $('#chatList').innerHTML = '<div class="p-3 text-xs text-red-500">Could not connect to database. Chat history will not be saved.</div>';
+        newChat(); // Initialize a local-only chat
     }
 
     function loadUserChats() {
+        if (!isFirebaseEnabled || !userId) return;
         if (unsubscribe) unsubscribe();
         const chatsCollection = collection(db, `artifacts/${appId}/users/${userId}/chats`);
         const q = query(chatsCollection);
@@ -528,12 +534,7 @@
             });
             chats = newChats;
 
-            // Sort chats by createdAt timestamp (newest first)
-            const sortedChats = Object.values(chats).sort((a, b) => {
-                const timeA = a.createdAt?.seconds || 0;
-                const timeB = b.createdAt?.seconds || 0;
-                return timeB - timeA;
-            });
+            const sortedChats = Object.values(chats).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
             chats = sortedChats.reduce((acc, chat) => {
                 acc[chat.id] = chat;
@@ -572,49 +573,55 @@
 
     // State & rendering
     async function newChat(title='New chat'){
-      if (!db || !userId) {
-          console.warn("Firestore not available. Cannot create new chat.");
-          return;
+      if (isFirebaseEnabled && db && userId) {
+        const newChatRef = doc(collection(db, `artifacts/${appId}/users/${userId}/chats`));
+        const newChatData = {
+            id: newChatRef.id,
+            title: title,
+            messages: [],
+            createdAt: serverTimestamp()
+        };
+        await setDoc(newChatRef, newChatData);
+        currentId = newChatRef.id;
+        chats[currentId] = newChatData;
+      } else {
+        const id = `local-${Date.now()}`;
+        chats[id] = { id, title, messages: [], createdAt: new Date() };
+        currentId = id;
       }
-      const newChatRef = doc(collection(db, `artifacts/${appId}/users/${userId}/chats`));
-      const newChatData = {
-          id: newChatRef.id,
-          title: title,
-          messages: [],
-          createdAt: serverTimestamp()
-      };
-      await setDoc(newChatRef, newChatData);
-      currentId = newChatRef.id;
-      chats[currentId] = newChatData;
       selectChat(currentId);
     }
     function selectChat(id){ currentId=id; renderChatList(); renderThread(); }
     async function deleteCurrent(){ 
-        if(!currentId || !db || !userId) return; 
+        if(!currentId) return; 
         const oldId = currentId;
         delete chats[oldId];
-        const remainingChats = Object.values(chats).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const remainingChats = Object.values(chats).sort((a,b) => (b.createdAt?.seconds || b.createdAt) - (a.createdAt?.seconds || a.createdAt));
         currentId = remainingChats[0]?.id || null;
         if (!currentId) { newChat(); }
         renderChatList(); 
         renderThread();
-        await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, oldId));
+        if(isFirebaseEnabled && db && userId) {
+            await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, oldId));
+        }
     }
     async function renameCurrent(){ 
-        if(!currentId || !db || !userId) return; 
+        if(!currentId) return; 
         const chat = chats[currentId];
         const t = prompt('Rename chat to:', ($('#chatTitle').value||'').trim() || chat.title); 
         if(t){ 
             chat.title=t; 
             $('#chatTitle').value=t; 
             renderChatList(); 
-            await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId), { title: t });
+            if(isFirebaseEnabled && db && userId) {
+                await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId), { title: t });
+            }
         } 
     }
     function renderChatList(){ 
         const wrap=$('#chatList'); 
         wrap.innerHTML=''; 
-        const sorted = Object.values(chats).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const sorted = Object.values(chats).sort((a,b) => (b.createdAt?.seconds || b.createdAt) - (a.createdAt?.seconds || a.createdAt));
         sorted.forEach(c=>{ 
             const b=document.createElement('button'); 
             b.className=("w-full text-left px-3 py-2 rounded-2xl "+(c.id===currentId?'bg-orange-100':'hover:bg-neutral-50 border border-neutral-200')); 
@@ -654,9 +661,14 @@
       const chat = chats[currentId]; 
       const msg={role, html, title:title||'', isCard, timestamp: new Date().toISOString()}; 
       
-      const chatRef = doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId);
-      await updateDoc(chatRef, { messages: arrayUnion(msg) });
+      chat.messages.push(msg); // Update local state immediately
+
+      if (isFirebaseEnabled && db && userId) {
+        const chatRef = doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId);
+        await updateDoc(chatRef, { messages: arrayUnion(msg) });
+      }
       
+      renderThread();
       messagesEl.scrollTop=messagesEl.scrollHeight; 
     }
 
@@ -690,7 +702,7 @@
         if(!query) return;
         playSendSound();
         $('#prompt').value='';
-        await pushMessage('user', toHtmlParagraphs(query));
+        await pushMessage('user', toHtmlParagraphs(query), '', false);
         
         const chat = chats[currentId];
         if (chat && chat.messages && chat.messages.length <= 1) {
@@ -698,7 +710,9 @@
             chat.title = newTitle;
             $('#chatTitle').value = newTitle;
             renderChatList();
-            await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId), { title: newTitle });
+             if(isFirebaseEnabled && db && userId) {
+                await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId), { title: newTitle });
+            }
         }
         
         const thinkingId = renderThinking();
@@ -731,8 +745,18 @@
 
         const thinkingEl = $(`[data-msg-id="${thinkingId}"]`);
         if(thinkingEl) thinkingEl.remove();
-
-        await pushMessage('assistant', calmingPrefix + response.html, response.title, isCard);
+        
+        // Instead of pushing a new message, we update the local state and re-render
+        if(chat) {
+            const finalMsg = {role: 'assistant', html: calmingPrefix + response.html, title: response.title, isCard, timestamp: new Date().toISOString()};
+            chat.messages.push(finalMsg);
+            if (isFirebaseEnabled && db && userId) {
+                const chatRef = doc(db, `artifacts/${appId}/users/${userId}/chats`, currentId);
+                await updateDoc(chatRef, { messages: arrayUnion(finalMsg) });
+            }
+        }
+        
+        renderThread();
         playReceiveSound();
     }
     
@@ -1064,6 +1088,4 @@
   </script>
 </body>
 </html>
-
-
 
