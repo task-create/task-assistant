@@ -119,10 +119,24 @@
      }
 
     /* ROBOT */
-    .botWrap{position:absolute;left:50%;top:50%;width:140px;height:140px;margin-inline:auto;z-index:1; will-change: transform; transition: transform 0.8s ease-in-out, opacity 0.5s ease-in-out; cursor: grab; pointer-events: auto;}
+    .botWrap{position:absolute;left:50%;top:150%;width:140px;height:140px;margin-inline:auto;z-index:1; will-change: transform; transition: transform 0.8s ease-in-out, opacity 0.5s ease-in-out; cursor: grab; pointer-events: auto;}
     .botWrap:active { cursor: grabbing; }
     .bot{width:140px;height:140px; position:relative;}
     .bot-arm, .bot-leg { transition: transform 0.3s ease-out; }
+    #jetpack-flame {
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 60px;
+        background: radial-gradient(ellipse at bottom, #ffdb58, transparent);
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.2s;
+        filter: blur(5px);
+    }
+
     
     /* bubble */
     .botBubble {
@@ -203,6 +217,7 @@
         <div class="botWrap" id="bot">
             <div class="bot">
                 <div id="botBubble" class="botBubble bottom"></div>
+                <div id="jetpack-flame"></div>
                 <svg id="solace-svg" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="solace-body">
                         <path d="M25 70C25 45.1472 45.1472 25 70 25C94.8528 25 115 45.1472 115 70V95C115 106.046 106.046 115 95 115H45C33.9543 115 25 106.046 25 95V70Z" fill="#0F172A"/>
@@ -948,8 +963,24 @@
         botState.vx *= 0.95; // friction
         botState.vy *= 0.95;
 
-        if (botState.x < 80 || botState.x > window.innerWidth - 80) botState.vx *= -1.1;
-        if (botState.y < 80 || botState.y > window.innerHeight - 80) botState.vy *= -1.1;
+        // Bounce off walls with clamping
+        const padding = 80;
+        if (botState.x < padding) {
+            botState.x = padding;
+            botState.vx *= -0.8;
+        } else if (botState.x > window.innerWidth - padding) {
+            botState.x = window.innerWidth - padding;
+            botState.vx *= -0.8;
+        }
+
+        if (botState.y < padding) {
+            botState.y = padding;
+            botState.vy *= -0.8;
+        } else if (botState.y > window.innerHeight - padding) {
+            botState.y = window.innerHeight - padding;
+            botState.vy *= -0.8;
+        }
+
 
         botWrap.style.transform = `translate(${botState.x - botWrap.offsetWidth/2}px, ${botState.y - botWrap.offsetHeight/2}px) rotate(${botState.vx}deg)`;
         
@@ -1090,5 +1121,4 @@
   </script>
 </body>
 </html>
-
 
