@@ -1,5 +1,6 @@
 // /api/ai.js - Vercel Node.js Serverless Function
 
+// Using require for node-fetch as this is a Node.js serverless environment
 const fetch = require('node-fetch');
 
 // --- Environment Variables (Set these in your hosting provider's dashboard) ---
@@ -122,7 +123,7 @@ function formatProgramAnswer(p, type) {
 
 // --- Gemini API Call ---
 async function callGemini(payload) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
