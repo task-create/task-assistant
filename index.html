@@ -119,23 +119,20 @@
      }
 
     /* ROBOT */
-    .botWrap{position:absolute;left:50%;top:150%;width:140px;height:140px;margin-inline:auto;z-index:1; will-change: transform; transition: transform 0.8s ease-in-out, opacity 0.5s ease-in-out; cursor: grab; pointer-events: auto;}
+    .botWrap{position:absolute;left:50%;top:150%;width:140px;height:140px;margin-inline:auto;z-index:1; will-change: transform; transition: transform 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease-in-out; cursor: grab; pointer-events: auto;}
     .botWrap:active { cursor: grabbing; }
     .bot{width:140px;height:140px; position:relative;}
     .bot-arm, .bot-leg { transition: transform 0.3s ease-out; }
     #jetpack-flame {
-        position: absolute;
-        bottom: -25px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 40px;
-        height: 60px;
-        background: radial-gradient(ellipse at bottom, #ffdb58, transparent);
-        border-radius: 50%;
-        opacity: 0;
-        transition: opacity 0.2s;
+        position: absolute; bottom: 0px; left: 50%;
+        transform: translateX(-50%) scaleY(0); transform-origin: bottom;
+        width: 20px; height: 50px;
+        background: linear-gradient(to top, #ff8c00, #ffdb58, transparent);
+        border-radius: 50% 50% 10px 10px;
+        opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
         filter: blur(5px);
     }
+    .botWrap.is-flying #jetpack-flame { transform: translateX(-50%) scaleY(1); }
 
     
     /* bubble */
