@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 
 // --- Environment Variables (Set these in your hosting provider's dashboard) ---
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-latest';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 // --- Hardcoded Data & Logic (Moved from frontend) ---
 
