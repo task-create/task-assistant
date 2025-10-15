@@ -1,6 +1,8 @@
-// /api/ai.js
+// /api/ai.js  (Vercel Node function)
+const fetch = require('node-fetch');
+
 const KEY = process.env.GEMINI_API_KEY;
-const RAW_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const RAW_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 const MODEL = RAW_MODEL.startsWith("models/") ? RAW_MODEL : `models/${RAW_MODEL}`;
 
 function readJsonBody(req) {
@@ -24,39 +26,29 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = await readJsonBody(req);
-
-    // DEV: log what actually arrived (shows up in Vercel Logs)
-    console.log("[/api/ai] received body:", JSON.stringify(body));
+    console.log("[/api/ai] received body:", JSON.stringify(body)); // Vercel logs
 
     let { messages, system, prompt, input, temperature = 0.7, maxOutputTokens = 1024 } = body;
 
     // Build Gemini contents
     const contents = [];
-    if (system) {
-      contents.push({ role: "user", parts: [{ text: `SYSTEM:\n${String(system)}` }] });
-    }
+    if (system) contents.push({ role: "user", parts: [{ text: `SYSTEM:\n${String(system)}` }] });
 
     if (Array.isArray(messages) && messages.length) {
       for (const m of messages) {
-        const role = m.role === "assistant" ? "model" : "user";
-        contents.push({ role, parts: [{ text: String(m.content ?? "") }] });
+        contents.push({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: String(m.content ?? "") }]
+        });
       }
     } else {
       const text = String(prompt ?? input ?? "").trim();
-      if (!text) {
-        // Return what we saw to kill the mystery
-        return res.status(400).json({
-          error: "Missing prompt or messages",
-          saw: body
-        });
-      }
+      if (!text) return res.status(400).json({ error: "Missing prompt or messages", saw: body });
       contents.push({ role: "user", parts: [{ text }] });
     }
 
     const hasAnyText = contents.some(c => c.parts?.some(p => (p.text || "").trim()));
-    if (!hasAnyText) {
-      return res.status(400).json({ error: "Empty after normalization", saw: body });
-    }
+    if (!hasAnyText) return res.status(400).json({ error: "Empty after normalization", saw: body });
 
     const url = `https://generativelanguage.googleapis.com/v1beta/${MODEL}:generateContent?key=${encodeURIComponent(KEY)}`;
 
@@ -86,3 +78,4 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: e?.message || String(e) });
   }
 };
+
