@@ -3,9 +3,9 @@ const fetch = require('node-fetch');
 
 // --- Environment Variables (Set these in your hosting provider's dashboard) ---
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-latest';
 
-// --- Hardcoded Data & Logic ---
+// --- Hardcoded Data & Logic (Moved from frontend) ---
 
 // Tier-0a: Authoritative data for specific program Q&A
 const programsMap = [
@@ -72,67 +72,3 @@ function matchHardcoded(query) {
     }
     return null;
 }
-
-// --- Tiered Logic Helpers ---
-function findProgram(prompt = "") { return programsMap.find(p => p.keywords.some(k => prompt.toLowerCase().includes(k))); }
-function formatProgramAnswer(p) {
-    let text = `### ${p.name}\n\n`;
-    for(const [key, value] of Object.entries(p.details)) {
-        text += `**${key}:** ${value}\n\n`;
-    }
-    return text;
-}
-
-// --- Gemini API Call ---
-async function callGemini(payload) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-    const response = await fetch(url, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-    });
-    if (!response.ok) {
-        const error = await response.json();
-        console.error('Upstream API Error:', error);
-        throw new Error('Error from Gemini API');
-    }
-    return response.json();
-}
-
-// --- Main Handler ---
-module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST' });
-    if (!GEMINI_API_KEY) return res.status(500).json({ error: 'API key not configured on server.' });
-
-    try {
-        const { contents } = req.body;
-        const prompt = contents?.[0]?.parts?.[0]?.text || "";
-        if (!prompt) return res.status(400).json({ error: 'Missing prompt.' });
-
-        // Tier 0a: Program-specific Q&A
-        const prog = findProgram(prompt);
-        if (prog) {
-            const text = formatProgramAnswer(prog);
-            return res.status(200).json({ candidates: [{ content: { parts: [{ text }] } }], _source: `program:${prog.id}` });
-        }
-        
-        // Tier 0b: Hardcoded intents
-        const hard = matchHardcoded(prompt);
-        if (hard?.html) {
-             return res.status(200).json({ candidates: [{ content: { parts: [{ text: hard.html }] } }], _source: `intent:${hard.id}`});
-        }
-
-        // Tier 2: Gemini Fallback
-        const geminiResponse = await callGemini({ contents });
-        geminiResponse._source = 'gemini';
-        return res.status(200).json(geminiResponse);
-
-    } catch (err) {
-        console.error('Server-side error:', err);
-        return res.status(502).json({ error: 'Server-side processing failed.', detail: String(err) });
-    }
-};
-
-
